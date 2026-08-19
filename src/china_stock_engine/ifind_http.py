@@ -28,10 +28,19 @@ QUOTE_FIELDS = (
     "high",
     "low",
     "close",
+    "preClose",
+    "avgPrice",
     "volume",
     "amount",
+    "turnoverRatio",
     "changeRatio",
 )
+SECURITY_REFERENCE_FIELDS = (
+    "ths_sfssrq_stock",
+    "ths_total_shares_stock",
+    "ths_float_ashare_stock",
+)
+SSE_CALENDAR_CODE = "212001"
 
 Transport = Callable[
     [str, dict[str, str], dict[str, Any] | None, int], dict[str, Any]
@@ -62,7 +71,7 @@ def _default_transport(
     request.add_header("Accept", "application/json")
     request.add_header("Connection", "close")
     request.add_header("Content-Type", "application/json")
-    request.add_header("User-Agent", "china-stock-engine-ifind/0.1")
+    request.add_header("User-Agent", "china-stock-engine-ifind/0.2")
     for key, value in headers.items():
         request.add_header(key, value)
     try:
@@ -274,6 +283,147 @@ class IFindHTTPClient:
         )
         return _tables_frame(response)
 
+    def _security_reference_batch(
+        self, codes: Sequence[str], trade_date: str
+    ) -> pd.DataFrame:
+        compact_date = trade_date.replace("-", "")
+        response = self.request(
+            "basic_data_service",
+            {
+                "codes": ",".join(codes),
+                "indipara": [
+                    {"indicator": "ths_sfssrq_stock", "indiparams": []},
+                    {
+                        "indicator": "ths_total_shares_stock",
+                        "indiparams": [compact_date],
+                    },
+                    {
+                        "indicator": "ths_float_ashare_stock",
+                        "indiparams": [compact_date],
+                    },
+                ],
+            },
+        )
+        return _tables_frame(response)
+
+    def fetch_security_reference(
+        self,
+        codes: Sequence[str],
+        trade_date: str,
+        *,
+        batch_size: int = 100,
+        request_interval_seconds: float = 0.15,
+        progress: ProgressCallback | None = None,
+    ) -> pd.DataFrame:
+        """Fetch point-in-time listing and share-capital reference fields."""
+
+        normalized_codes = sorted(
+            {str(code).strip().upper() for code in codes if str(code).strip()}
+        )
+        if not normalized_codes:
+            return pd.DataFrame()
+        if batch_size < 1:
+            raise ValueError("batch_size must be positive")
+        if request_interval_seconds < 0:
+            raise ValueError("request interval cannot be negative")
+
+        batches = _chunks(normalized_codes, batch_size)
+        frames: list[pd.DataFrame] = []
+        last_request_at = 0.0
+
+        def query(batch: Sequence[str]) -> list[pd.DataFrame]:
+            nonlocal last_request_at
+            if request_interval_seconds and last_request_at:
+                remaining = request_interval_seconds - (time.monotonic() - last_request_at)
+                if remaining > 0:
+                    time.sleep(remaining)
+            last_request_at = time.monotonic()
+            try:
+                return [self._security_reference_batch(batch, trade_date)]
+            except IFindHTTPError as exc:
+                if "code -4210" not in str(exc) or len(batch) <= 1:
+                    raise
+                midpoint = len(batch) // 2
+                return query(batch[:midpoint]) + query(batch[midpoint:])
+
+        for index, batch in enumerate(batches, start=1):
+            frames.extend(query(batch))
+            if progress:
+                progress(index, len(batches))
+        frames = [frame for frame in frames if not frame.empty]
+        raw = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+        if raw.empty:
+            return raw
+        required = {"thscode", *SECURITY_REFERENCE_FIELDS}
+        missing = sorted(required.difference(raw.columns))
+        if missing:
+            raise IFindHTTPError(
+                "iFinD security reference response missing fields: "
+                + ", ".join(missing)
+            )
+        output = pd.DataFrame(
+            {
+                "as_of_date": trade_date,
+                "thscode": raw["thscode"].astype("string").str.upper().str.strip(),
+                "listing_date": _date_text(raw["ths_sfssrq_stock"]),
+                "total_shares": pd.to_numeric(
+                    raw["ths_total_shares_stock"], errors="coerce"
+                ),
+                "float_a_shares": pd.to_numeric(
+                    raw["ths_float_ashare_stock"], errors="coerce"
+                ),
+                "source_provider": "ifind_http",
+                "source_endpoint": "basic_data_service",
+            }
+        )
+        return output.drop_duplicates("thscode", keep="last").reset_index(drop=True)
+
+    def fetch_trade_calendar(
+        self,
+        as_of_date: str,
+        *,
+        offset: int = -10,
+        market_code: str = SSE_CALENDAR_CODE,
+    ) -> pd.DataFrame:
+        """Fetch an explicit SSE trading-date window ending at ``as_of_date``."""
+
+        if offset > 0:
+            raise ValueError("trade calendar offset must be zero or negative")
+        response = self.request(
+            "get_trade_dates",
+            {
+                "marketcode": market_code,
+                "functionpara": {
+                    "dateType": "0",
+                    "period": "D",
+                    "offset": str(offset),
+                    "dateFormat": "0",
+                    "output": "sequencedate",
+                },
+                "startdate": as_of_date,
+            },
+        )
+        raw = _tables_frame(response)
+        if "time" not in raw.columns:
+            raise IFindHTTPError("iFinD trade calendar response missing time")
+        output = pd.DataFrame(
+            {
+                "as_of_date": as_of_date,
+                "trade_date": _date_text(raw["time"]),
+                "calendar": "SSE",
+                "market_code": str(market_code),
+                "is_open": True,
+                "source_provider": "ifind_http",
+                "source_endpoint": "get_trade_dates",
+            }
+        )
+        return (
+            output.dropna(subset=["trade_date"])
+            .drop_duplicates("trade_date", keep="last")
+            .sort_values("trade_date")
+            .reset_index(drop=True)
+        )
+
     def fetch_daily_quotes(
         self,
         codes: Sequence[str],
@@ -343,8 +493,11 @@ class IFindHTTPClient:
             "high": "high",
             "low": "low",
             "close": "close",
+            "preClose": "pre_close",
+            "avgPrice": "avg_price",
             "volume": "volume",
             "amount": "amount",
+            "turnoverRatio": "turnover_ratio",
             "changeRatio": "change_ratio",
         }
         for source, target in rename.items():
@@ -364,5 +517,7 @@ __all__ = [
     "IFindHTTPError",
     "IFindHTTPTransientError",
     "QUOTE_FIELDS",
+    "SECURITY_REFERENCE_FIELDS",
+    "SSE_CALENDAR_CODE",
     "UNIVERSE_FIELDS",
 ]

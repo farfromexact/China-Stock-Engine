@@ -11,29 +11,27 @@ import pandas as pd
 
 
 UNIVERSE_COLUMNS = (
-    "as_of_date",
-    "thscode",
-    "security_name",
-    "security_name_in_time",
-    "exchange",
-    "board",
+    "as_of_date", "thscode", "security_name", "security_name_in_time", "exchange", "board",
+)
+REFERENCE_COLUMNS = (
+    "as_of_date", "thscode", "security_name", "exchange", "board", "listing_date",
+    "total_shares", "float_a_shares", "source_provider", "source_endpoint",
 )
 QUOTE_COLUMNS = (
-    "trade_date",
-    "thscode",
-    "security_name",
-    "exchange",
-    "board",
-    "open",
-    "high",
-    "low",
-    "close",
-    "volume",
-    "amount",
-    "change_ratio",
-    "source_provider",
-    "source_endpoint",
+    "trade_date", "thscode", "security_name", "exchange", "board", "open", "high",
+    "low", "close", "pre_close", "avg_price", "volume", "amount", "turnover_ratio",
+    "change_ratio", "source_provider", "source_endpoint",
 )
+CALENDAR_COLUMNS = (
+    "as_of_date", "trade_date", "calendar", "market_code", "is_open",
+    "source_provider", "source_endpoint",
+)
+STATUS_COLUMNS = (
+    "trade_date", "thscode", "security_name", "exchange", "board", "quote_row_present",
+    "has_price_observation", "has_turnover_observation", "observation_state",
+    "source_provider", "source_endpoint",
+)
+PRICE_COMPARISON_TOLERANCE = 1e-6
 
 
 @dataclass(frozen=True)
@@ -66,12 +64,17 @@ def board_from_code(thscode: str) -> str:
     return "UNKNOWN"
 
 
+def _normalized_date(values: pd.Series) -> pd.Series:
+    return pd.to_datetime(values.astype(str), errors="coerce").dt.strftime("%Y-%m-%d")
+
+
 def normalize_universe(frame: pd.DataFrame) -> pd.DataFrame:
     required = {"as_of_date", "thscode", "security_name", "security_name_in_time"}
     missing = sorted(required.difference(frame.columns))
     if missing:
         raise ValueError("universe missing columns: " + ", ".join(missing))
     output = frame.copy()
+    output["as_of_date"] = _normalized_date(output["as_of_date"])
     output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
     output["exchange"] = output["thscode"].map(exchange_from_code)
     output["board"] = output["thscode"].map(board_from_code)
@@ -84,28 +87,51 @@ def normalize_universe(frame: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def normalize_security_reference(
+    frame: pd.DataFrame, universe: pd.DataFrame
+) -> pd.DataFrame:
+    required = {
+        "as_of_date", "thscode", "listing_date", "total_shares", "float_a_shares",
+        "source_provider", "source_endpoint",
+    }
+    missing = sorted(required.difference(frame.columns))
+    if missing:
+        raise ValueError("security reference missing columns: " + ", ".join(missing))
+    metadata = universe.loc[:, ["thscode", "security_name", "exchange", "board"]]
+    output = frame.copy()
+    output["as_of_date"] = _normalized_date(output["as_of_date"])
+    output["listing_date"] = _normalized_date(output["listing_date"])
+    output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
+    output = output.merge(metadata, how="left", on="thscode", validate="many_to_one")
+    for column in ("total_shares", "float_a_shares"):
+        output[column] = pd.to_numeric(output[column], errors="coerce")
+    return (
+        output.loc[:, REFERENCE_COLUMNS]
+        .drop_duplicates("thscode", keep="last")
+        .sort_values("thscode")
+        .reset_index(drop=True)
+    )
+
+
 def normalize_quotes(frame: pd.DataFrame, universe: pd.DataFrame) -> pd.DataFrame:
     required = {
-        "trade_date",
-        "thscode",
-        "open",
-        "high",
-        "low",
-        "close",
-        "volume",
-        "amount",
-        "change_ratio",
-        "source_provider",
-        "source_endpoint",
+        "trade_date", "thscode", "open", "high", "low", "close", "pre_close",
+        "avg_price", "volume", "amount", "turnover_ratio", "change_ratio",
+        "source_provider", "source_endpoint",
     }
     missing = sorted(required.difference(frame.columns))
     if missing:
         raise ValueError("quotes missing columns: " + ", ".join(missing))
     metadata = universe.loc[:, ["thscode", "security_name", "exchange", "board"]]
     output = frame.copy()
+    output["trade_date"] = _normalized_date(output["trade_date"])
     output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
     output = output.merge(metadata, how="left", on="thscode", validate="many_to_one")
-    for column in ("open", "high", "low", "close", "volume", "amount", "change_ratio"):
+    numeric = (
+        "open", "high", "low", "close", "pre_close", "avg_price", "volume", "amount",
+        "turnover_ratio", "change_ratio",
+    )
+    for column in numeric:
         output[column] = pd.to_numeric(output[column], errors="coerce")
     return (
         output.loc[:, QUOTE_COLUMNS]
@@ -113,6 +139,51 @@ def normalize_quotes(frame: pd.DataFrame, universe: pd.DataFrame) -> pd.DataFram
         .sort_values("thscode")
         .reset_index(drop=True)
     )
+
+
+def normalize_trade_calendar(frame: pd.DataFrame) -> pd.DataFrame:
+    missing = sorted(set(CALENDAR_COLUMNS).difference(frame.columns))
+    if missing:
+        raise ValueError("trade calendar missing columns: " + ", ".join(missing))
+    output = frame.copy()
+    output["as_of_date"] = _normalized_date(output["as_of_date"])
+    output["trade_date"] = _normalized_date(output["trade_date"])
+    output["market_code"] = output["market_code"].astype("string")
+    output["is_open"] = output["is_open"].astype("boolean")
+    return (
+        output.loc[:, CALENDAR_COLUMNS]
+        .dropna(subset=["trade_date"])
+        .drop_duplicates(["calendar", "trade_date"], keep="last")
+        .sort_values(["calendar", "trade_date"])
+        .reset_index(drop=True)
+    )
+
+
+def build_daily_security_status(
+    universe: pd.DataFrame, quotes: pd.DataFrame, trade_date: str
+) -> pd.DataFrame:
+    """Build observation states without claiming that missing quotes are suspensions."""
+
+    observed = quotes.loc[:, ["thscode", "close", "volume", "amount"]].copy()
+    observed["quote_row_present"] = True
+    output = universe.loc[
+        :, ["thscode", "security_name", "exchange", "board"]
+    ].merge(observed, how="left", on="thscode", validate="one_to_one")
+    output["quote_row_present"] = output["quote_row_present"].fillna(False).astype(bool)
+    output["has_price_observation"] = output["close"].notna()
+    output["has_turnover_observation"] = (
+        output["volume"].fillna(0).gt(0) & output["amount"].fillna(0).gt(0)
+    )
+    output["observation_state"] = "no_quote_observed"
+    output.loc[
+        output["quote_row_present"] & ~output["has_turnover_observation"],
+        "observation_state",
+    ] = "quote_without_turnover"
+    output.loc[output["has_turnover_observation"], "observation_state"] = "traded"
+    output["trade_date"] = trade_date
+    output["source_provider"] = "derived"
+    output["source_endpoint"] = "universe+cmd_history_quotation"
+    return output.loc[:, STATUS_COLUMNS].sort_values("thscode").reset_index(drop=True)
 
 
 def frame_hash(frame: pd.DataFrame, sort_columns: list[str]) -> str:
@@ -129,98 +200,228 @@ def schema_signature(frame: pd.DataFrame) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _coverage(frame: pd.DataFrame, column: str) -> float:
+    if frame.empty or column not in frame.columns:
+        return 0.0
+    return float(frame[column].notna().mean())
+
+
 def validate_data(
     universe: pd.DataFrame,
+    security_reference: pd.DataFrame,
     quotes: pd.DataFrame,
+    trading_calendar: pd.DataFrame,
+    daily_status: pd.DataFrame,
     requested_trade_date: str,
     *,
     min_universe_size: int = 5000,
     min_quote_coverage: float = 0.98,
+    min_reference_coverage: float = 0.98,
+    min_extended_field_coverage: float = 0.95,
 ) -> QualityReport:
     errors: list[str] = []
-    universe_codes = set(universe.get("thscode", pd.Series(dtype=str)).dropna().astype(str))
-    quote_codes = set(quotes.get("thscode", pd.Series(dtype=str)).dropna().astype(str))
+    codes = lambda frame: set(
+        frame.get("thscode", pd.Series(dtype=str)).dropna().astype(str)
+    )
+    universe_codes = codes(universe)
+    reference_codes = codes(security_reference)
+    quote_codes = codes(quotes)
+    status_codes = codes(daily_status)
     universe_count = len(universe_codes)
+    reference_count = len(reference_codes)
     quote_count = len(quote_codes)
-    coverage = quote_count / universe_count if universe_count else 0.0
+    quote_coverage = quote_count / universe_count if universe_count else 0.0
+    reference_coverage = reference_count / universe_count if universe_count else 0.0
 
     universe_duplicates = int(universe.duplicated("thscode").sum()) if not universe.empty else 0
-    quote_duplicates = (
-        int(quotes.duplicated(["trade_date", "thscode"]).sum()) if not quotes.empty else 0
+    reference_duplicates = int(security_reference.duplicated("thscode").sum()) if not security_reference.empty else 0
+    quote_duplicates = int(quotes.duplicated(["trade_date", "thscode"]).sum()) if not quotes.empty else 0
+    status_duplicates = int(daily_status.duplicated(["trade_date", "thscode"]).sum()) if not daily_status.empty else 0
+
+    def unique_dates(frame: pd.DataFrame, column: str) -> list[str]:
+        return sorted(frame.get(column, pd.Series(dtype=str)).dropna().astype(str).unique().tolist())
+
+    universe_dates = unique_dates(universe, "as_of_date")
+    reference_dates = unique_dates(security_reference, "as_of_date")
+    quote_dates = unique_dates(quotes, "trade_date")
+    status_dates = unique_dates(daily_status, "trade_date")
+    calendar_as_of_dates = unique_dates(trading_calendar, "as_of_date")
+    open_mask = trading_calendar["is_open"].fillna(False).astype(bool)
+    open_calendar_dates = set(
+        trading_calendar.loc[open_mask, "trade_date"].dropna().astype(str)
     )
-    universe_dates = sorted(
-        universe.get("as_of_date", pd.Series(dtype=str)).dropna().astype(str).unique().tolist()
-    )
-    quote_dates = sorted(
-        quotes.get("trade_date", pd.Series(dtype=str)).dropna().astype(str).unique().tolist()
-    )
-    universe_exchanges = sorted(
-        universe.get("exchange", pd.Series(dtype=str)).dropna().astype(str).unique().tolist()
-    )
-    quote_exchanges = sorted(
-        quotes.get("exchange", pd.Series(dtype=str)).dropna().astype(str).unique().tolist()
-    )
+    universe_exchanges = unique_dates(universe, "exchange")
+    quote_exchanges = unique_dates(quotes, "exchange")
 
     complete_ohlc = quotes[["open", "high", "low", "close"]].notna().all(axis=1)
     ohlc = quotes.loc[complete_ohlc, ["open", "high", "low", "close"]]
     ohlc_invalid = int(
-        (
-            (ohlc["high"] < ohlc[["open", "low", "close"]].max(axis=1))
-            | (ohlc["low"] > ohlc[["open", "high", "close"]].min(axis=1))
-        ).sum()
+        ((ohlc["high"] < ohlc[["open", "low", "close"]].max(axis=1))
+         | (ohlc["low"] > ohlc[["open", "high", "close"]].min(axis=1))).sum()
     )
+    nonpositive_prices = int(sum(
+        (quotes[column].dropna() <= 0).sum()
+        for column in ("open", "high", "low", "close", "pre_close")
+    ))
     negative_volume = int((quotes["volume"].dropna() < 0).sum())
     negative_amount = int((quotes["amount"].dropna() < 0).sum())
-    unknown_quote_codes = sorted(quote_codes.difference(universe_codes))
+    negative_turnover = int((quotes["turnover_ratio"].dropna() < 0).sum())
+    avg_comparable = (
+        quotes[["avg_price", "low", "high"]].notna().all(axis=1)
+        & quotes["volume"].fillna(0).gt(0)
+    )
+    avg_outside_range = int((
+        (
+            quotes.loc[avg_comparable, "avg_price"]
+            < quotes.loc[avg_comparable, "low"] - PRICE_COMPARISON_TOLERANCE
+        )
+        | (
+            quotes.loc[avg_comparable, "avg_price"]
+            > quotes.loc[avg_comparable, "high"] + PRICE_COMPARISON_TOLERANCE
+        )
+    ).sum())
+    change_comparable = (
+        quotes[["close", "pre_close", "change_ratio"]].notna().all(axis=1)
+        & quotes["pre_close"].gt(0)
+    )
+    expected_change = (
+        quotes.loc[change_comparable, "close"]
+        / quotes.loc[change_comparable, "pre_close"] - 1
+    ) * 100
+    change_ratio_inconsistent = int((
+        quotes.loc[change_comparable, "change_ratio"].sub(expected_change).abs() > 0.06
+    ).sum())
+
+    listing_dates = pd.to_datetime(security_reference["listing_date"], errors="coerce")
+    future_listing_dates = int((listing_dates > pd.Timestamp(requested_trade_date)).sum())
+    negative_total_shares = int((security_reference["total_shares"].dropna() < 0).sum())
+    negative_float_shares = int((security_reference["float_a_shares"].dropna() < 0).sum())
+    share_comparable = security_reference[["total_shares", "float_a_shares"]].notna().all(axis=1)
+    float_exceeds_total = int((
+        security_reference.loc[share_comparable, "float_a_shares"]
+        > security_reference.loc[share_comparable, "total_shares"] + 1e-6
+    ).sum())
+
+    quote_field_coverage = {
+        field: round(_coverage(quotes, field), 6)
+        for field in ("pre_close", "avg_price", "turnover_ratio")
+    }
+    reference_field_coverage = {
+        field: round(_coverage(security_reference, field), 6)
+        for field in ("listing_date", "total_shares", "float_a_shares")
+    }
+    status_quote_codes = set(
+        daily_status.loc[
+            daily_status["quote_row_present"].fillna(False).astype(bool), "thscode"
+        ].astype(str)
+    )
+    allowed_states = {"traded", "quote_without_turnover", "no_quote_observed"}
+    observed_states = set(daily_status["observation_state"].dropna().astype(str))
+    state_counts = {
+        str(key): int(value)
+        for key, value in daily_status.groupby("observation_state", dropna=False).size().items()
+    }
 
     if universe_count < min_universe_size:
-        errors.append(
-            f"universe_count {universe_count} below minimum {min_universe_size}"
-        )
-    if coverage < min_quote_coverage:
-        errors.append(
-            f"quote_coverage {coverage:.4f} below minimum {min_quote_coverage:.4f}"
-        )
-    if universe_dates != [requested_trade_date]:
-        errors.append(
-            f"universe source dates {universe_dates} do not match {requested_trade_date}"
-        )
-    if quote_dates != [requested_trade_date]:
-        errors.append(f"quote source dates {quote_dates} do not match {requested_trade_date}")
+        errors.append(f"universe_count {universe_count} below minimum {min_universe_size}")
+    if quote_coverage < min_quote_coverage:
+        errors.append(f"quote_coverage {quote_coverage:.4f} below minimum {min_quote_coverage:.4f}")
+    if reference_coverage < min_reference_coverage:
+        errors.append(f"reference_coverage {reference_coverage:.4f} below minimum {min_reference_coverage:.4f}")
+    for field, coverage in quote_field_coverage.items():
+        if coverage < min_extended_field_coverage:
+            errors.append(f"{field}_coverage {coverage:.4f} below minimum {min_extended_field_coverage:.4f}")
+    for field, coverage in reference_field_coverage.items():
+        if coverage < min_extended_field_coverage:
+            errors.append(f"{field}_coverage {coverage:.4f} below minimum {min_extended_field_coverage:.4f}")
+    for label, dates in (
+        ("universe", universe_dates), ("security reference", reference_dates),
+        ("quote", quote_dates), ("daily status", status_dates),
+        ("calendar as-of", calendar_as_of_dates),
+    ):
+        if dates != [requested_trade_date]:
+            errors.append(f"{label} source dates {dates} do not match {requested_trade_date}")
+    if requested_trade_date not in open_calendar_dates:
+        errors.append(f"requested date {requested_trade_date} is not open in SSE calendar")
     required_exchanges = {"SSE", "SZSE", "BSE"}
     if not required_exchanges.issubset(set(universe_exchanges)):
         errors.append("universe does not cover SSE, SZSE, and BSE")
     if not required_exchanges.issubset(set(quote_exchanges)):
         errors.append("quotes do not cover SSE, SZSE, and BSE")
-    if universe_duplicates:
-        errors.append(f"universe contains {universe_duplicates} duplicate codes")
-    if quote_duplicates:
-        errors.append(f"quotes contain {quote_duplicates} duplicate code/date rows")
-    if unknown_quote_codes:
-        errors.append(f"quotes contain {len(unknown_quote_codes)} codes outside universe")
-    if ohlc_invalid:
-        errors.append(f"quotes contain {ohlc_invalid} invalid OHLC rows")
-    if negative_volume:
-        errors.append(f"quotes contain {negative_volume} negative volume rows")
-    if negative_amount:
-        errors.append(f"quotes contain {negative_amount} negative amount rows")
+    for count, message in (
+        (universe_duplicates, "universe contains {} duplicate codes"),
+        (reference_duplicates, "security reference contains {} duplicate codes"),
+        (quote_duplicates, "quotes contain {} duplicate code/date rows"),
+        (status_duplicates, "daily status contains {} duplicate code/date rows"),
+    ):
+        if count:
+            errors.append(message.format(count))
+    if quote_codes - universe_codes:
+        errors.append(f"quotes contain {len(quote_codes - universe_codes)} codes outside universe")
+    if reference_codes - universe_codes:
+        errors.append(f"security reference contains {len(reference_codes - universe_codes)} codes outside universe")
+    if universe_codes - status_codes or status_codes - universe_codes:
+        errors.append(
+            "daily status universe mismatch: "
+            f"missing={len(universe_codes - status_codes)}, extra={len(status_codes - universe_codes)}"
+        )
+    if status_quote_codes != quote_codes:
+        errors.append("daily status quote_row_present does not match quote codes")
+    if not observed_states.issubset(allowed_states):
+        errors.append("daily status contains unsupported observation states")
+    for count, message in (
+        (ohlc_invalid, "quotes contain {} invalid OHLC rows"),
+        (nonpositive_prices, "quotes contain {} nonpositive price values"),
+        (negative_volume, "quotes contain {} negative volume rows"),
+        (negative_amount, "quotes contain {} negative amount rows"),
+        (negative_turnover, "quotes contain {} negative turnover rows"),
+        (avg_outside_range, "quotes contain {} average prices outside daily range"),
+        (change_ratio_inconsistent, "quotes contain {} inconsistent change-ratio rows"),
+        (future_listing_dates, "security reference contains {} future listing dates"),
+        (negative_total_shares, "security reference contains {} negative total shares"),
+        (negative_float_shares, "security reference contains {} negative float shares"),
+        (float_exceeds_total, "security reference contains {} float shares above total shares"),
+    ):
+        if count:
+            errors.append(message.format(count))
 
     metrics: dict[str, Any] = {
         "requested_trade_date": requested_trade_date,
         "universe_count": universe_count,
+        "reference_count": reference_count,
         "quote_count": quote_count,
-        "quote_coverage": round(coverage, 6),
+        "status_count": len(status_codes),
+        "quote_coverage": round(quote_coverage, 6),
+        "reference_coverage": round(reference_coverage, 6),
+        "quote_field_coverage": quote_field_coverage,
+        "reference_field_coverage": reference_field_coverage,
         "universe_dates": universe_dates,
+        "reference_dates": reference_dates,
         "quote_dates": quote_dates,
+        "status_dates": status_dates,
+        "calendar_as_of_dates": calendar_as_of_dates,
+        "calendar_open_dates": sorted(open_calendar_dates),
         "universe_exchanges": universe_exchanges,
         "quote_exchanges": quote_exchanges,
         "universe_duplicates": universe_duplicates,
+        "reference_duplicates": reference_duplicates,
         "quote_duplicates": quote_duplicates,
-        "unknown_quote_codes": len(unknown_quote_codes),
+        "status_duplicates": status_duplicates,
+        "unknown_quote_codes": len(quote_codes - universe_codes),
+        "unknown_reference_codes": len(reference_codes - universe_codes),
         "complete_ohlc_rows": int(complete_ohlc.sum()),
         "invalid_ohlc_rows": ohlc_invalid,
+        "nonpositive_price_values": nonpositive_prices,
         "negative_volume_rows": negative_volume,
         "negative_amount_rows": negative_amount,
+        "negative_turnover_rows": negative_turnover,
+        "average_price_outside_range_rows": avg_outside_range,
+        "change_ratio_inconsistent_rows": change_ratio_inconsistent,
+        "future_listing_date_rows": future_listing_dates,
+        "negative_total_shares_rows": negative_total_shares,
+        "negative_float_shares_rows": negative_float_shares,
+        "float_exceeds_total_rows": float_exceeds_total,
+        "observation_state_counts": state_counts,
     }
     return QualityReport(ok=not errors, metrics=metrics, errors=errors)
 
@@ -231,7 +432,11 @@ def _number(value: Any) -> float | None:
     return float(value)
 
 
-def build_market_summary(quotes: pd.DataFrame, trade_date: str) -> dict[str, Any]:
+def build_market_summary(
+    quotes: pd.DataFrame,
+    trade_date: str,
+    daily_status: pd.DataFrame | None = None,
+) -> dict[str, Any]:
     changes = pd.to_numeric(quotes["change_ratio"], errors="coerce").dropna()
     amounts = pd.to_numeric(quotes["amount"], errors="coerce").dropna()
     exchange_counts = {
@@ -242,8 +447,14 @@ def build_market_summary(quotes: pd.DataFrame, trade_date: str) -> dict[str, Any
         str(key): int(value)
         for key, value in quotes.groupby("board", dropna=False).size().items()
     }
+    state_counts: dict[str, int] = {}
+    if daily_status is not None:
+        state_counts = {
+            str(key): int(value)
+            for key, value in daily_status.groupby("observation_state", dropna=False).size().items()
+        }
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "trade_date": trade_date,
         "quoted_securities": int(quotes["thscode"].nunique()),
         "advancers": int((changes > 0).sum()),
@@ -256,15 +467,14 @@ def build_market_summary(quotes: pd.DataFrame, trade_date: str) -> dict[str, Any
         "total_amount": _number(amounts.sum()),
         "exchange_quote_counts": exchange_counts,
         "board_quote_counts": board_counts,
+        "observation_state_counts": state_counts,
     }
 
 
 __all__ = [
-    "QualityReport",
-    "build_market_summary",
-    "frame_hash",
-    "normalize_quotes",
-    "normalize_universe",
-    "schema_signature",
-    "validate_data",
+    "CALENDAR_COLUMNS", "PRICE_COMPARISON_TOLERANCE", "QUOTE_COLUMNS",
+    "REFERENCE_COLUMNS", "STATUS_COLUMNS",
+    "QualityReport", "build_daily_security_status", "build_market_summary", "frame_hash",
+    "normalize_quotes", "normalize_security_reference", "normalize_trade_calendar",
+    "normalize_universe", "schema_signature", "validate_data",
 ]

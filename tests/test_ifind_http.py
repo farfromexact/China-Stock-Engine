@@ -32,6 +32,32 @@ class FakeTransport:
                     }
                 ],
             }
+        if endpoint == "basic_data_service":
+            codes = payload["codes"].split(",")
+            return {
+                "errorcode": 0,
+                "tables": [
+                    {
+                        "thscode": code,
+                        "table": {
+                            "ths_sfssrq_stock": ["19910403"],
+                            "ths_total_shares_stock": [1000000],
+                            "ths_float_ashare_stock": [800000],
+                        },
+                    }
+                    for code in codes
+                ],
+            }
+        if endpoint == "get_trade_dates":
+            return {
+                "errorcode": 0,
+                "tables": [
+                    {
+                        "time": ["2026-08-14", "2026-08-17", "2026-08-18"],
+                        "table": {},
+                    }
+                ],
+            }
         if endpoint == "cmd_history_quotation":
             codes = payload["codes"].split(",")
             return {
@@ -45,8 +71,11 @@ class FakeTransport:
                             "high": [11.0],
                             "low": [9.0],
                             "close": [10.5],
+                            "preClose": [10.0],
+                            "avgPrice": [10.2],
                             "volume": [1000],
                             "amount": [10000],
+                            "turnoverRatio": [1.5],
                             "changeRatio": [1.2],
                         },
                     }
@@ -84,6 +113,25 @@ class IFindHTTPClientTests(unittest.TestCase):
             call for call in transport.calls if call[0].endswith("cmd_history_quotation")
         ]
         self.assertEqual(len(quote_calls), 2)
+
+    def test_reference_and_calendar_are_normalized(self) -> None:
+        transport = FakeTransport()
+        client = IFindHTTPClient(refresh_token="refresh-secret", transport=transport)
+        reference = client.fetch_security_reference(
+            ["600000.SH", "000001.SZ"],
+            "2026-08-18",
+            batch_size=1,
+            request_interval_seconds=0,
+        )
+        calendar = client.fetch_trade_calendar("2026-08-18", offset=-2)
+        self.assertEqual(len(reference), 2)
+        self.assertEqual(set(reference["listing_date"]), {"1991-04-03"})
+        self.assertEqual(set(reference["source_endpoint"]), {"basic_data_service"})
+        self.assertEqual(
+            calendar["trade_date"].tolist(),
+            ["2026-08-14", "2026-08-17", "2026-08-18"],
+        )
+        self.assertTrue(calendar["is_open"].all())
 
     def test_api_error_does_not_include_credentials(self) -> None:
         def failing(url: str, headers: dict, payload: dict | None, timeout: int) -> dict:

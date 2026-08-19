@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
+from .dashboard import build_dashboard
 from .ifind_http import IFindHTTPClient, QUOTE_FIELDS
 from .pipeline import CollectionConfig, collect_and_publish, validate_latest
 
@@ -51,10 +52,19 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--prompt-token", action="store_true")
     run.add_argument("--min-universe-size", type=int, default=5000)
     run.add_argument("--min-quote-coverage", type=float, default=0.98)
+    run.add_argument("--min-reference-coverage", type=float, default=0.98)
+    run.add_argument("--min-extended-field-coverage", type=float, default=0.95)
+    run.add_argument("--reference-batch-size", type=int, default=100)
     run.add_argument("--batch-size", type=int, default=300)
 
     validate = subparsers.add_parser("validate", help="validate the latest snapshot")
     validate.add_argument("--data-dir", type=Path, default=Path("data"))
+
+    dashboard = subparsers.add_parser(
+        "dashboard", help="build an offline HTML dashboard from latest"
+    )
+    dashboard.add_argument("--data-dir", type=Path, default=Path("data"))
+    dashboard.add_argument("--output", type=Path)
     return parser
 
 
@@ -70,6 +80,20 @@ def _client(args: argparse.Namespace) -> IFindHTTPClient:
 def _probe(args: argparse.Namespace) -> int:
     client = _client(args)
     try:
+        calendar = client.fetch_trade_calendar(args.date, offset=-3)
+        calendar_dates = sorted(
+            calendar.get("trade_date", pd.Series(dtype=str))
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+        reference = client.fetch_security_reference(
+            [str(args.code).upper()],
+            args.date,
+            batch_size=1,
+            request_interval_seconds=0,
+        )
         frame = client.fetch_daily_quotes(
             [str(args.code).upper()],
             args.date,
@@ -90,17 +114,32 @@ def _probe(args: argparse.Namespace) -> int:
                 "high": "high",
                 "low": "low",
                 "close": "close",
+                "preClose": "pre_close",
+                "avgPrice": "avg_price",
                 "volume": "volume",
                 "amount": "amount",
+                "turnoverRatio": "turnover_ratio",
                 "changeRatio": "change_ratio",
             }.items()
         }
-        ok = len(frame) > 0 and args.date in source_dates
+        reference_non_null = {
+            field: int(reference.get(field, pd.Series(dtype=object)).notna().sum())
+            for field in ("listing_date", "total_shares", "float_a_shares")
+        }
+        calendar_ok = args.date in calendar_dates
+        reference_ok = len(reference) == 1 and all(reference_non_null.values())
+        quote_ok = len(frame) > 0 and args.date in source_dates
+        ok = calendar_ok and reference_ok and quote_ok
         payload = {
             "auth_ok": bool(client.access_token),
-            "quote_ok": ok,
+            "calendar_ok": calendar_ok,
+            "reference_ok": reference_ok,
+            "quote_ok": quote_ok,
             "requested_code": str(args.code).upper(),
             "requested_trade_date": args.date,
+            "calendar_dates": calendar_dates,
+            "reference_rows": int(len(reference)),
+            "reference_non_null_fields": reference_non_null,
             "rows": int(len(frame)),
             "source_dates": source_dates,
             "requested_fields": list(QUOTE_FIELDS),
@@ -130,15 +169,39 @@ def _run(args: argparse.Namespace) -> int:
         data_dir=args.data_dir,
         min_universe_size=args.min_universe_size,
         min_quote_coverage=args.min_quote_coverage,
+        min_reference_coverage=args.min_reference_coverage,
+        min_extended_field_coverage=args.min_extended_field_coverage,
+        reference_batch_size=args.reference_batch_size,
         quote_batch_size=args.batch_size,
     )
 
-    def progress(done: int, total: int) -> None:
-        print(f"iFinD quote batches: {done}/{total}", flush=True)
+    def progress(phase: str, done: int, total: int) -> None:
+        print(f"iFinD {phase} batches: {done}/{total}", flush=True)
 
     result = collect_and_publish(client, args.date, config=config, progress=progress)
     print(json.dumps(result.status, ensure_ascii=False, indent=2))
     return 0 if result.ok else 1
+
+
+def _dashboard(args: argparse.Namespace) -> int:
+    ok, validation = validate_latest(data_dir=args.data_dir)
+    if not ok:
+        print(json.dumps(validation, ensure_ascii=False, indent=2))
+        return 1
+    output = args.output or args.data_dir / "latest" / "market_dashboard.html"
+    built = build_dashboard(args.data_dir, output)
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "trade_date": validation.get("trade_date"),
+                "output": str(built.resolve()),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -151,6 +214,8 @@ def main(argv: list[str] | None = None) -> int:
         ok, payload = validate_latest(data_dir=args.data_dir)
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0 if ok else 1
+    if args.command == "dashboard":
+        return _dashboard(args)
     raise RuntimeError(f"unsupported command: {args.command}")
 
 

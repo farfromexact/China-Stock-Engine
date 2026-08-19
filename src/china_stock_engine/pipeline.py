@@ -6,15 +6,18 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import pandas as pd
 
 from .ifind_http import IFindHTTPClient
 from .quality import (
+    build_daily_security_status,
     build_market_summary,
     frame_hash,
     normalize_quotes,
+    normalize_security_reference,
+    normalize_trade_calendar,
     normalize_universe,
     schema_signature,
     validate_data,
@@ -22,13 +25,20 @@ from .quality import (
 from .storage import promote_snapshot, verify_latest_artifacts, write_run_status
 
 
+ProgressCallback = Callable[[str, int, int], None]
+
+
 @dataclass(frozen=True)
 class CollectionConfig:
     data_dir: Path = Path("data")
     min_universe_size: int = 5000
     min_quote_coverage: float = 0.98
+    min_reference_coverage: float = 0.98
+    min_extended_field_coverage: float = 0.95
+    reference_batch_size: int = 100
     quote_batch_size: int = 300
     request_interval_seconds: float = 0.15
+    trade_calendar_offset: int = -10
     history_limit: int = 252
     snapshot_limit: int = 60
 
@@ -43,26 +53,22 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def _latest_manifest(data_dir: Path) -> dict[str, Any]:
-    manifest_path = data_dir / "latest" / "manifest.json"
-    if not manifest_path.exists():
+def _load_json(path: Path) -> dict[str, Any]:
+    if not path.exists():
         return {}
     try:
-        loaded = json.loads(manifest_path.read_text(encoding="utf-8"))
+        loaded = json.loads(path.read_text(encoding="utf-8"))
         return loaded if isinstance(loaded, dict) else {}
     except Exception:
         return {}
+
+
+def _latest_manifest(data_dir: Path) -> dict[str, Any]:
+    return _load_json(data_dir / "latest" / "manifest.json")
 
 
 def _last_run_status(data_dir: Path) -> dict[str, Any]:
-    status_path = data_dir / "last_run_status.json"
-    if not status_path.exists():
-        return {}
-    try:
-        loaded = json.loads(status_path.read_text(encoding="utf-8"))
-        return loaded if isinstance(loaded, dict) else {}
-    except Exception:
-        return {}
+    return _load_json(data_dir / "last_run_status.json")
 
 
 def _last_valid_trade_date(data_dir: Path) -> str | None:
@@ -72,10 +78,22 @@ def _last_valid_trade_date(data_dir: Path) -> str | None:
 
 def _safe_error(exc: Exception, client: IFindHTTPClient) -> str:
     message = f"{type(exc).__name__}: {exc}"
-    for secret in (client.refresh_token, client.access_token):
+    for secret in (
+        getattr(client, "refresh_token", None),
+        getattr(client, "access_token", None),
+    ):
         if secret:
-            message = message.replace(secret, "[REDACTED]")
+            message = message.replace(str(secret), "[REDACTED]")
     return message[:500]
+
+
+def _quality_thresholds(config: CollectionConfig) -> dict[str, Any]:
+    return {
+        "min_universe_size": config.min_universe_size,
+        "min_quote_coverage": config.min_quote_coverage,
+        "min_reference_coverage": config.min_reference_coverage,
+        "min_extended_field_coverage": config.min_extended_field_coverage,
+    }
 
 
 def collect_and_publish(
@@ -83,31 +101,85 @@ def collect_and_publish(
     trade_date: str,
     *,
     config: CollectionConfig = CollectionConfig(),
-    progress: Any = None,
+    progress: ProgressCallback | None = None,
 ) -> CollectionResult:
     started_at = _utc_now()
     previous_trade_date = _last_valid_trade_date(config.data_dir)
     try:
+        raw_calendar = client.fetch_trade_calendar(
+            trade_date, offset=config.trade_calendar_offset
+        )
+        trading_calendar = normalize_trade_calendar(raw_calendar)
+        open_dates = sorted(
+            trading_calendar.loc[
+                trading_calendar["is_open"].fillna(False).astype(bool), "trade_date"
+            ]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+        if trade_date not in open_dates:
+            status = {
+                "schema_version": 2,
+                "state": "no_trade_date",
+                "data_fresh": False,
+                "requested_trade_date": trade_date,
+                "last_valid_trade_date": previous_trade_date,
+                "provider": "ifind_http",
+                "calendar": "SSE",
+                "calendar_open_dates": open_dates,
+                "started_at_utc": started_at,
+                "completed_at_utc": _utc_now(),
+                "raw_payload_persisted": False,
+            }
+            write_run_status(config.data_dir, status)
+            return CollectionResult(True, status)
+
         raw_universe = client.fetch_universe(trade_date)
         universe = normalize_universe(raw_universe)
+        universe_codes = universe["thscode"].astype(str).tolist()
+
+        reference_progress = None
+        quote_progress = None
+        if progress:
+            reference_progress = lambda done, total: progress(
+                "security_reference", done, total
+            )
+            quote_progress = lambda done, total: progress("daily_quotes", done, total)
+
+        raw_reference = client.fetch_security_reference(
+            universe_codes,
+            trade_date,
+            batch_size=config.reference_batch_size,
+            request_interval_seconds=config.request_interval_seconds,
+            progress=reference_progress,
+        )
+        security_reference = normalize_security_reference(raw_reference, universe)
         raw_quotes = client.fetch_daily_quotes(
-            universe["thscode"].astype(str).tolist(),
+            universe_codes,
             trade_date,
             batch_size=config.quote_batch_size,
             request_interval_seconds=config.request_interval_seconds,
-            progress=progress,
+            progress=quote_progress,
         )
         quotes = normalize_quotes(raw_quotes, universe)
+        daily_status = build_daily_security_status(universe, quotes, trade_date)
         quality = validate_data(
             universe,
+            security_reference,
             quotes,
+            trading_calendar,
+            daily_status,
             trade_date,
             min_universe_size=config.min_universe_size,
             min_quote_coverage=config.min_quote_coverage,
+            min_reference_coverage=config.min_reference_coverage,
+            min_extended_field_coverage=config.min_extended_field_coverage,
         )
         if not quality.ok:
             status = {
-                "schema_version": 1,
+                "schema_version": 2,
                 "state": "failed_quality",
                 "data_fresh": False,
                 "requested_trade_date": trade_date,
@@ -121,19 +193,27 @@ def collect_and_publish(
             write_run_status(config.data_dir, status)
             return CollectionResult(False, status)
 
-        market_summary = build_market_summary(quotes, trade_date)
-        universe_frame_hash = frame_hash(universe, ["thscode"])
-        quotes_frame_hash = frame_hash(quotes, ["trade_date", "thscode"])
+        market_summary = build_market_summary(quotes, trade_date, daily_status)
+        frames = {
+            "universe": (universe, ["thscode"]),
+            "security_reference": (security_reference, ["thscode"]),
+            "quotes": (quotes, ["trade_date", "thscode"]),
+            "trading_calendar": (trading_calendar, ["calendar", "trade_date"]),
+            "daily_status": (daily_status, ["trade_date", "thscode"]),
+        }
+        frame_hashes = {
+            f"{name}_frame_sha256": frame_hash(frame, sort_columns)
+            for name, (frame, sort_columns) in frames.items()
+        }
         existing_manifest = _latest_manifest(config.data_dir)
         existing_provenance = existing_manifest.get("provenance") or {}
-        if (
-            existing_manifest.get("trade_date") == trade_date
-            and existing_provenance.get("universe_frame_sha256")
-            == universe_frame_hash
-            and existing_provenance.get("quotes_frame_sha256") == quotes_frame_hash
-        ):
+        unchanged = existing_manifest.get("trade_date") == trade_date and all(
+            existing_provenance.get(key) == value
+            for key, value in frame_hashes.items()
+        )
+        if unchanged:
             status = {
-                "schema_version": 1,
+                "schema_version": 2,
                 "state": "success_unchanged",
                 "data_fresh": True,
                 "requested_trade_date": trade_date,
@@ -146,55 +226,59 @@ def collect_and_publish(
                 "artifacts": existing_manifest.get("artifacts") or {},
             }
             previous_status = _last_run_status(config.data_dir)
-            previous_state = str(previous_status.get("state") or "")
-            previous_requested_date = str(
-                previous_status.get("requested_trade_date") or ""
-            )
             if (
-                previous_state not in {"success", "success_unchanged"}
-                or previous_requested_date != trade_date
+                str(previous_status.get("state") or "")
+                not in {"success", "success_unchanged"}
+                or str(previous_status.get("requested_trade_date") or "") != trade_date
             ):
                 write_run_status(config.data_dir, status)
             return CollectionResult(True, status)
 
-        collected_at = _utc_now()
         manifest: dict[str, Any] = {
-            "schema_version": 1,
+            "schema_version": 2,
             "trade_date": trade_date,
             "requested_trade_date": trade_date,
             "source_trade_date": trade_date,
-            "collected_at_utc": collected_at,
+            "collected_at_utc": _utc_now(),
             "provider": "ifind_http",
-            "source_endpoints": ["data_pool", "cmd_history_quotation"],
+            "source_endpoints": [
+                "get_trade_dates",
+                "data_pool",
+                "basic_data_service",
+                "cmd_history_quotation",
+            ],
             "verified": True,
             "data_fresh": True,
             "raw_payload_persisted": False,
             "quality": quality.as_dict(),
-            "quality_thresholds": {
-                "min_universe_size": config.min_universe_size,
-                "min_quote_coverage": config.min_quote_coverage,
-            },
+            "quality_thresholds": _quality_thresholds(config),
             "provenance": {
                 "universe_report": "p03291",
                 "universe_block": "001005010",
-                "universe_frame_sha256": universe_frame_hash,
-                "quotes_frame_sha256": quotes_frame_hash,
-                "universe_schema_signature": schema_signature(universe),
-                "quotes_schema_signature": schema_signature(quotes),
+                "calendar": "SSE",
+                "calendar_market_code": "212001",
+                **frame_hashes,
+                **{
+                    f"{name}_schema_signature": schema_signature(frame)
+                    for name, (frame, _) in frames.items()
+                },
             },
         }
         final_manifest = promote_snapshot(
             config.data_dir,
             trade_date,
             universe,
+            security_reference,
             quotes,
+            trading_calendar,
+            daily_status,
             market_summary,
             manifest,
             history_limit=config.history_limit,
             snapshot_limit=config.snapshot_limit,
         )
         status = {
-            "schema_version": 1,
+            "schema_version": 2,
             "state": "success",
             "data_fresh": True,
             "requested_trade_date": trade_date,
@@ -211,7 +295,7 @@ def collect_and_publish(
         return CollectionResult(True, status)
     except Exception as exc:
         status = {
-            "schema_version": 1,
+            "schema_version": 2,
             "state": "failed_collection",
             "data_fresh": False,
             "requested_trade_date": trade_date,
@@ -231,19 +315,28 @@ def validate_latest(
     data_dir: Path = Path("data"),
     policy_min_universe_size: int = 5000,
     policy_min_quote_coverage: float = 0.98,
+    policy_min_reference_coverage: float = 0.98,
+    policy_min_extended_field_coverage: float = 0.95,
 ) -> tuple[bool, dict[str, Any]]:
     manifest, artifact_errors = verify_latest_artifacts(data_dir)
     if not manifest:
         return False, {"ok": False, "errors": artifact_errors}
     errors = list(artifact_errors)
     try:
-        universe = pd.read_parquet(data_dir / "latest" / "universe.parquet")
-        quotes = pd.read_parquet(data_dir / "latest" / "daily_quotes.parquet")
+        latest = data_dir / "latest"
+        universe = pd.read_parquet(latest / "universe.parquet")
+        security_reference = pd.read_parquet(latest / "security_reference.parquet")
+        quotes = pd.read_parquet(latest / "daily_quotes.parquet")
+        trading_calendar = pd.read_parquet(latest / "trading_calendar.parquet")
+        daily_status = pd.read_parquet(latest / "daily_security_status.parquet")
         trade_date = str(manifest.get("trade_date") or "")
         thresholds = manifest.get("quality_thresholds") or {}
         quality = validate_data(
             universe,
+            security_reference,
             quotes,
+            trading_calendar,
+            daily_status,
             trade_date,
             min_universe_size=max(
                 policy_min_universe_size,
@@ -251,28 +344,51 @@ def validate_latest(
             ),
             min_quote_coverage=max(
                 policy_min_quote_coverage,
+                float(thresholds.get("min_quote_coverage", policy_min_quote_coverage)),
+            ),
+            min_reference_coverage=max(
+                policy_min_reference_coverage,
                 float(
                     thresholds.get(
-                        "min_quote_coverage", policy_min_quote_coverage
+                        "min_reference_coverage", policy_min_reference_coverage
+                    )
+                ),
+            ),
+            min_extended_field_coverage=max(
+                policy_min_extended_field_coverage,
+                float(
+                    thresholds.get(
+                        "min_extended_field_coverage",
+                        policy_min_extended_field_coverage,
                     )
                 ),
             ),
         )
         errors.extend(quality.errors)
+        if int(manifest.get("schema_version") or 0) < 2:
+            errors.append("manifest schema_version is below 2")
         if manifest.get("verified") is not True:
             errors.append("manifest is not marked verified")
         if manifest.get("data_fresh") is not True:
             errors.append("manifest is not marked data_fresh")
-        expected_universe_hash = (
-            (manifest.get("provenance") or {}).get("universe_frame_sha256") or ""
-        )
-        expected_quotes_hash = (
-            (manifest.get("provenance") or {}).get("quotes_frame_sha256") or ""
-        )
-        if frame_hash(universe, ["thscode"]) != expected_universe_hash:
-            errors.append("normalized universe frame hash mismatch")
-        if frame_hash(quotes, ["trade_date", "thscode"]) != expected_quotes_hash:
-            errors.append("normalized quotes frame hash mismatch")
+
+        frames = {
+            "universe": (universe, ["thscode"]),
+            "security_reference": (security_reference, ["thscode"]),
+            "quotes": (quotes, ["trade_date", "thscode"]),
+            "trading_calendar": (trading_calendar, ["calendar", "trade_date"]),
+            "daily_status": (daily_status, ["trade_date", "thscode"]),
+        }
+        provenance = manifest.get("provenance") or {}
+        for name, (frame, sort_columns) in frames.items():
+            if frame_hash(frame, sort_columns) != provenance.get(
+                f"{name}_frame_sha256"
+            ):
+                errors.append(f"normalized {name} frame hash mismatch")
+            if schema_signature(frame) != provenance.get(
+                f"{name}_schema_signature"
+            ):
+                errors.append(f"normalized {name} schema signature mismatch")
         payload = {
             "ok": not errors,
             "trade_date": trade_date,

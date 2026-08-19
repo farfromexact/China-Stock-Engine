@@ -50,6 +50,7 @@ jobs:
           TRADE_DATE: ${{ inputs.trade_date }}
         shell: bash
         run: |
+          DATA_DIR="${RUNNER_TEMP}/china-stock-engine-data"
           if [[ -z "${IFIND_REFRESH_TOKEN}" ]]; then
             echo "IFIND_REFRESH_TOKEN secret is required." >&2
             exit 1
@@ -57,15 +58,19 @@ jobs:
           if [[ -n "${TRADE_DATE}" ]]; then
             python -m china_stock_engine.cli run \
               --date "${TRADE_DATE}" \
-              --data-dir "${RUNNER_TEMP}/china-stock-engine-data"
+              --data-dir "${DATA_DIR}"
           else
             python -m china_stock_engine.cli run \
-              --data-dir "${RUNNER_TEMP}/china-stock-engine-data"
+              --data-dir "${DATA_DIR}"
           fi
+          STATE=$(python -c 'import json, os, pathlib; p=pathlib.Path(os.environ["RUNNER_TEMP"])/"china-stock-engine-data"/"last_run_status.json"; print(json.loads(p.read_text(encoding="utf-8"))["state"])')
+          echo "state=${STATE}" >> "${GITHUB_OUTPUT}"
 
       - name: Validate promoted snapshot
         id: validate
-        if: steps.collect.outcome == 'success'
+        if: >-
+          steps.collect.outcome == 'success' &&
+          steps.collect.outputs.state != 'no_trade_date'
         run: >-
           python -m china_stock_engine.cli validate
           --data-dir "${RUNNER_TEMP}/china-stock-engine-data"

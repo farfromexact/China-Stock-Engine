@@ -93,7 +93,10 @@ def promote_snapshot(
     data_dir: Path,
     trade_date: str,
     universe: pd.DataFrame,
+    security_reference: pd.DataFrame,
     quotes: pd.DataFrame,
+    trading_calendar: pd.DataFrame,
+    daily_status: pd.DataFrame,
     market_summary: dict[str, Any],
     manifest: dict[str, Any],
     *,
@@ -102,32 +105,34 @@ def promote_snapshot(
 ) -> dict[str, Any]:
     snapshot_dir = data_dir / "snapshots" / trade_date
     latest_dir = data_dir / "latest"
-    universe_path = snapshot_dir / "universe.parquet"
-    quotes_path = snapshot_dir / "daily_quotes.parquet"
+    frames = {
+        "universe.parquet": universe,
+        "security_reference.parquet": security_reference,
+        "daily_quotes.parquet": quotes,
+        "trading_calendar.parquet": trading_calendar,
+        "daily_security_status.parquet": daily_status,
+    }
     summary_path = snapshot_dir / "market_summary.json"
 
-    atomic_write_parquet(universe_path, universe)
-    atomic_write_parquet(quotes_path, quotes)
+    for name, frame in frames.items():
+        atomic_write_parquet(snapshot_dir / name, frame)
     atomic_write_json(summary_path, market_summary)
 
     final_manifest = dict(manifest)
     final_manifest["artifacts"] = {
-        "universe.parquet": {
-            "rows": int(len(universe)),
-            "sha256": sha256_file(universe_path),
-        },
-        "daily_quotes.parquet": {
-            "rows": int(len(quotes)),
-            "sha256": sha256_file(quotes_path),
-        },
-        "market_summary.json": {
-            "sha256": sha256_file(summary_path),
-        },
+        name: {
+            "rows": int(len(frame)),
+            "sha256": sha256_file(snapshot_dir / name),
+        }
+        for name, frame in frames.items()
+    }
+    final_manifest["artifacts"]["market_summary.json"] = {
+        "sha256": sha256_file(summary_path),
     }
     atomic_write_json(snapshot_dir / "manifest.json", final_manifest)
 
-    atomic_copy(universe_path, latest_dir / "universe.parquet")
-    atomic_copy(quotes_path, latest_dir / "daily_quotes.parquet")
+    for name in frames:
+        atomic_copy(snapshot_dir / name, latest_dir / name)
     atomic_copy(summary_path, latest_dir / "market_summary.json")
     atomic_write_json(latest_dir / "manifest.json", final_manifest)
 

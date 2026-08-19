@@ -9,11 +9,14 @@ China Stock Engine 是一个面向中国 A 股市场的公开采集与质量控�
 ## 当前正式范围
 
 - 全 A 股证券池：代码、名称、交易所和板块分类。
-- 日频行情：不复权开高低收、成交量、成交额和涨跌幅。
+- PIT 证券主数据：上市日期、当日总股本和流通 A 股本。
+- 日频行情：不复权开高低收、前收盘、成交均价、成交量、成交额、换手率和涨跌幅。
+- 交易日历：使用上交所市场代码 `212001` 明确判断请求日是否开市。
+- 逐证券观测状态：区分 `traded`、`quote_without_turnover` 和 `no_quote_observed`；缺行情不会被武断标成停牌。
 - 市场宽度：上涨、下跌、平盘家数，横截面均值/中位数和总成交额。
-- 数据质量：证券池规模、行情覆盖率、源日期、重复代码、OHLC 关系、负成交量/成交额和模式签名。
+- 数据质量：证券池/主数据/行情覆盖率、源日期、重复代码、OHLC、成交均价区间、涨跌幅重算、股本关系、负值、逐表哈希和模式签名。
 
-默认提升门槛为证券池不少于 5,000 只、日行情覆盖率不低于 98%，且上交所、深交所和北交所均有覆盖。
+默认提升门槛为证券池不少于 5,000 只、日行情和证券主数据覆盖率均不低于 98%、扩展字段非空率不低于 95%，且上交所、深交所和北交所均有覆盖。
 
 财务报表、公告、公司行动、复权因子、指数和高频数据尚未进入正式产物。它们需要独立的指标/报表权限 canary 和 point-in-time 数据契约，不能因为登录成功就假定可用。
 
@@ -25,18 +28,24 @@ data/
 ├── latest/
 │   ├── manifest.json
 │   ├── universe.parquet
+│   ├── security_reference.parquet
 │   ├── daily_quotes.parquet
+│   ├── trading_calendar.parquet
+│   ├── daily_security_status.parquet
 │   └── market_summary.json
 ├── market_history.json
 └── snapshots/
     └── YYYY-MM-DD/
         ├── manifest.json
         ├── universe.parquet
+        ├── security_reference.parquet
         ├── daily_quotes.parquet
+        ├── trading_calendar.parquet
+        ├── daily_security_status.parquet
         └── market_summary.json
 ```
 
-`data/latest/` 永远指向最近一个已验证交易日。`data/last_run_status.json` 描述最近一次采集尝试，即使失败也不会覆盖最后有效快照。完整日级快照默认保留最近 60 个交易日，紧凑市场历史保留最近 252 个交易日。
+`data/latest/` 永远指向最近一个已验证交易日。`data/last_run_status.json` 描述最近一次采集尝试，即使鉴权失败、额度耗尽、质量失败或遇到非交易日，也不会覆盖最后有效快照。`no_trade_date` 是正常且显式的状态，不会制造空快照。完整日级快照默认保留最近 60 个交易日，紧凑市场历史保留最近 252 个交易日。
 
 这些文件仅保存在运行者自己的本地或获授权的私有存储中，不进入本公开仓库。
 
@@ -44,7 +53,7 @@ data/
 
 正式自动化使用 iFinD `refresh_token` 换取短期 `access_token`。两者只存在于运行进程内存中，不会写入仓库或日志。
 
-本地只读探针使用隐藏输入：
+本地只读探针使用隐藏输入，并同时验证交易日历、单股证券主数据和扩展行情：
 
 ```powershell
 python -m china_stock_engine.cli probe --date 2026-08-18 --prompt-token
@@ -57,7 +66,15 @@ python -m china_stock_engine.cli run --date 2026-08-18 --prompt-token
 python -m china_stock_engine.cli validate
 ```
 
-不要把 token 放进命令行参数、源代码、`.env.example` 或日志。GitHub Actions 应创建名为 `IFIND_REFRESH_TOKEN` 的加密 Secret。
+从最近一个已验证快照生成可离线打开的本地 HTML 看板：
+
+```powershell
+python -m china_stock_engine.cli dashboard
+```
+
+默认输出为 `data/latest/market_dashboard.html`，其中包含市场概览、涨跌幅分布、板块覆盖和可筛选的逐证券数据表。页面不访问网络，也不包含 token 或原始 iFinD 响应。
+
+不要把 token 放进命令行参数、源代码、`.env.example` 或日志。GitHub Actions 应创建名为 `IFIND_REFRESH_TOKEN` 的加密 Secret。iFinD 返回月度额度错误时流程会停止且不重试；刷新 token 不能绕过账号额度。
 
 ## 安装与测试
 
