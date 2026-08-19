@@ -31,7 +31,9 @@ def atomic_write_json(path: Path, payload: Any) -> None:
     text = json.dumps(
         payload, ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False
     )
-    temporary.write_text(text + "\n", encoding="utf-8")
+    with temporary.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+        handle.write("\n")
     os.replace(temporary, path)
 
 
@@ -161,4 +163,3 @@ __all__ = [
     "verify_latest_artifacts",
     "write_run_status",
 ]
-

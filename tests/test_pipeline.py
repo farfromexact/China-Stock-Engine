@@ -95,6 +95,10 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(result.ok, result.status)
         self.assertTrue((root / "data/latest/manifest.json").exists())
         self.assertTrue((root / "data/snapshots/2026-08-18/daily_quotes.parquet").exists())
+        self.assertNotIn(b"\r\n", (root / "data/latest/manifest.json").read_bytes())
+        self.assertNotIn(
+            b"\r\n", (root / "data/latest/market_summary.json").read_bytes()
+        )
         ok, payload = validate_latest(
             data_dir=root / "data",
             policy_min_universe_size=4,
