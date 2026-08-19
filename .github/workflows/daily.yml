@@ -12,7 +12,7 @@ on:
     - cron: "30 10 * * 1-5"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: daily-china-stock-data
@@ -55,45 +55,21 @@ jobs:
             exit 1
           fi
           if [[ -n "${TRADE_DATE}" ]]; then
-            python -m china_stock_engine.cli run --date "${TRADE_DATE}"
+            python -m china_stock_engine.cli run \
+              --date "${TRADE_DATE}" \
+              --data-dir "${RUNNER_TEMP}/china-stock-engine-data"
           else
-            python -m china_stock_engine.cli run
+            python -m china_stock_engine.cli run \
+              --data-dir "${RUNNER_TEMP}/china-stock-engine-data"
           fi
 
       - name: Validate promoted snapshot
         id: validate
         if: steps.collect.outcome == 'success'
-        run: python -m china_stock_engine.cli validate
-
-      - name: Commit verified data
-        if: steps.collect.outcome == 'success' && steps.validate.outcome == 'success'
-        shell: bash
-        run: |
-          git add data/
-          if git diff --cached --quiet; then
-            echo "No verified data changes to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): update daily A-share snapshot"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
-
-      - name: Commit observable failure status
-        if: steps.collect.outcome == 'failure'
-        shell: bash
-        run: |
-          git add data/last_run_status.json
-          if git diff --cached --quiet; then
-            echo "No failure-status change to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): record failed A-share collection"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+        run: >-
+          python -m china_stock_engine.cli validate
+          --data-dir "${RUNNER_TEMP}/china-stock-engine-data"
 
       - name: Fail job when collection failed
         if: steps.collect.outcome == 'failure'
         run: exit 1
-

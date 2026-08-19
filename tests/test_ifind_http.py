@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from china_stock_engine.ifind_http import IFindHTTPClient, IFindHTTPError
+from china_stock_engine.ifind_http import (
+    IFindHTTPClient,
+    IFindHTTPError,
+    IFindHTTPTransientError,
+)
 
 
 class FakeTransport:
@@ -93,7 +97,45 @@ class IFindHTTPClientTests(unittest.TestCase):
         self.assertNotIn("never-print-me", str(context.exception))
         self.assertIn("-1301", str(context.exception))
 
+    def test_transient_transport_errors_are_retried_with_backoff(self) -> None:
+        attempts = 0
+        delays: list[float] = []
+
+        def flaky(url: str, headers: dict, payload: dict | None, timeout: int) -> dict:
+            nonlocal attempts
+            attempts += 1
+            if attempts < 3:
+                raise IFindHTTPTransientError("temporary TLS handshake timeout")
+            return {"errorcode": 0, "data": {"access_token": "access-secret"}}
+
+        client = IFindHTTPClient(
+            refresh_token="refresh-secret",
+            transport=flaky,
+            max_transport_attempts=3,
+            retry_backoff_seconds=0.25,
+            sleeper=delays.append,
+        )
+        self.assertEqual(client.get_access_token(), "access-secret")
+        self.assertEqual(attempts, 3)
+        self.assertEqual(delays, [0.25, 0.5])
+
+    def test_non_transient_transport_error_is_not_retried(self) -> None:
+        attempts = 0
+
+        def denied(url: str, headers: dict, payload: dict | None, timeout: int) -> dict:
+            nonlocal attempts
+            attempts += 1
+            raise IFindHTTPError("HTTP 403")
+
+        client = IFindHTTPClient(
+            refresh_token="refresh-secret",
+            transport=denied,
+            sleeper=lambda _: None,
+        )
+        with self.assertRaises(IFindHTTPError):
+            client.get_access_token()
+        self.assertEqual(attempts, 1)
+
 
 if __name__ == "__main__":
     unittest.main()
-

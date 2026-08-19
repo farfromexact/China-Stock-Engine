@@ -146,6 +146,33 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(manifest_before, manifest_path.read_bytes())
         self.assertEqual(status_before, status_path.read_bytes())
 
+    def test_identical_success_clears_previous_failure_status(self) -> None:
+        root = test_workspace("failure-recovery")
+        first = collect_and_publish(
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+        self.assertTrue(first.ok)
+        status_path = root / "data/last_run_status.json"
+        status_path.write_text(
+            json.dumps(
+                {
+                    "state": "failed_collection",
+                    "requested_trade_date": "2026-08-18",
+                    "data_fresh": False,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        recovered = collect_and_publish(
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+        self.assertTrue(recovered.ok)
+        self.assertEqual(recovered.status["state"], "success_unchanged")
+        stored = json.loads(status_path.read_text(encoding="utf-8"))
+        self.assertEqual(stored["state"], "success_unchanged")
+        self.assertTrue(stored["data_fresh"])
+
     def test_collection_failure_records_sanitized_status(self) -> None:
         root = test_workspace("collection-failure")
         result = collect_and_publish(

@@ -43,6 +43,10 @@ class IFindHTTPError(RuntimeError):
     """Raised for iFinD authentication, entitlement, transport, or schema errors."""
 
 
+class IFindHTTPTransientError(IFindHTTPError):
+    """Raised for a transport failure that is safe to retry."""
+
+
 def _safe_message(value: Any) -> str:
     return str(value or "unknown iFinD error")[:400]
 
@@ -73,7 +77,16 @@ def _default_transport(
             detail = f"code {code}: {_safe_message(message)}"
         except Exception:
             detail = "non-JSON error response"
-        raise IFindHTTPError(f"iFinD HTTP {exc.code}: {detail}") from exc
+        error_type = (
+            IFindHTTPTransientError
+            if exc.code == 429 or 500 <= exc.code <= 599
+            else IFindHTTPError
+        )
+        raise error_type(f"iFinD HTTP {exc.code}: {detail}") from exc
+    except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
+        raise IFindHTTPTransientError(
+            f"iFinD transport failed: {type(exc).__name__}: {_safe_message(exc)}"
+        ) from exc
     except Exception as exc:
         raise IFindHTTPError(
             f"iFinD transport failed: {type(exc).__name__}: {_safe_message(exc)}"
@@ -158,6 +171,32 @@ class IFindHTTPClient:
     base_url: str = DEFAULT_BASE_URL
     timeout: int = 45
     transport: Transport = _default_transport
+    max_transport_attempts: int = 3
+    retry_backoff_seconds: float = 1.0
+    sleeper: Callable[[float], None] = time.sleep
+
+    def _send(
+        self,
+        url: str,
+        headers: dict[str, str],
+        payload: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if self.max_transport_attempts < 1:
+            raise ValueError("max_transport_attempts must be positive")
+        if self.retry_backoff_seconds < 0:
+            raise ValueError("retry_backoff_seconds cannot be negative")
+
+        for attempt in range(1, self.max_transport_attempts + 1):
+            try:
+                return self.transport(url, headers, payload, self.timeout)
+            except IFindHTTPTransientError as exc:
+                if attempt == self.max_transport_attempts:
+                    raise IFindHTTPTransientError(
+                        f"{exc} after {attempt} attempts"
+                    ) from exc
+                delay = self.retry_backoff_seconds * (2 ** (attempt - 1))
+                self.sleeper(delay)
+        raise AssertionError("unreachable transport retry state")
 
     def get_access_token(self) -> str:
         if self.access_token:
@@ -167,11 +206,10 @@ class IFindHTTPClient:
             raise IFindHTTPError(
                 "iFinD refresh token is required in IFIND_REFRESH_TOKEN or hidden input"
             )
-        response = self.transport(
+        response = self._send(
             f"{self.base_url}/get_access_token",
             {"refresh_token": refresh_token},
             None,
-            self.timeout,
         )
         _raise_api_error("get_access_token", response)
         token = (response.get("data") or {}).get("access_token")
@@ -181,11 +219,10 @@ class IFindHTTPClient:
         return self.access_token
 
     def request(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
-        response = self.transport(
+        response = self._send(
             f"{self.base_url}/{endpoint}",
             {"access_token": self.get_access_token(), "ifindlang": "cn"},
             payload,
-            self.timeout,
         )
         _raise_api_error(endpoint, response)
         return response
@@ -325,7 +362,7 @@ __all__ = [
     "ALL_A_SHARE_REPORT",
     "IFindHTTPClient",
     "IFindHTTPError",
+    "IFindHTTPTransientError",
     "QUOTE_FIELDS",
     "UNIVERSE_FIELDS",
 ]
-

@@ -22,9 +22,9 @@ venv/
 *.pem
 *.key
 
-# Local raw/vendor data and temporary output
-data/raw/
-data/staging/
+# Licensed iFinD output stays local and out of public Git history
+data/*
+!data/.gitkeep
 *.tmp
 *.temp
 *.log

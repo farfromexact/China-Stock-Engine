@@ -54,6 +54,17 @@ def _latest_manifest(data_dir: Path) -> dict[str, Any]:
         return {}
 
 
+def _last_run_status(data_dir: Path) -> dict[str, Any]:
+    status_path = data_dir / "last_run_status.json"
+    if not status_path.exists():
+        return {}
+    try:
+        loaded = json.loads(status_path.read_text(encoding="utf-8"))
+        return loaded if isinstance(loaded, dict) else {}
+    except Exception:
+        return {}
+
+
 def _last_valid_trade_date(data_dir: Path) -> str | None:
     value = _latest_manifest(data_dir).get("trade_date")
     return None if value is None else str(value)
@@ -134,6 +145,16 @@ def collect_and_publish(
                 "quality": quality.as_dict(),
                 "artifacts": existing_manifest.get("artifacts") or {},
             }
+            previous_status = _last_run_status(config.data_dir)
+            previous_state = str(previous_status.get("state") or "")
+            previous_requested_date = str(
+                previous_status.get("requested_trade_date") or ""
+            )
+            if (
+                previous_state not in {"success", "success_unchanged"}
+                or previous_requested_date != trade_date
+            ):
+                write_run_status(config.data_dir, status)
             return CollectionResult(True, status)
 
         collected_at = _utc_now()
