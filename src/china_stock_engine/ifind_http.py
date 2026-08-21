@@ -270,15 +270,23 @@ class IFindHTTPClient:
         output = output.loc[valid_code].drop_duplicates("thscode", keep="last")
         return output.reset_index(drop=True)
 
-    def _history_batch(self, codes: Sequence[str], trade_date: str) -> pd.DataFrame:
+    def _history_batch(
+        self,
+        codes: Sequence[str],
+        start_date: str,
+        end_date: str,
+        *,
+        indicators: Sequence[str] = QUOTE_FIELDS,
+        functionpara: dict[str, str] | None = None,
+    ) -> pd.DataFrame:
         response = self.request(
             "cmd_history_quotation",
             {
                 "codes": ",".join(codes),
-                "indicators": ",".join(QUOTE_FIELDS),
-                "startdate": trade_date,
-                "enddate": trade_date,
-                "functionpara": {"Fill": "Omit"},
+                "indicators": ",".join(indicators),
+                "startdate": start_date,
+                "enddate": end_date,
+                "functionpara": functionpara or {"Fill": "Omit", "CPS": "no"},
             },
         )
         return _tables_frame(response)
@@ -433,6 +441,30 @@ class IFindHTTPClient:
         request_interval_seconds: float = 0.15,
         progress: ProgressCallback | None = None,
     ) -> pd.DataFrame:
+        return self.fetch_daily_history(
+            codes,
+            trade_date,
+            trade_date,
+            batch_size=batch_size,
+            request_interval_seconds=request_interval_seconds,
+            progress=progress,
+        )
+
+    def fetch_daily_history(
+        self,
+        codes: Sequence[str],
+        start_date: str,
+        end_date: str,
+        *,
+        indicators: Sequence[str] = QUOTE_FIELDS,
+        cps: str = "no",
+        base_date: str | None = None,
+        batch_size: int = 300,
+        request_interval_seconds: float = 0.15,
+        progress: ProgressCallback | None = None,
+    ) -> pd.DataFrame:
+        """Fetch an explicit daily range without filling missing observations."""
+
         normalized_codes = sorted(
             {str(code).strip().upper() for code in codes if str(code).strip()}
         )
@@ -442,6 +474,15 @@ class IFindHTTPClient:
             raise ValueError("batch_size must be positive")
         if request_interval_seconds < 0:
             raise ValueError("request interval cannot be negative")
+        if start_date > end_date:
+            raise ValueError("start_date cannot be after end_date")
+        requested_indicators = tuple(dict.fromkeys(str(item) for item in indicators))
+        if not requested_indicators:
+            raise ValueError("at least one history indicator is required")
+
+        functionpara = {"Fill": "Omit", "CPS": str(cps)}
+        if base_date:
+            functionpara["baseDate"] = str(base_date)
 
         batches = _chunks(normalized_codes, batch_size)
         frames: list[pd.DataFrame] = []
@@ -455,7 +496,15 @@ class IFindHTTPClient:
                     time.sleep(remaining)
             last_request_at = time.monotonic()
             try:
-                return [self._history_batch(batch, trade_date)]
+                return [
+                    self._history_batch(
+                        batch,
+                        start_date,
+                        end_date,
+                        indicators=requested_indicators,
+                        functionpara=functionpara,
+                    )
+                ]
             except IFindHTTPError as exc:
                 if "code -4210" not in str(exc) or len(batch) <= 1:
                     raise
@@ -476,7 +525,7 @@ class IFindHTTPClient:
             raise IFindHTTPError(
                 "iFinD history response missing fields: " + ", ".join(missing)
             )
-        market_columns = [field for field in QUOTE_FIELDS if field in raw.columns]
+        market_columns = [field for field in requested_indicators if field in raw.columns]
         if not market_columns:
             raise IFindHTTPError("iFinD history response contained no requested fields")
         raw = raw.loc[raw[market_columns].notna().any(axis=1)].copy()
@@ -501,13 +550,98 @@ class IFindHTTPClient:
             "changeRatio": "change_ratio",
         }
         for source, target in rename.items():
-            values = raw[source] if source in raw.columns else None
-            output[target] = pd.to_numeric(values, errors="coerce")
+            if source in requested_indicators:
+                values = raw[source] if source in raw.columns else None
+                output[target] = pd.to_numeric(values, errors="coerce")
         output["source_provider"] = "ifind_http"
         output["source_endpoint"] = "cmd_history_quotation"
-        return output.drop_duplicates(["trade_date", "thscode"], keep="last").reset_index(
-            drop=True
+        return (
+            output.drop_duplicates(["trade_date", "thscode"], keep="last")
+            .sort_values(["trade_date", "thscode"])
+            .reset_index(drop=True)
         )
+
+    def fetch_adjustment_factors(
+        self,
+        codes: Sequence[str],
+        start_date: str,
+        end_date: str,
+        *,
+        known_at: str,
+        batch_size: int = 100,
+        request_interval_seconds: float = 0.15,
+        progress: ProgressCallback | None = None,
+    ) -> pd.DataFrame:
+        """Derive point-in-time forward-adjustment factors from iFinD CPS output."""
+
+        raw = self.fetch_daily_history(
+            codes,
+            start_date,
+            end_date,
+            indicators=("close",),
+            cps="no",
+            batch_size=batch_size,
+            request_interval_seconds=request_interval_seconds,
+            progress=progress,
+        ).rename(columns={"close": "raw_close"})
+        adjusted = self.fetch_daily_history(
+            codes,
+            start_date,
+            end_date,
+            indicators=("close",),
+            cps="forward1",
+            base_date=end_date,
+            batch_size=batch_size,
+            request_interval_seconds=request_interval_seconds,
+            progress=progress,
+        ).rename(columns={"close": "forward_adj_close"})
+        merged = raw.loc[:, ["trade_date", "thscode", "raw_close"]].merge(
+            adjusted.loc[:, ["trade_date", "thscode", "forward_adj_close"]],
+            how="inner",
+            on=["trade_date", "thscode"],
+            validate="one_to_one",
+        )
+        valid = merged["raw_close"].gt(0) & merged["forward_adj_close"].gt(0)
+        merged = merged.loc[valid].copy()
+        merged["adj_factor"] = merged["forward_adj_close"] / merged["raw_close"]
+        merged["effective_at"] = merged["trade_date"]
+        merged["published_at"] = pd.NA
+        merged["known_at"] = str(known_at)
+        merged["adjustment_method"] = "ifind_forward1_dividend_plan"
+        merged["source_provider"] = "ifind_http"
+        merged["source_endpoint"] = "cmd_history_quotation"
+        return merged.sort_values(["trade_date", "thscode"]).reset_index(drop=True)
+
+    def fetch_basic_indicators(
+        self,
+        codes: Sequence[str],
+        indicator_specs: Sequence[dict[str, Any]],
+    ) -> pd.DataFrame:
+        """Run a no-write entitlement canary for explicitly configured indicators."""
+
+        normalized_codes = sorted(
+            {str(code).strip().upper() for code in codes if str(code).strip()}
+        )
+        if not normalized_codes:
+            raise ValueError("at least one code is required")
+        if not indicator_specs or len(indicator_specs) > 5:
+            raise ValueError("indicator_specs must contain between one and five items")
+        normalized_specs: list[dict[str, Any]] = []
+        for item in indicator_specs:
+            indicator = str(item.get("indicator") or "").strip()
+            if not indicator:
+                raise ValueError("indicator spec is missing indicator")
+            params = item.get("indiparams") or []
+            if not isinstance(params, list):
+                raise ValueError("indicator indiparams must be a list")
+            normalized_specs.append(
+                {"indicator": indicator, "indiparams": [str(value) for value in params]}
+            )
+        response = self.request(
+            "basic_data_service",
+            {"codes": ",".join(normalized_codes), "indipara": normalized_specs},
+        )
+        return _tables_frame(response)
 
 
 __all__ = [

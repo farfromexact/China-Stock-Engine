@@ -114,6 +114,35 @@ class IFindHTTPClientTests(unittest.TestCase):
         ]
         self.assertEqual(len(quote_calls), 2)
 
+    def test_history_range_carries_explicit_adjustment_parameters(self) -> None:
+        transport = FakeTransport()
+        client = IFindHTTPClient(refresh_token="refresh-secret", transport=transport)
+        frame = client.fetch_daily_history(
+            ["600000.SH"],
+            "2026-08-01",
+            "2026-08-18",
+            indicators=("close",),
+            cps="forward1",
+            base_date="2026-08-18",
+            batch_size=1,
+            request_interval_seconds=0,
+        )
+        self.assertEqual(list(frame.columns), [
+            "trade_date",
+            "thscode",
+            "close",
+            "source_provider",
+            "source_endpoint",
+        ])
+        quote_call = next(
+            call for call in transport.calls if call[0].endswith("cmd_history_quotation")
+        )
+        payload = quote_call[2]
+        self.assertEqual(payload["startdate"], "2026-08-01")
+        self.assertEqual(payload["enddate"], "2026-08-18")
+        self.assertEqual(payload["functionpara"]["CPS"], "forward1")
+        self.assertEqual(payload["functionpara"]["baseDate"], "2026-08-18")
+
     def test_reference_and_calendar_are_normalized(self) -> None:
         transport = FakeTransport()
         client = IFindHTTPClient(refresh_token="refresh-secret", transport=transport)

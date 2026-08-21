@@ -1,32 +1,56 @@
 # China Stock Engine
 
-China Stock Engine 是一个面向中国 A 股市场的公开采集与质量控制引擎。它通过同花顺 iFinD Quant HTTP API 采集、标准化、校验并在本地保存可审计的日频数据，供研究、市场雷达和后续分析使用。
+China Stock Engine 是一个面向中国 A 股的可审计数据引擎。它通过同花顺 iFinD Quant HTTP API 采集、标准化、校验并保存日频事实数据，供本地分析、模型研究和其他系统直接消费。
 
-本项目借鉴 [China-Commodities-Engine](https://github.com/farfromexact/China-Commodities-Engine) 的核心原则：数据源日期必须与请求日期一致；失败状态与最后有效快照分离；只有通过结构和质量校验的数据才能提升为正式产物；不得用旧数据伪装当天数据。
+项目只输出数据和参考信息：
 
-> 本仓库公开代码，但不公开分发 iFinD 商业行情。`data/` 下的生成物默认由 Git 忽略；使用者需要自备有权使用的 iFinD 账号或 refresh token。
+- 不生成股票候选池、综合评分或市场观点；
+- 不输出交易建议或收益评价；
+- 不以旧数据冒充当天数据，也不为缺失字段制造替代值；
+- 每个派生字段都能追溯到源日期、PIT 截止时间和快照哈希。
 
-## 当前正式范围
+本项目借鉴 [China-Commodities-Engine](https://github.com/farfromexact/China-Commodities-Engine) 的发布原则：采集尝试与最后有效快照分离，只有通过结构和质量门的数据才能提升到 `latest`。
 
-- 全 A 股证券池：代码、名称、交易所和板块分类。
-- PIT 证券主数据：上市日期、当日总股本和流通 A 股本。
-- 日频行情：不复权开高低收、前收盘、成交均价、成交量、成交额、换手率和涨跌幅。
-- 交易日历：使用上交所市场代码 `212001` 明确判断请求日是否开市。
-- 逐证券观测状态：区分 `traded`、`quote_without_turnover` 和 `no_quote_observed`；缺行情不会被武断标成停牌。
-- 市场宽度：上涨、下跌、平盘家数，横截面均值/中位数和总成交额。
-- 数据质量：证券池/主数据/行情覆盖率、源日期、重复代码、OHLC、成交均价区间、涨跌幅重算、股本关系、负值、逐表哈希和模式签名。
+> 本仓库公开代码，但不公开分发 iFinD 商业数据。`data/` 下的生成物默认由 Git 忽略；使用者需要自备有权使用的 iFinD 账号或 refresh token。
 
-默认提升门槛为证券池不少于 5,000 只、日行情和证券主数据覆盖率均不低于 98%、扩展字段非空率不低于 95%，且上交所、深交所和北交所均有覆盖。
+## 数据范围
 
-财务报表、公告、公司行动、复权因子、指数和高频数据尚未进入正式产物。它们需要独立的指标/报表权限 canary 和 point-in-time 数据契约，不能因为登录成功就假定可用。
+当前事实层与派生层包括：
 
-## 本地正式产物
+- PIT 全 A 股证券池、名称、交易所、板块、上市日、总股本和流通 A 股；
+- 未复权日线 OHLC、前收、均价、成交量、成交额、换手率和涨跌幅；
+- 上交所交易日历和逐证券行情观测状态；
+- 上涨、下跌、平盘家数，横截面均值/中位数和总成交额；
+- 1/3/5/20/60 日复权收益、20/60 日历史波动率、滚动成交异常和价格位置；
+- 市值、滚动高点距离、相对指数及 PIT 申万行业收益；
+- 公司行为、行业、指数成分和可交易性参考的 PIT 输入契约；
+- 覆盖率、质量门、模块可用性、内容哈希与数据目录。
+
+默认提升门槛为证券池不少于 5,000 只，日行情和证券主数据覆盖率不低于 98%，扩展字段覆盖率不低于 95%，且沪深北交易所均有覆盖。
+
+历史、复权、行业、指数成分和可交易性模块必须分别通过小范围权限 canary。没有权限时记录 `not_entitled`；字段未知时保持为空。登录成功不等于数据权限可用。
+
+完整字段定义见 [数据字典](docs/DATA_DICTIONARY.md)，存储和许可边界见 [DATA_POLICY.md](DATA_POLICY.md)。
+
+## 数据布局
 
 ```text
 data/
 ├── last_run_status.json
+├── facts/
+│   ├── market/trade_date=YYYY-MM-DD/
+│   ├── reference/as_of_date=YYYY-MM-DD/
+│   ├── adjustment/as_of_date=YYYY-MM-DD/
+│   ├── classification/as_of_date=YYYY-MM-DD/
+│   ├── index/trade_date=YYYY-MM-DD/
+│   └── tradability/as_of_date=YYYY-MM-DD/
+├── features/
+│   └── stock_state/trade_date=YYYY-MM-DD/stock_state.parquet
 ├── latest/
 │   ├── manifest.json
+│   ├── last_attempt_status.json
+│   ├── data_reference_latest.json
+│   ├── stock_state.parquet
 │   ├── universe.parquet
 │   ├── security_reference.parquet
 │   ├── daily_quotes.parquet
@@ -36,49 +60,37 @@ data/
 ├── market_history.json
 └── snapshots/
     └── YYYY-MM-DD/
-        ├── manifest.json
-        ├── universe.parquet
-        ├── security_reference.parquet
-        ├── daily_quotes.parquet
-        ├── trading_calendar.parquet
-        ├── daily_security_status.parquet
-        └── market_summary.json
 ```
 
-`data/latest/` 永远指向最近一个已验证交易日。`data/last_run_status.json` 描述最近一次采集尝试，即使鉴权失败、额度耗尽、质量失败或遇到非交易日，也不会覆盖最后有效快照。`no_trade_date` 是正常且显式的状态，不会制造空快照。完整日级快照默认保留最近 60 个交易日，紧凑市场历史保留最近 252 个交易日。
+`facts/` 是不会随快照保留策略删除的追加式分区；`features/stock_state/` 保存逐股 PIT 派生数据。`latest/` 始终指向最后一个通过质量门的交易日。
 
-这些文件仅保存在运行者自己的本地或获授权的私有存储中，不进入本公开仓库。
+`data/last_run_status.json` 描述最近一次采集尝试。鉴权、权限、额度、质量或网络失败不会移动 `latest`。非交易日记录为客观的 `market_closed` 采集状态，不创建空快照。
 
-## 认证安全
+`data_reference_latest.json` 小于 2 MB，只包含：
 
-正式自动化使用 iFinD `refresh_token` 换取短期 `access_token`。两者只存在于运行进程内存中，不会写入仓库或日志。
+- 源交易日、数据截止时间和源快照哈希；
+- 质量门结果、字段覆盖率和模块状态；
+- 市场宽度、成交额、行情观测和行业事实汇总；
+- 数据集名称、行数、哈希和钻取路径。
 
-本地只读探针使用隐藏输入，并同时验证交易日历、单股证券主数据和扩展行情：
+全市场明细保存在 Parquet，不塞入紧凑 JSON。
 
-```powershell
-python -m china_stock_engine.cli probe --date 2026-08-18 --prompt-token
-```
+## PIT 输入契约
 
-本地运行一次全市场采集：
+可选模块读取下列规范化文件；缺文件时模块保持 `missing`，缺必需列时直接报错：
 
-```powershell
-python -m china_stock_engine.cli run --date 2026-08-18 --prompt-token
-python -m china_stock_engine.cli validate
-```
+- `adjustment_factors.parquet`：`trade_date, thscode, adj_factor, known_at`；
+- `corporate_actions.parquet`：`thscode, event_type, published_at, effective_at, known_at`；
+- `industry_membership.parquet`：`thscode, classification_system, level, industry_code, industry_name, effective_from, effective_to, known_at`；
+- `index_membership.parquet`：`index_code, index_name, thscode, weight, effective_from, effective_to, known_at`；
+- `provider_tradability.parquet`：`as_of_date, thscode, is_st, is_suspended, daily_price_limit_pct, lot_size, known_at`；
+- `facts/index/trade_date=.../index_quotes.parquet`：至少包含 `trade_date, thscode, open, close`。
 
-从最近一个已验证快照生成可离线打开的本地 HTML 看板：
+所有 PIT 记录必须满足 `known_at <= data_cutoff_time`。有效期数据同时按 `effective_from/effective_to` 过滤；今天的行业、成分或后来修订的数据不会自动回填为历史事实。
 
-```powershell
-python -m china_stock_engine.cli dashboard
-```
+## 本地使用
 
-默认输出为 `data/latest/market_dashboard.html`，其中包含市场概览、涨跌幅分布、板块覆盖和可筛选的逐证券数据表。页面不访问网络，也不包含 token 或原始 iFinD 响应。
-
-不要把 token 放进命令行参数、源代码、`.env.example` 或日志。GitHub Actions 应创建名为 `IFIND_REFRESH_TOKEN` 的加密 Secret。iFinD 返回月度额度错误时流程会停止且不重试；刷新 token 不能绕过账号额度。
-
-## 安装与测试
-
-项目要求 Python 3.12。
+项目要求 Python 3.12：
 
 ```powershell
 python -m venv .venv
@@ -88,10 +100,65 @@ python -m pip install --no-deps -e .
 python -m unittest discover -s tests -v
 ```
 
-## 每日自动化
+运行隐藏输入的单股只读探针：
 
-GitHub Actions 在工作日北京时间 18:30（UTC 10:30）运行测试、采集和校验。所有生成物写入 runner 的临时目录并在任务结束后丢弃，workflow 只有仓库只读权限，不会向公开分支提交 iFinD 数据。节假日仍可能触发调度，但空返回不会伪装成交易日。瞬时 TLS、HTTP 429 和服务端 5xx 错误会进行最多 3 次指数退避重试；鉴权、权限或数据质量错误不会被伪装成网络重试成功。
+```powershell
+python -m china_stock_engine.cli probe --date 2026-08-20 --prompt-token
+```
+
+分别验证模块权限和返回结构：
+
+```powershell
+python -m china_stock_engine.cli canary --module history --date 2026-08-20 --record-status --prompt-token
+python -m china_stock_engine.cli canary --module adjustment --date 2026-08-20 --record-status --prompt-token
+python -m china_stock_engine.cli canary --module industry --date 2026-08-20 --spec config/ifind_canary_spec.example.json --record-status --prompt-token
+```
+
+采集并验证单日快照：
+
+```powershell
+python -m china_stock_engine.cli run --date 2026-08-20 --prompt-token
+python -m china_stock_engine.cli validate
+```
+
+首次回填最近 252 个交易日，并生成逐股状态和紧凑数据参考：
+
+```powershell
+python -m china_stock_engine.cli backfill --sessions 252 --end 2026-08-20 --with-adjustment-snapshot --prompt-token
+python -m china_stock_engine.cli build-state
+python -m china_stock_engine.cli build-report
+```
+
+回填先从上交所日历解析准确交易日，再逐日取得 PIT 股票池和证券主数据，并将区间行情按日期窗口与证券批次拆分。它不会用当前股票池回填历史。
+回填预取阶段最多使用两路并发，并在认证完成后开始请求；实际并发和批次仍受 iFinD 账户额度与服务端限速约束。
+
+生成无需联网的本地数据参考 HTML：
+
+```powershell
+python -m china_stock_engine.cli dashboard
+```
+
+默认输出为 `data/latest/data_reference.html`。页面与 `data_reference_latest.json` 使用同一源快照哈希，只展示质量、覆盖率、数据目录和事实汇总。
+
+## 凭证安全
+
+自动化使用 `IFIND_REFRESH_TOKEN` 换取短期 access token。两者只存在于进程内存，不写入仓库、数据产物或日志。
+
+不要把 token 放入命令行参数、源代码、`.env.example` 或日志。GitHub Actions 中使用加密 Secret `IFIND_REFRESH_TOKEN`。认证、权限和质量错误不会被伪装成成功。
+
+## GitHub Actions 与私有数据仓
+
+工作流在工作日北京时间 18:30 运行测试、采集、校验并生成保留 14 天的 HTML 数据参考 artifact。`concurrency` 防止两个发布任务同时更新指针。
+
+公开代码仓始终只读，不提交 iFinD 数据。私有持久化默认关闭；只有同时满足以下条件时，工作流才会恢复并写入 `farfromexact/China-Stock-Data`：
+
+- 仓库变量 `IFIND_PRIVATE_STORAGE_APPROVED=true`，表示已确认合同允许该存储方式；
+- Secret `STOCK_DATA_REPO_TOKEN` 是只能写入该私有数据仓的细粒度 Token。
+
+启用后，工作流恢复历史、补齐缺失交易日、分层验证、生成参考文件，并在全部成功后一次性提交。失败和休市只更新脱敏尝试状态，不移动最后有效快照。
+
+私有数据仓接近 1 GB 前应将长期事实层迁移到对象存储，Git 只保留紧凑状态和参考接口。
 
 ## 数据许可
 
-代码公开与 iFinD 商业数据再分发是两件事。官方文档说明了[账号权限与提取额度](https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/help-center/permission.html)，但不能据此推定公开再分发权；对外提供生成数据前，仍须以账号合同及厂商书面授权为准。详见 [DATA_POLICY.md](DATA_POLICY.md)。
+代码公开与 iFinD 商业数据再分发是两件事。启用任何真实云端同步前，必须以账户合同及厂商书面授权为准。详见 [DATA_POLICY.md](DATA_POLICY.md)。

@@ -7,6 +7,23 @@ on:
         description: "Optional completed trade date (YYYY-MM-DD)"
         required: false
         type: string
+      backfill_start:
+        description: "Optional PIT backfill start (YYYY-MM-DD)"
+        required: false
+        type: string
+      backfill_end:
+        description: "Optional PIT backfill end (YYYY-MM-DD)"
+        required: false
+        type: string
+      backfill_sessions:
+        description: "Optional exact SSE session count, for example 252"
+        required: false
+        type: string
+      refresh_adjustments:
+        description: "Run the documented iFinD CPS adjustment module"
+        required: false
+        default: false
+        type: boolean
   schedule:
     # 18:30 Asia/Shanghai, Monday through Friday.
     - cron: "30 10 * * 1-5"
@@ -21,11 +38,34 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
 
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Resolve licensed private-data gate
+        id: data_gate
+        env:
+          PRIVATE_STORAGE_APPROVED: ${{ vars.IFIND_PRIVATE_STORAGE_APPROVED }}
+          DATA_REPO_TOKEN: ${{ secrets.STOCK_DATA_REPO_TOKEN }}
+        shell: bash
+        run: |
+          if [[ "${PRIVATE_STORAGE_APPROVED}" == "true" && -n "${DATA_REPO_TOKEN}" ]]; then
+            echo "enabled=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+            echo "Private persistence disabled: vendor storage approval and a scoped token are both required."
+          fi
+
+      - name: Restore licensed private data repository
+        if: steps.data_gate.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: farfromexact/China-Stock-Data
+          token: ${{ secrets.STOCK_DATA_REPO_TOKEN }}
+          path: .private-stock-data
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -48,32 +88,162 @@ jobs:
         env:
           IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
           TRADE_DATE: ${{ inputs.trade_date }}
+          BACKFILL_START: ${{ inputs.backfill_start }}
+          BACKFILL_END: ${{ inputs.backfill_end }}
+          BACKFILL_SESSIONS: ${{ inputs.backfill_sessions }}
+          REFRESH_ADJUSTMENTS: ${{ inputs.refresh_adjustments }}
+          ADJUSTMENT_MODULE_ENABLED: ${{ vars.IFIND_ADJUSTMENT_ENABLED }}
+          PRIVATE_DATA_ENABLED: ${{ steps.data_gate.outputs.enabled }}
         shell: bash
         run: |
-          DATA_DIR="${RUNNER_TEMP}/china-stock-engine-data"
+          if [[ "${PRIVATE_DATA_ENABLED}" == "true" ]]; then
+            DATA_DIR="${GITHUB_WORKSPACE}/.private-stock-data/data"
+          else
+            DATA_DIR="${RUNNER_TEMP}/china-stock-engine-data"
+          fi
+          RUN_ADJUSTMENTS="false"
+          if [[ "${REFRESH_ADJUSTMENTS}" == "true" || "${ADJUSTMENT_MODULE_ENABLED}" == "true" ]]; then
+            RUN_ADJUSTMENTS="true"
+          fi
           if [[ -z "${IFIND_REFRESH_TOKEN}" ]]; then
             echo "IFIND_REFRESH_TOKEN secret is required." >&2
             exit 1
           fi
-          if [[ -n "${TRADE_DATE}" ]]; then
-            python -m china_stock_engine.cli run \
-              --date "${TRADE_DATE}" \
-              --data-dir "${DATA_DIR}"
+          if [[ -n "${BACKFILL_START}" || -n "${BACKFILL_END}" || -n "${BACKFILL_SESSIONS}" ]]; then
+            if [[ -n "${BACKFILL_SESSIONS}" && ( -n "${BACKFILL_START}" || -n "${BACKFILL_END}" ) ]]; then
+              echo "Use either backfill_sessions or backfill_start/backfill_end, not both." >&2
+              exit 1
+            fi
+            if [[ -z "${BACKFILL_SESSIONS}" && ( -z "${BACKFILL_START}" || -z "${BACKFILL_END}" ) ]]; then
+              echo "Both backfill_start and backfill_end are required." >&2
+              exit 1
+            fi
+            EXTRA_ARGS=()
+            if [[ "${RUN_ADJUSTMENTS}" == "true" ]]; then
+              EXTRA_ARGS+=(--with-adjustment-snapshot)
+            fi
+            if [[ -n "${BACKFILL_SESSIONS}" ]]; then
+              TARGET_DATE="${TRADE_DATE}"
+              if [[ -z "${TARGET_DATE}" ]]; then
+                TARGET_DATE=$(python -c 'from china_stock_engine.cli import default_trade_date; print(default_trade_date())')
+              fi
+              python -m china_stock_engine.cli backfill \
+                --sessions "${BACKFILL_SESSIONS}" \
+                --end "${TARGET_DATE}" \
+                --data-dir "${DATA_DIR}" \
+                "${EXTRA_ARGS[@]}"
+            else
+              python -m china_stock_engine.cli backfill \
+                --start "${BACKFILL_START}" \
+                --end "${BACKFILL_END}" \
+                --data-dir "${DATA_DIR}" \
+                "${EXTRA_ARGS[@]}"
+            fi
           else
-            python -m china_stock_engine.cli run \
-              --data-dir "${DATA_DIR}"
+            TARGET_DATE="${TRADE_DATE}"
+            if [[ -z "${TARGET_DATE}" ]]; then
+              TARGET_DATE=$(python -c 'from china_stock_engine.cli import default_trade_date; print(default_trade_date())')
+            fi
+            LAST_DATE=""
+            if [[ "${PRIVATE_DATA_ENABLED}" == "true" && -f "${DATA_DIR}/latest/manifest.json" ]]; then
+              LAST_DATE=$(python -c 'import json, pathlib, sys; print(json.loads((pathlib.Path(sys.argv[1])/"latest"/"manifest.json").read_text(encoding="utf-8")).get("trade_date", ""))' "${DATA_DIR}")
+            fi
+            if [[ -n "${LAST_DATE}" && "${LAST_DATE}" < "${TARGET_DATE}" ]]; then
+              CATCHUP_START=$(python -c 'from datetime import date, timedelta; import sys; print((date.fromisoformat(sys.argv[1]) + timedelta(days=1)).isoformat())' "${LAST_DATE}")
+              EXTRA_ARGS=()
+              if [[ "${RUN_ADJUSTMENTS}" == "true" ]]; then
+                EXTRA_ARGS+=(--with-adjustment-snapshot)
+              fi
+              python -m china_stock_engine.cli backfill \
+                --start "${CATCHUP_START}" \
+                --end "${TARGET_DATE}" \
+                --data-dir "${DATA_DIR}" \
+                "${EXTRA_ARGS[@]}"
+            else
+              EXTRA_ARGS=()
+              if [[ "${RUN_ADJUSTMENTS}" == "true" ]]; then
+                EXTRA_ARGS+=(--refresh-adjustments)
+              fi
+              python -m china_stock_engine.cli run \
+                --date "${TARGET_DATE}" \
+                --data-dir "${DATA_DIR}" \
+                "${EXTRA_ARGS[@]}"
+            fi
           fi
-          STATE=$(python -c 'import json, os, pathlib; p=pathlib.Path(os.environ["RUNNER_TEMP"])/"china-stock-engine-data"/"last_run_status.json"; print(json.loads(p.read_text(encoding="utf-8"))["state"])')
+          STATE=$(python -c 'import json, pathlib, sys; p=pathlib.Path(sys.argv[1])/"last_run_status.json"; print(json.loads(p.read_text(encoding="utf-8"))["state"])' "${DATA_DIR}")
           echo "state=${STATE}" >> "${GITHUB_OUTPUT}"
+          echo "data_dir=${DATA_DIR}" >> "${GITHUB_OUTPUT}"
 
       - name: Validate promoted snapshot
         id: validate
         if: >-
           steps.collect.outcome == 'success' &&
-          steps.collect.outputs.state != 'no_trade_date'
+          steps.collect.outputs.state != 'market_closed'
         run: >-
           python -m china_stock_engine.cli validate
-          --data-dir "${RUNNER_TEMP}/china-stock-engine-data"
+          --data-dir "${{ steps.collect.outputs.data_dir }}"
+
+      - name: Refresh compact data reference
+        id: reference_refresh
+        if: steps.validate.outcome == 'success'
+        run: |
+          python -m china_stock_engine.cli build-report \
+            --data-dir "${{ steps.collect.outputs.data_dir }}"
+          python -m china_stock_engine.cli validate \
+            --data-dir "${{ steps.collect.outputs.data_dir }}"
+
+      - name: Build compact local data reference
+        if: >-
+          steps.validate.outcome == 'success' &&
+          steps.reference_refresh.outcome == 'success'
+        run: >-
+          python -m china_stock_engine.cli dashboard
+          --data-dir "${{ steps.collect.outputs.data_dir }}"
+          --output "${RUNNER_TEMP}/china-stock-data-reference.html"
+
+      - name: Upload ephemeral data reference
+        if: >-
+          steps.validate.outcome == 'success' &&
+          steps.reference_refresh.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: china-stock-data-reference
+          path: ${{ runner.temp }}/china-stock-data-reference.html
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Publish licensed private data atomically
+        if: always() && steps.data_gate.outputs.enabled == 'true'
+        env:
+          COLLECT_OUTCOME: ${{ steps.collect.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          REFERENCE_OUTCOME: ${{ steps.reference_refresh.outcome }}
+          COLLECTION_STATE: ${{ steps.collect.outputs.state }}
+        shell: bash
+        run: |
+          cd "${GITHUB_WORKSPACE}/.private-stock-data"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          REPO_BYTES=$(du -sb . | awk '{print $1}')
+          echo "Private data repository working size: ${REPO_BYTES} bytes"
+          if (( REPO_BYTES >= 900000000 )); then
+            echo "Private data repository is at the 900 MB migration gate; move long-term facts to object storage before publishing." >&2
+            exit 1
+          elif (( REPO_BYTES >= 800000000 )); then
+            echo "Warning: private data repository exceeds 800 MB; object-storage migration is due." >&2
+          fi
+          if [[ "${COLLECT_OUTCOME}" == "success" && "${COLLECTION_STATE}" != "market_closed" && "${VALIDATE_OUTCOME}" == "success" && "${REFERENCE_OUTCOME}" == "success" ]]; then
+            git add --all data
+          else
+            [[ -f data/last_run_status.json ]] && git add data/last_run_status.json
+            [[ -f data/latest/last_attempt_status.json ]] && git add data/latest/last_attempt_status.json
+          fi
+          if git diff --cached --quiet; then
+            echo "No private data changes to publish."
+            exit 0
+          fi
+          git commit -m "data: ${COLLECTION_STATE:-attempt}"
+          git push origin HEAD:main
 
       - name: Fail job when collection failed
         if: steps.collect.outcome == 'failure'
