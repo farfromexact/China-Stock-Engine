@@ -22,6 +22,7 @@ from .quality import (
     schema_signature,
     validate_data,
 )
+from .data_reference import build_data_reference_outputs
 from .storage import promote_snapshot, verify_latest_artifacts, write_run_status
 
 
@@ -41,6 +42,7 @@ class CollectionConfig:
     trade_calendar_offset: int = -10
     history_limit: int = 252
     snapshot_limit: int = 60
+    build_data_reference: bool = True
 
 
 @dataclass(frozen=True)
@@ -122,7 +124,7 @@ def collect_and_publish(
         if trade_date not in open_dates:
             status = {
                 "schema_version": 2,
-                "state": "no_trade_date",
+                "state": "market_closed",
                 "data_fresh": False,
                 "requested_trade_date": trade_date,
                 "last_valid_trade_date": previous_trade_date,
@@ -205,26 +207,59 @@ def collect_and_publish(
             f"{name}_frame_sha256": frame_hash(frame, sort_columns)
             for name, (frame, sort_columns) in frames.items()
         }
-        existing_manifest = _latest_manifest(config.data_dir)
+        latest_manifest = _latest_manifest(config.data_dir)
+        is_current_latest = latest_manifest.get("trade_date") == trade_date
+        existing_manifest = (
+            latest_manifest
+            if is_current_latest
+            else _load_json(
+                config.data_dir / "snapshots" / trade_date / "manifest.json"
+            )
+        )
         existing_provenance = existing_manifest.get("provenance") or {}
         unchanged = existing_manifest.get("trade_date") == trade_date and all(
             existing_provenance.get(key) == value
             for key, value in frame_hashes.items()
         )
         if unchanged:
+            data_reference: dict[str, Any] = (
+                existing_manifest.get("data_reference") or {}
+            )
+            data_reference_error: str | None = None
+            if config.build_data_reference and is_current_latest and not (
+                config.data_dir / "latest" / "data_reference_latest.json"
+            ).exists():
+                try:
+                    data_reference = build_data_reference_outputs(
+                        config.data_dir, trade_date
+                    )
+                except Exception as exc:
+                    data_reference_error = _safe_error(exc, client)
+            unchanged_state = (
+                "success_unchanged"
+                if is_current_latest
+                else "success_historical_unchanged"
+            )
             status = {
                 "schema_version": 2,
-                "state": "success_unchanged",
+                "state": "success_partial"
+                if data_reference_error
+                else unchanged_state,
                 "data_fresh": True,
                 "requested_trade_date": trade_date,
-                "last_valid_trade_date": trade_date,
+                "last_valid_trade_date": (
+                    trade_date if is_current_latest else previous_trade_date
+                ),
                 "provider": "ifind_http",
                 "started_at_utc": started_at,
                 "completed_at_utc": _utc_now(),
                 "raw_payload_persisted": False,
                 "quality": quality.as_dict(),
                 "artifacts": existing_manifest.get("artifacts") or {},
+                "data_reference": data_reference,
             }
+            if data_reference_error:
+                status["data_reference_error"] = data_reference_error
             previous_status = _last_run_status(config.data_dir)
             if (
                 str(previous_status.get("state") or "")
@@ -264,6 +299,9 @@ def collect_and_publish(
                 },
             },
         }
+        promote_latest = (
+            previous_trade_date is None or trade_date >= previous_trade_date
+        )
         final_manifest = promote_snapshot(
             config.data_dir,
             trade_date,
@@ -276,13 +314,44 @@ def collect_and_publish(
             manifest,
             history_limit=config.history_limit,
             snapshot_limit=config.snapshot_limit,
+            promote_latest=promote_latest,
         )
+        data_reference: dict[str, Any] = {}
+        data_reference_error: str | None = None
+        if promote_latest and config.build_data_reference:
+            try:
+                data_reference = build_data_reference_outputs(
+                    config.data_dir, trade_date
+                )
+                final_manifest = _latest_manifest(config.data_dir)
+            except Exception as exc:
+                data_reference_error = _safe_error(exc, client)
+        elif not promote_latest:
+            data_reference = {
+                "state": "deferred_for_historical_backfill",
+                "reason": "historical partition persisted without regressing latest",
+            }
+        else:
+            data_reference = {
+                "state": "deferred_until_backfill_tail",
+                "reason": (
+                    "intermediate partition persisted; data reference builds at range end"
+                ),
+            }
+        if not promote_latest:
+            result_state = "success_historical"
+        elif data_reference_error:
+            result_state = "success_partial"
+        else:
+            result_state = "success"
         status = {
             "schema_version": 2,
-            "state": "success",
+            "state": result_state,
             "data_fresh": True,
             "requested_trade_date": trade_date,
-            "last_valid_trade_date": trade_date,
+            "last_valid_trade_date": (
+                trade_date if promote_latest else previous_trade_date
+            ),
             "previous_valid_trade_date": previous_trade_date,
             "provider": "ifind_http",
             "started_at_utc": started_at,
@@ -290,7 +359,10 @@ def collect_and_publish(
             "raw_payload_persisted": False,
             "quality": quality.as_dict(),
             "artifacts": final_manifest["artifacts"],
+            "data_reference": data_reference,
         }
+        if data_reference_error:
+            status["data_reference_error"] = data_reference_error
         write_run_status(config.data_dir, status)
         return CollectionResult(True, status)
     except Exception as exc:

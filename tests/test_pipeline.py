@@ -12,6 +12,7 @@ from china_stock_engine.pipeline import (
     collect_and_publish,
     validate_latest,
 )
+from china_stock_engine.data_reference import build_data_reference_outputs
 
 
 TEST_TEMP_ROOT = Path(__file__).resolve().parents[1] / ".test-tmp"
@@ -31,14 +32,14 @@ class FakeClient:
     access_token = "sensitive-access-token"
 
     def __init__(
-        self, *, partial: bool = False, fail: bool = False, no_trade: bool = False
+        self, *, partial: bool = False, fail: bool = False, market_closed: bool = False
     ) -> None:
         self.partial = partial
         self.fail = fail
-        self.no_trade = no_trade
+        self.market_closed = market_closed
 
     def fetch_trade_calendar(self, trade_date: str, *, offset: int) -> pd.DataFrame:
-        calendar_date = "2026-08-17" if self.no_trade else trade_date
+        calendar_date = "2026-08-17" if self.market_closed else trade_date
         return pd.DataFrame(
             {
                 "as_of_date": [trade_date],
@@ -147,6 +148,33 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(
             (root / "data/latest/daily_security_status.parquet").exists()
         )
+        self.assertTrue(
+            (
+                root
+                / "data/facts/market/trade_date=2026-08-18/daily_quotes.parquet"
+            ).exists()
+        )
+        self.assertTrue((root / "data/latest/data_reference_latest.json").exists())
+        self.assertTrue((root / "data/latest/stock_state.parquet").exists())
+        self.assertFalse((root / "data/latest/candidates.parquet").exists())
+        self.assertFalse((root / "data/signals").exists())
+        manifest = json.loads(
+            (root / "data/latest/manifest.json").read_text(encoding="utf-8")
+        )
+        reference = json.loads(
+            (root / "data/latest/data_reference_latest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        stock_catalog = next(
+            item
+            for item in reference["data_catalog"]
+            if item["name"] == "stock_state.parquet"
+        )
+        self.assertEqual(
+            stock_catalog["sha256"],
+            manifest["artifacts"]["stock_state.parquet"]["sha256"],
+        )
         self.assertNotIn(b"\r\n", (root / "data/latest/manifest.json").read_bytes())
         self.assertNotIn(
             b"\r\n", (root / "data/latest/market_summary.json").read_bytes()
@@ -225,6 +253,63 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(stored["state"], "success_unchanged")
         self.assertTrue(stored["data_fresh"])
 
+    def test_historical_backfill_does_not_regress_latest(self) -> None:
+        root = make_test_workspace("historical-no-regression")
+        newer = collect_and_publish(
+            FakeClient(), "2026-08-19", config=self.config(root)
+        )
+        self.assertTrue(newer.ok, newer.status)
+        latest_manifest_path = root / "data/latest/manifest.json"
+        latest_before = latest_manifest_path.read_bytes()
+
+        older = collect_and_publish(
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+
+        self.assertTrue(older.ok, older.status)
+        self.assertEqual(older.status["state"], "success_historical")
+        self.assertEqual(older.status["last_valid_trade_date"], "2026-08-19")
+        self.assertEqual(latest_manifest_path.read_bytes(), latest_before)
+        self.assertTrue(
+            (
+                root
+                / "data/facts/market/trade_date=2026-08-18/daily_quotes.parquet"
+            ).exists()
+        )
+        attempt = json.loads(
+            (root / "data/latest/last_attempt_status.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(attempt["requested_trade_date"], "2026-08-18")
+
+        historical_reference = build_data_reference_outputs(
+            root / "data", "2026-08-18"
+        )
+        self.assertEqual(
+            Path(historical_reference["data_reference_path"]),
+            (
+                root
+                / "data/snapshots/2026-08-18/data_reference_latest.json"
+            ).resolve(),
+        )
+        self.assertEqual(latest_manifest_path.read_bytes(), latest_before)
+        historical_manifest_path = (
+            root / "data/snapshots/2026-08-18/manifest.json"
+        )
+        historical_before = historical_manifest_path.read_bytes()
+
+        repeated = collect_and_publish(
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+
+        self.assertTrue(repeated.ok, repeated.status)
+        self.assertEqual(
+            repeated.status["state"], "success_historical_unchanged"
+        )
+        self.assertEqual(historical_manifest_path.read_bytes(), historical_before)
+        self.assertEqual(latest_manifest_path.read_bytes(), latest_before)
+
     def test_collection_failure_records_sanitized_status(self) -> None:
         root = make_test_workspace("collection-failure")
         result = collect_and_publish(
@@ -236,13 +321,49 @@ class PipelineTests(unittest.TestCase):
         self.assertNotIn("sensitive-refresh-token", text)
         self.assertNotIn("sensitive-access-token", text)
 
-    def test_no_trade_date_is_explicit_and_does_not_promote(self) -> None:
-        root = make_test_workspace("no-trade-date")
+    def test_recorded_entitlement_status_reaches_data_reference(self) -> None:
+        root = make_test_workspace("module-status")
         result = collect_and_publish(
-            FakeClient(no_trade=True), "2026-08-18", config=self.config(root)
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+        self.assertTrue(result.ok, result.status)
+        status_dir = (
+            root / "data/facts/module_status/as_of_date=2026-08-18"
+        )
+        status_dir.mkdir(parents=True)
+        (status_dir / "module_status.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "as_of_date": "2026-08-18",
+                    "modules": {
+                        "adjustment": {
+                            "state": "not_entitled",
+                            "checked_at_utc": "2026-08-18T10:00:00+00:00",
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        build_data_reference_outputs(root / "data", "2026-08-18")
+        reference = json.loads(
+            (root / "data/latest/data_reference_latest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            reference["readiness"]["adjustment"]["state"], "not_entitled"
+        )
+
+    def test_market_closed_is_explicit_and_does_not_promote(self) -> None:
+        root = make_test_workspace("market-closed")
+        result = collect_and_publish(
+            FakeClient(market_closed=True), "2026-08-18", config=self.config(root)
         )
         self.assertTrue(result.ok)
-        self.assertEqual(result.status["state"], "no_trade_date")
+        self.assertEqual(result.status["state"], "market_closed")
         self.assertFalse(result.status["data_fresh"])
         self.assertFalse((root / "data/latest").exists())
 
