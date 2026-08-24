@@ -1,6 +1,19 @@
 # China Stock Engine
 
-China Stock Engine 是一个面向中国 A 股的可审计数据引擎。它通过同花顺 iFinD Quant HTTP API 采集、标准化、校验并保存日频事实数据，供本地分析、模型研究和其他系统直接消费。
+> 一个每天自动更新、可被程序直接读取的中国 A 股日频数据仓。
+
+China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通过同花顺 iFinD Quant HTTP API 提取全 A 股日频数据，完成标准化和质量校验后，将结果直接提交到本仓库 `main` 分支的 [`data/`](data/) 目录。
+
+下游 automation、研究脚本或服务不需要等待 HTML 报告或临时 artifact；直接读取此仓库中的 Parquet 和 JSON 文件即可。换言之，这个仓库的目标是提供一份有版本、有日期、有质量状态的 A 股事实数据源，而不是提供选股、交易信号或市场观点。
+
+## 仓库用途
+
+这个仓库负责四件事：
+
+1. 每个工作日北京时间 18:30 自动提取当日 A 股数据；
+2. 校验证券池、行情、参考数据和交易日历的覆盖率与结构；
+3. 将通过校验的数据持久化到本仓库，而非只保留在运行日志或 artifact；
+4. 为其他 automation 提供稳定、可追溯的读取入口。
 
 项目只输出数据和参考信息：
 
@@ -11,7 +24,20 @@ China Stock Engine 是一个面向中国 A 股的可审计数据引擎。它通�
 
 本项目借鉴 [China-Commodities-Engine](https://github.com/farfromexact/China-Commodities-Engine) 的发布原则：采集尝试与最后有效快照分离，只有通过结构和质量门的数据才能提升到 `latest`。
 
-> 本仓库公开代码，但不公开分发 iFinD 商业数据。`data/` 下的生成物默认由 Git 忽略；使用者需要自备有权使用的 iFinD 账号或 refresh token。
+> `data/` 是本仓库的实际数据输出，提交在 Git 历史中供下游自动化读取；仓库绝不提交 iFinD 原始响应、token 或其他凭证。公开分发和下游使用仍须符合 iFinD 账户合同与数据许可。
+
+## 给其他 automation 的读取入口
+
+使用者应从 [`data/latest/`](data/latest/) 读取当前最后一个已验证快照，并先检查 [`data/latest/manifest.json`](data/latest/manifest.json) 中的 `trade_date`、`verified` 和质量指标。不要仅依据文件存在就把数据认定为当天数据。
+
+- `data/latest/daily_quotes.parquet`：当日逐证券未复权行情；
+- `data/latest/security_reference.parquet`：证券名称、交易所、板块、上市日和股本等 PIT 参考数据；
+- `data/latest/stock_state.parquet`：逐证券 PIT 派生状态；
+- `data/latest/market_summary.json`：市场宽度和成交汇总；
+- `data/snapshots/YYYY-MM-DD/`：按交易日冻结的完整验证快照；
+- `data/last_run_status.json`：最近一次采集尝试的状态，失败不会覆盖 `latest`。
+
+每次成功发布都会生成一个普通 Git commit，因此下游可固定某个 commit SHA 复现一次读取，也可始终读取 `main` 上的 `data/latest/` 获取最新有效数据。
 
 ## 数据范围
 
