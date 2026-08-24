@@ -1,0 +1,207 @@
+{
+  "artifacts": {
+    "daily_quotes.parquet": {
+      "rows": 5545,
+      "sha256": "8e2d2d3922f9165d11f503647e10d624daa3d893492ce28569b8f6b033d68117"
+    },
+    "daily_security_status.parquet": {
+      "rows": 5549,
+      "sha256": "8b49ee028c8e508b1abb0e60578f74fa73682dc69d4577c198479801c181015f"
+    },
+    "data_reference_latest.json": {
+      "sha256": "b019a059f36791a6aec082a3a9ddede17b38c8367d48c31e216ea03e88e0d68d"
+    },
+    "market_summary.json": {
+      "sha256": "82416f1f114da4261cb77b120569119ce8dfc7cf2abc946128266039bc449ada"
+    },
+    "security_reference.parquet": {
+      "rows": 5549,
+      "sha256": "327fd32cf7b66b5d6d5185b9344d88ead0a7c47ddf2ea23f77a53de4745cb32f"
+    },
+    "stock_state.parquet": {
+      "rows": 5545,
+      "sha256": "a795d68f258f10d823ba76a35541b9f7baa84685b40274ed715e3ccb9d813a36"
+    },
+    "trading_calendar.parquet": {
+      "rows": 11,
+      "sha256": "a0bc525b7fe56be09a47f4c5e827f8b3db0055b44d96d7a22b7ed09205aece8f"
+    },
+    "universe.parquet": {
+      "rows": 5549,
+      "sha256": "09c0a470986cb8026eb67d3d6927d0d30cafc88892549b4df5ea2bc943797d0a"
+    }
+  },
+  "collected_at_utc": "2026-08-24T13:12:49+00:00",
+  "data_fresh": true,
+  "data_reference": {
+    "readiness": {
+      "adjustment": {
+        "coverage": 0.0,
+        "method": "point_in_time_factor_input",
+        "state": "missing"
+      },
+      "corporate_actions": {
+        "events_effective_today": 0,
+        "state": "missing"
+      },
+      "history": {
+        "scope_end": "2026-08-24",
+        "sessions": 1,
+        "state": "missing",
+        "target_sessions": 252
+      },
+      "index_membership": {
+        "index_count": 0,
+        "state": "missing"
+      },
+      "index_prices": {
+        "benchmarks": {
+          "CSI1000": null,
+          "CSI300": null
+        },
+        "state": "missing"
+      },
+      "industry": {
+        "classification": "SW",
+        "coverage": 0.0,
+        "state": "missing"
+      },
+      "stock_state": {
+        "rows": 5545,
+        "state": "missing",
+        "tradability_state_counts": {
+          "unknown": 5545
+        }
+      },
+      "tradability": {
+        "clear_count": 0,
+        "coverage": 0.0,
+        "restricted_count": 0,
+        "state": "missing",
+        "unknown_count": 5545,
+        "unknown_is_not_suspension": true
+      }
+    },
+    "schema_version": 2,
+    "source_snapshot_sha256": "fb3ebb2919d49d7d4742f4ec48f5c378bc48e49cdb013a128e4c0cc9cc145da6",
+    "stock_state_rows": 5545
+  },
+  "provenance": {
+    "calendar": "SSE",
+    "calendar_market_code": "212001",
+    "daily_status_frame_sha256": "f3a6351541a4ca3202a2426c25f84e5a67b71507031d7ed90624db695832f47a",
+    "daily_status_schema_signature": "7c2cde3db8e112fd112494b10ff25865a741fbaefccb0817450f864827039fd3",
+    "quotes_frame_sha256": "0d3930ddfab1dea8c482897580987dc07a16f2b9af77740cf8ee8b1fc135fdb8",
+    "quotes_schema_signature": "c93bd3bbc5f06d91ce4add8e3a537ecc90379c552e9cc5c83602d83582431691",
+    "security_reference_frame_sha256": "9c42d92e0e80709c93c828c6d709234e477ec3027061c676f9c8bada3d1a1d32",
+    "security_reference_schema_signature": "01911771e4ad3513390355b58f98f35abf8ce31d3e4b390867fedaa488557163",
+    "trading_calendar_frame_sha256": "82c82ee2cee4d70ec85e37df7a6f4a5391f5b556068643a19236eeacc2a087f3",
+    "trading_calendar_schema_signature": "2956c145239e1a0fbd0fc2ac5e2a708be0e21f12a2c4d13a2676bab0c00c6e5a",
+    "universe_block": "001005010",
+    "universe_frame_sha256": "ebba7ff657b0a9dc98ab11dc0b67d1ec594574b3a7b3fe58de9ab0510a32f754",
+    "universe_report": "p03291",
+    "universe_schema_signature": "14194066c7ea6c8ea8510a106b45c02a609f616d0908986f25c68f1b3fb37bd6"
+  },
+  "provider": "ifind_http",
+  "quality": {
+    "errors": [],
+    "metrics": {
+      "average_price_outside_range_rows": 0,
+      "calendar_as_of_dates": [
+        "2026-08-24"
+      ],
+      "calendar_open_dates": [
+        "2026-08-10",
+        "2026-08-11",
+        "2026-08-12",
+        "2026-08-13",
+        "2026-08-14",
+        "2026-08-17",
+        "2026-08-18",
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21",
+        "2026-08-24"
+      ],
+      "change_ratio_inconsistent_rows": 0,
+      "complete_ohlc_rows": 5545,
+      "float_exceeds_total_rows": 0,
+      "future_listing_date_rows": 0,
+      "invalid_ohlc_rows": 0,
+      "negative_amount_rows": 0,
+      "negative_float_shares_rows": 0,
+      "negative_total_shares_rows": 0,
+      "negative_turnover_rows": 0,
+      "negative_volume_rows": 0,
+      "nonpositive_price_values": 0,
+      "observation_state_counts": {
+        "no_quote_observed": 4,
+        "traded": 5545
+      },
+      "quote_count": 5545,
+      "quote_coverage": 0.999279,
+      "quote_dates": [
+        "2026-08-24"
+      ],
+      "quote_duplicates": 0,
+      "quote_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "quote_field_coverage": {
+        "avg_price": 1.0,
+        "pre_close": 1.0,
+        "turnover_ratio": 1.0
+      },
+      "reference_count": 5549,
+      "reference_coverage": 1.0,
+      "reference_dates": [
+        "2026-08-24"
+      ],
+      "reference_duplicates": 0,
+      "reference_field_coverage": {
+        "float_a_shares": 1.0,
+        "listing_date": 1.0,
+        "total_shares": 1.0
+      },
+      "requested_trade_date": "2026-08-24",
+      "status_count": 5549,
+      "status_dates": [
+        "2026-08-24"
+      ],
+      "status_duplicates": 0,
+      "universe_count": 5549,
+      "universe_dates": [
+        "2026-08-24"
+      ],
+      "universe_duplicates": 0,
+      "universe_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "unknown_quote_codes": 0,
+      "unknown_reference_codes": 0
+    },
+    "ok": true
+  },
+  "quality_thresholds": {
+    "min_extended_field_coverage": 0.95,
+    "min_quote_coverage": 0.98,
+    "min_reference_coverage": 0.98,
+    "min_universe_size": 5000
+  },
+  "raw_payload_persisted": false,
+  "requested_trade_date": "2026-08-24",
+  "schema_version": 2,
+  "source_endpoints": [
+    "get_trade_dates",
+    "data_pool",
+    "basic_data_service",
+    "cmd_history_quotation"
+  ],
+  "source_trade_date": "2026-08-24",
+  "trade_date": "2026-08-24",
+  "verified": true
+}
