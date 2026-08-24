@@ -132,32 +132,25 @@ python -m china_stock_engine.cli build-report
 回填先从上交所日历解析准确交易日，再逐日取得 PIT 股票池和证券主数据，并将区间行情按日期窗口与证券批次拆分。它不会用当前股票池回填历史。
 回填预取阶段最多使用两路并发，并在认证完成后开始请求；实际并发和批次仍受 iFinD 账户额度与服务端限速约束。
 
-生成无需联网的本地数据参考 HTML：
-
-```powershell
-python -m china_stock_engine.cli dashboard
-```
-
-默认输出为 `data/latest/data_reference.html`。页面与 `data_reference_latest.json` 使用同一源快照哈希，只展示质量、覆盖率、数据目录和事实汇总。
-
 ## 凭证安全
 
 自动化使用 `IFIND_REFRESH_TOKEN` 换取短期 access token。两者只存在于进程内存，不写入仓库、数据产物或日志。
 
 不要把 token 放入命令行参数、源代码、`.env.example` 或日志。GitHub Actions 中使用加密 Secret `IFIND_REFRESH_TOKEN`。认证、权限和质量错误不会被伪装成成功。
 
-## GitHub Actions 与私有数据仓
+## GitHub Actions 与远端数据仓
 
-工作流在工作日北京时间 18:30 运行测试、采集、校验并生成保留 14 天的 HTML 数据参考 artifact。`concurrency` 防止两个发布任务同时更新指针。
+工作流在工作日北京时间 18:30 运行测试、采集和校验。它不生成或上传 HTML artifact；成功后的完整标准化数据会提交到你显式配置的远端数据仓，供其他 automation 直接读取。`concurrency` 防止两个发布任务同时更新指针。
 
-公开代码仓始终只读，不提交 iFinD 数据。私有持久化默认关闭；只有同时满足以下条件时，工作流才会恢复并写入 `farfromexact/China-Stock-Data`：
+每次自动采集都要求远端持久化已配置；以下任一条件不满足，工作流会在任何 iFinD 调用前直接失败：
 
-- 仓库变量 `IFIND_PRIVATE_STORAGE_APPROVED=true`，表示已确认合同允许该存储方式；
-- Secret `STOCK_DATA_REPO_TOKEN` 是只能写入该私有数据仓的细粒度 Token。
+- 仓库变量 `IFIND_DATA_STORAGE_APPROVED=true`，表示已确认该存储方式获准；
+- 仓库变量 `IFIND_DATA_REPOSITORY=owner/repository`，指定实际保存完整 `data/` 的远端仓库；
+- Secret `STOCK_DATA_REPO_TOKEN`，一个仅具备该数据仓写权限的细粒度 Token。
 
-启用后，工作流恢复历史、补齐缺失交易日、分层验证、生成参考文件，并在全部成功后一次性提交。失败和休市只更新脱敏尝试状态，不移动最后有效快照。
+配置完成后，工作流恢复历史、补齐缺失交易日、分层验证，并在全部成功后一次性提交完整 `data/`。失败和休市只更新脱敏尝试状态，不移动最后有效快照。若把目标指向公开仓库，必须先确认 iFinD 合同允许公开分发对应数据。
 
-私有数据仓接近 1 GB 前应将长期事实层迁移到对象存储，Git 只保留紧凑状态和参考接口。
+数据仓接近 1 GB 前应将长期事实层迁移到对象存储，Git 只保留紧凑状态和参考接口。
 
 ## 数据许可
 

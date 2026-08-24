@@ -44,27 +44,33 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Resolve licensed private-data gate
-        id: data_gate
+      - name: Require approved remote data persistence before collection
         env:
-          PRIVATE_STORAGE_APPROVED: ${{ vars.IFIND_PRIVATE_STORAGE_APPROVED }}
+          DATA_STORAGE_APPROVED: ${{ vars.IFIND_DATA_STORAGE_APPROVED }}
+          DATA_REPOSITORY: ${{ vars.IFIND_DATA_REPOSITORY }}
           DATA_REPO_TOKEN: ${{ secrets.STOCK_DATA_REPO_TOKEN }}
         shell: bash
         run: |
-          if [[ "${PRIVATE_STORAGE_APPROVED}" == "true" && -n "${DATA_REPO_TOKEN}" ]]; then
-            echo "enabled=true" >> "${GITHUB_OUTPUT}"
-          else
-            echo "enabled=false" >> "${GITHUB_OUTPUT}"
-            echo "Private persistence disabled: vendor storage approval and a scoped token are both required."
+          if [[ "${DATA_STORAGE_APPROVED}" != "true" ]]; then
+            echo "IFIND_DATA_STORAGE_APPROVED=true is required before any iFinD collection." >&2
+            exit 1
+          fi
+          if [[ -z "${DATA_REPOSITORY}" ]]; then
+            echo "IFIND_DATA_REPOSITORY must name the remote repository that will retain the collected data." >&2
+            exit 1
+          fi
+          if [[ -z "${DATA_REPO_TOKEN}" ]]; then
+            echo "STOCK_DATA_REPO_TOKEN is required before any iFinD collection." >&2
+            exit 1
           fi
 
-      - name: Restore licensed private data repository
-        if: steps.data_gate.outputs.enabled == 'true'
+      - name: Restore remote data repository
+        id: data_repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: farfromexact/China-Stock-Data
+          repository: ${{ vars.IFIND_DATA_REPOSITORY }}
           token: ${{ secrets.STOCK_DATA_REPO_TOKEN }}
-          path: .private-stock-data
+          path: .remote-stock-data
           persist-credentials: true
 
       - name: Set up Python
@@ -93,14 +99,9 @@ jobs:
           BACKFILL_SESSIONS: ${{ inputs.backfill_sessions }}
           REFRESH_ADJUSTMENTS: ${{ inputs.refresh_adjustments }}
           ADJUSTMENT_MODULE_ENABLED: ${{ vars.IFIND_ADJUSTMENT_ENABLED }}
-          PRIVATE_DATA_ENABLED: ${{ steps.data_gate.outputs.enabled }}
         shell: bash
         run: |
-          if [[ "${PRIVATE_DATA_ENABLED}" == "true" ]]; then
-            DATA_DIR="${GITHUB_WORKSPACE}/.private-stock-data/data"
-          else
-            DATA_DIR="${RUNNER_TEMP}/china-stock-engine-data"
-          fi
+          DATA_DIR="${GITHUB_WORKSPACE}/.remote-stock-data/data"
           RUN_ADJUSTMENTS="false"
           if [[ "${REFRESH_ADJUSTMENTS}" == "true" || "${ADJUSTMENT_MODULE_ENABLED}" == "true" ]]; then
             RUN_ADJUSTMENTS="true"
@@ -145,7 +146,7 @@ jobs:
               TARGET_DATE=$(python -c 'from china_stock_engine.cli import default_trade_date; print(default_trade_date())')
             fi
             LAST_DATE=""
-            if [[ "${PRIVATE_DATA_ENABLED}" == "true" && -f "${DATA_DIR}/latest/manifest.json" ]]; then
+            if [[ -f "${DATA_DIR}/latest/manifest.json" ]]; then
               LAST_DATE=$(python -c 'import json, pathlib, sys; print(json.loads((pathlib.Path(sys.argv[1])/"latest"/"manifest.json").read_text(encoding="utf-8")).get("trade_date", ""))' "${DATA_DIR}")
             fi
             if [[ -n "${LAST_DATE}" && "${LAST_DATE}" < "${TARGET_DATE}" ]]; then
@@ -192,28 +193,8 @@ jobs:
           python -m china_stock_engine.cli validate \
             --data-dir "${{ steps.collect.outputs.data_dir }}"
 
-      - name: Build compact local data reference
-        if: >-
-          steps.validate.outcome == 'success' &&
-          steps.reference_refresh.outcome == 'success'
-        run: >-
-          python -m china_stock_engine.cli dashboard
-          --data-dir "${{ steps.collect.outputs.data_dir }}"
-          --output "${RUNNER_TEMP}/china-stock-data-reference.html"
-
-      - name: Upload ephemeral data reference
-        if: >-
-          steps.validate.outcome == 'success' &&
-          steps.reference_refresh.outcome == 'success'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: china-stock-data-reference
-          path: ${{ runner.temp }}/china-stock-data-reference.html
-          retention-days: 14
-          if-no-files-found: error
-
-      - name: Publish licensed private data atomically
-        if: always() && steps.data_gate.outputs.enabled == 'true'
+      - name: Publish remote data atomically
+        if: always() && steps.data_repo.outcome == 'success'
         env:
           COLLECT_OUTCOME: ${{ steps.collect.outcome }}
           VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
@@ -221,7 +202,7 @@ jobs:
           COLLECTION_STATE: ${{ steps.collect.outputs.state }}
         shell: bash
         run: |
-          cd "${GITHUB_WORKSPACE}/.private-stock-data"
+          cd "${GITHUB_WORKSPACE}/.remote-stock-data"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           REPO_BYTES=$(du -sb . | awk '{print $1}')
