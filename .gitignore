@@ -22,9 +22,8 @@ venv/
 *.pem
 *.key
 
-# Licensed iFinD output stays local and out of public Git history
-data/*
-!data/.gitkeep
+# Normalized daily data is versioned for downstream automation.
+# Never commit raw iFinD responses or credentials.
 *.tmp
 *.temp
 *.log

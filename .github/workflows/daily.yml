@@ -29,7 +29,7 @@ on:
     - cron: "30 10 * * 1-5"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: daily-china-stock-data
@@ -43,35 +43,19 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
 
-      - name: Require approved remote data persistence before collection
-        env:
-          DATA_STORAGE_APPROVED: ${{ vars.IFIND_DATA_STORAGE_APPROVED }}
-          DATA_REPOSITORY: ${{ vars.IFIND_DATA_REPOSITORY }}
-          DATA_REPO_TOKEN: ${{ secrets.STOCK_DATA_REPO_TOKEN }}
+      - name: Verify this repository can retain data before collection
         shell: bash
         run: |
-          if [[ "${DATA_STORAGE_APPROVED}" != "true" ]]; then
-            echo "IFIND_DATA_STORAGE_APPROVED=true is required before any iFinD collection." >&2
+          git push --dry-run origin HEAD:main
+          REPO_BYTES=$(du -sb "${GITHUB_WORKSPACE}" | awk '{print $1}')
+          echo "Repository working size: ${REPO_BYTES} bytes"
+          if (( REPO_BYTES >= 900000000 )); then
+            echo "Repository is at the 900 MB migration gate; free capacity or move long-term facts before collecting." >&2
             exit 1
           fi
-          if [[ -z "${DATA_REPOSITORY}" ]]; then
-            echo "IFIND_DATA_REPOSITORY must name the remote repository that will retain the collected data." >&2
-            exit 1
-          fi
-          if [[ -z "${DATA_REPO_TOKEN}" ]]; then
-            echo "STOCK_DATA_REPO_TOKEN is required before any iFinD collection." >&2
-            exit 1
-          fi
-
-      - name: Restore remote data repository
-        id: data_repo
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ vars.IFIND_DATA_REPOSITORY }}
-          token: ${{ secrets.STOCK_DATA_REPO_TOKEN }}
-          path: .remote-stock-data
-          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -101,7 +85,7 @@ jobs:
           ADJUSTMENT_MODULE_ENABLED: ${{ vars.IFIND_ADJUSTMENT_ENABLED }}
         shell: bash
         run: |
-          DATA_DIR="${GITHUB_WORKSPACE}/.remote-stock-data/data"
+          DATA_DIR="${GITHUB_WORKSPACE}/data"
           RUN_ADJUSTMENTS="false"
           if [[ "${REFRESH_ADJUSTMENTS}" == "true" || "${ADJUSTMENT_MODULE_ENABLED}" == "true" ]]; then
             RUN_ADJUSTMENTS="true"
@@ -193,8 +177,8 @@ jobs:
           python -m china_stock_engine.cli validate \
             --data-dir "${{ steps.collect.outputs.data_dir }}"
 
-      - name: Publish remote data atomically
-        if: always() && steps.data_repo.outcome == 'success'
+      - name: Publish data to this repository atomically
+        if: always()
         env:
           COLLECT_OUTCOME: ${{ steps.collect.outcome }}
           VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
@@ -202,16 +186,16 @@ jobs:
           COLLECTION_STATE: ${{ steps.collect.outputs.state }}
         shell: bash
         run: |
-          cd "${GITHUB_WORKSPACE}/.remote-stock-data"
+          cd "${GITHUB_WORKSPACE}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           REPO_BYTES=$(du -sb . | awk '{print $1}')
-          echo "Private data repository working size: ${REPO_BYTES} bytes"
+          echo "Repository working size: ${REPO_BYTES} bytes"
           if (( REPO_BYTES >= 900000000 )); then
-            echo "Private data repository is at the 900 MB migration gate; move long-term facts to object storage before publishing." >&2
+            echo "Repository is at the 900 MB migration gate; move long-term facts to object storage before publishing." >&2
             exit 1
           elif (( REPO_BYTES >= 800000000 )); then
-            echo "Warning: private data repository exceeds 800 MB; object-storage migration is due." >&2
+            echo "Warning: repository exceeds 800 MB; object-storage migration is due." >&2
           fi
           if [[ "${COLLECT_OUTCOME}" == "success" && "${COLLECTION_STATE}" != "market_closed" && "${VALIDATE_OUTCOME}" == "success" && "${REFERENCE_OUTCOME}" == "success" ]]; then
             git add --all data
@@ -220,7 +204,7 @@ jobs:
             [[ -f data/latest/last_attempt_status.json ]] && git add data/latest/last_attempt_status.json
           fi
           if git diff --cached --quiet; then
-            echo "No private data changes to publish."
+            echo "No data changes to publish."
             exit 0
           fi
           git commit -m "data: ${COLLECTION_STATE:-attempt}"

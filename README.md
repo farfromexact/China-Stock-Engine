@@ -138,19 +138,15 @@ python -m china_stock_engine.cli build-report
 
 不要把 token 放入命令行参数、源代码、`.env.example` 或日志。GitHub Actions 中使用加密 Secret `IFIND_REFRESH_TOKEN`。认证、权限和质量错误不会被伪装成成功。
 
-## GitHub Actions 与远端数据仓
+## GitHub Actions 与本仓数据留存
 
-工作流在工作日北京时间 18:30 运行测试、采集和校验。它不生成或上传 HTML artifact；成功后的完整标准化数据会提交到你显式配置的远端数据仓，供其他 automation 直接读取。`concurrency` 防止两个发布任务同时更新指针。
+工作流在工作日北京时间 18:30 运行测试、采集和校验。它不生成或上传 HTML artifact；成功后的完整标准化数据直接提交到本仓的 `data/` 目录和 `main` 分支，供其他 automation 直接 clone 或读取。`concurrency` 防止两个发布任务同时更新指针。
 
-每次自动采集都要求远端持久化已配置；以下任一条件不满足，工作流会在任何 iFinD 调用前直接失败：
+在调用 iFinD 前，工作流会对本仓执行 `git push --dry-run` 并检查仓库容量；没有写入权限或仓库达到 900 MB 容量门槛时会直接失败，不会开始提取。自动化只需要配置加密 Secret `IFIND_REFRESH_TOKEN`；workflow 已请求本仓 `contents: write` 权限用于提交数据。
 
-- 仓库变量 `IFIND_DATA_STORAGE_APPROVED=true`，表示已确认该存储方式获准；
-- 仓库变量 `IFIND_DATA_REPOSITORY=owner/repository`，指定实际保存完整 `data/` 的远端仓库；
-- Secret `STOCK_DATA_REPO_TOKEN`，一个仅具备该数据仓写权限的细粒度 Token。
+工作流会恢复历史、补齐缺失交易日、分层验证，并在全部成功后一次性提交完整 `data/`。失败和休市只更新脱敏尝试状态，不移动最后有效快照。
 
-配置完成后，工作流恢复历史、补齐缺失交易日、分层验证，并在全部成功后一次性提交完整 `data/`。失败和休市只更新脱敏尝试状态，不移动最后有效快照。若把目标指向公开仓库，必须先确认 iFinD 合同允许公开分发对应数据。
-
-数据仓接近 1 GB 前应将长期事实层迁移到对象存储，Git 只保留紧凑状态和参考接口。
+仓库接近 1 GB 前应将长期事实层迁移到对象存储，Git 只保留紧凑状态和参考接口。
 
 ## 数据许可
 

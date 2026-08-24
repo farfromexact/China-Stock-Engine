@@ -9,20 +9,20 @@ class DailyWorkflowContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
 
-    def test_requires_remote_persistence_before_ifind_collection(self) -> None:
-        gate = self.workflow.index("Require approved remote data persistence before collection")
+    def test_verifies_this_repository_before_ifind_collection(self) -> None:
+        gate = self.workflow.index("Verify this repository can retain data before collection")
         collection = self.workflow.index("Collect iFinD A-share snapshot")
         self.assertLess(gate, collection)
         self.assertIn(
-            "IFIND_DATA_STORAGE_APPROVED=true is required before any iFinD collection.",
+            "contents: write",
             self.workflow,
         )
         self.assertIn(
-            "IFIND_DATA_REPOSITORY must name the remote repository that will retain the collected data.",
+            "git push --dry-run origin HEAD:main",
             self.workflow,
         )
         self.assertIn(
-            "STOCK_DATA_REPO_TOKEN is required before any iFinD collection.",
+            'DATA_DIR="${GITHUB_WORKSPACE}/data"',
             self.workflow,
         )
 
@@ -32,12 +32,13 @@ class DailyWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("Build compact local data reference", self.workflow)
         self.assertNotIn("Upload ephemeral data reference", self.workflow)
 
-    def test_publishes_only_after_remote_repository_checkout(self) -> None:
-        self.assertIn("id: data_repo", self.workflow)
-        self.assertIn(
-            "if: always() && steps.data_repo.outcome == 'success'", self.workflow
-        )
+    def test_publishes_back_to_this_repository(self) -> None:
+        self.assertIn("Publish data to this repository atomically", self.workflow)
+        self.assertIn('cd "${GITHUB_WORKSPACE}"', self.workflow)
+        self.assertIn("git push origin HEAD:main", self.workflow)
         self.assertNotIn("China-Stock-Data", self.workflow)
+        self.assertNotIn("IFIND_DATA_REPOSITORY", self.workflow)
+        self.assertNotIn(".remote-stock-data", self.workflow)
 
 
 if __name__ == "__main__":
