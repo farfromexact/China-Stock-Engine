@@ -1413,6 +1413,11 @@ def build_data_reference_outputs(
         data_reference,
         opportunity_inputs,
         reference_metadata,
+        manifest_updates={
+            "schema_version": 3,
+            **pit_timing,
+            "collected_at_utc": pit_timing["collection_completed_at"],
+        },
         publish_latest=publish_latest,
     )
     reference_path = (
