@@ -16,6 +16,11 @@ import pandas as pd
 
 SNAPSHOT_DIR_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 SUPPORTED_MANIFEST_SCHEMA_VERSIONS = {2, 3}
+MAX_OPPORTUNITY_RADAR_BYTES = 300 * 1024
+
+
+class ArtifactContractError(ValueError):
+    """A derived artifact violated a fail-closed publication contract."""
 
 
 def sha256_file(path: Path) -> str:
@@ -237,6 +242,7 @@ def promote_snapshot(
             "market_dashboard.html",
             "data_reference_latest.json",
             "opportunity_inputs_latest.json",
+            "opportunity_radar_latest.json",
             "data_reference.html",
         ):
             stale_path = latest_dir / stale_name
@@ -257,12 +263,85 @@ def _remove_file(path: Path) -> None:
         path.unlink()
 
 
+def _validate_snapshot_artifacts(
+    snapshot_dir: Path, manifest: dict[str, Any]
+) -> list[Path]:
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, dict) or not artifacts:
+        raise ArtifactContractError(
+            f"snapshot manifest has no artifact contract: {snapshot_dir}"
+        )
+    paths: list[Path] = []
+    for name, metadata in sorted(artifacts.items()):
+        if not isinstance(name, str) or Path(name).name != name:
+            raise ArtifactContractError(
+                f"snapshot manifest contains an unsafe artifact name: {name!r}"
+            )
+        path = snapshot_dir / name
+        if not path.is_file():
+            raise ArtifactContractError(f"snapshot artifact does not exist: {path}")
+        expected = str((metadata or {}).get("sha256") or "")
+        actual = sha256_file(path)
+        if not expected or actual != expected:
+            raise ArtifactContractError(
+                f"snapshot artifact sha256 mismatch: {path}"
+            )
+        if name == "opportunity_radar_latest.json":
+            size = path.stat().st_size
+            if size > MAX_OPPORTUNITY_RADAR_BYTES:
+                raise ArtifactContractError(
+                    "opportunity_radar_latest.json is "
+                    f"{size} bytes; hard limit is {MAX_OPPORTUNITY_RADAR_BYTES}"
+                )
+        paths.append(path)
+    return paths
+
+
+def promote_verified_snapshot_to_latest(
+    data_dir: Path, trade_date: str
+) -> dict[str, Any]:
+    """Publish a fully verified snapshot, committing its manifest last."""
+
+    snapshot_dir = data_dir / "snapshots" / trade_date
+    manifest_path = snapshot_dir / "manifest.json"
+    manifest = load_manifest(manifest_path, missing_ok=False)
+    if str(manifest.get("trade_date") or "") != trade_date:
+        raise ArtifactContractError(
+            f"snapshot manifest trade_date does not match {trade_date}"
+        )
+    sources = _validate_snapshot_artifacts(snapshot_dir, manifest)
+    latest_dir = data_dir / "latest"
+    latest_dir.mkdir(parents=True, exist_ok=True)
+
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for source in sources:
+            target = latest_dir / source.name
+            temporary = target.with_name(f".{target.name}.publish.tmp")
+            shutil.copyfile(source, temporary)
+            staged.append((temporary, target))
+        manifest_temporary = latest_dir / ".manifest.json.publish.tmp"
+        shutil.copyfile(manifest_path, manifest_temporary)
+        for temporary, target in staged:
+            os.replace(temporary, target)
+        os.replace(manifest_temporary, latest_dir / "manifest.json")
+    finally:
+        for temporary, _ in staged:
+            _remove_file(temporary)
+        _remove_file(latest_dir / ".manifest.json.publish.tmp")
+
+    for stale_name in ("market_dashboard.html", "data_reference.html"):
+        _remove_file(latest_dir / stale_name)
+    return manifest
+
+
 def publish_data_reference_artifacts(
     data_dir: Path,
     trade_date: str,
     stock_state: pd.DataFrame,
     data_reference: dict[str, Any],
     opportunity_inputs: dict[str, Any],
+    opportunity_radar: dict[str, Any],
     reference_metadata: dict[str, Any],
     *,
     manifest_updates: dict[str, Any] | None = None,
@@ -271,10 +350,17 @@ def publish_data_reference_artifacts(
     """Atomically attach deterministic, opinion-free reference data."""
 
     snapshot_dir = data_dir / "snapshots" / trade_date
-    latest_dir = data_dir / "latest"
     manifest_path = snapshot_dir / "manifest.json"
     if not manifest_path.exists():
         raise FileNotFoundError(f"snapshot manifest does not exist: {manifest_path}")
+
+    radar_encoded = serialize_json(opportunity_radar, compact=True).encode("utf-8")
+    if len(radar_encoded) > MAX_OPPORTUNITY_RADAR_BYTES:
+        raise ArtifactContractError(
+            "opportunity_radar_latest.json is "
+            f"{len(radar_encoded)} bytes; hard limit is "
+            f"{MAX_OPPORTUNITY_RADAR_BYTES}"
+        )
 
     artifacts = {"stock_state.parquet": stock_state}
     for name, frame in artifacts.items():
@@ -288,6 +374,11 @@ def publish_data_reference_artifacts(
     atomic_write_json(
         snapshot_dir / "opportunity_inputs_latest.json",
         opportunity_inputs,
+        compact=True,
+    )
+    atomic_write_json(
+        snapshot_dir / "opportunity_radar_latest.json",
+        opportunity_radar,
         compact=True,
     )
 
@@ -313,24 +404,20 @@ def publish_data_reference_artifacts(
     manifest_artifacts["opportunity_inputs_latest.json"] = {
         "sha256": sha256_file(snapshot_dir / "opportunity_inputs_latest.json")
     }
+    radar_path = snapshot_dir / "opportunity_radar_latest.json"
+    manifest_artifacts["opportunity_radar_latest.json"] = {
+        "bytes": radar_path.stat().st_size,
+        "hard_max_bytes": MAX_OPPORTUNITY_RADAR_BYTES,
+        "rows": int(len(opportunity_radar.get("candidate_union") or [])),
+        "schema_version": opportunity_radar.get("schema_version"),
+        "sha256": sha256_file(radar_path),
+    }
     manifest["artifacts"] = manifest_artifacts
     manifest["data_reference"] = reference_metadata
     atomic_write_json(manifest_path, manifest)
 
     if publish_latest:
-        for stale_name in ("market_dashboard.html",):
-            _remove_file(latest_dir / stale_name)
-        for name in artifacts:
-            atomic_copy(snapshot_dir / name, latest_dir / name)
-        atomic_copy(
-            snapshot_dir / "data_reference_latest.json",
-            latest_dir / "data_reference_latest.json",
-        )
-        atomic_copy(
-            snapshot_dir / "opportunity_inputs_latest.json",
-            latest_dir / "opportunity_inputs_latest.json",
-        )
-        atomic_write_json(latest_dir / "manifest.json", manifest)
+        promote_verified_snapshot_to_latest(data_dir, trade_date)
     return manifest
 
 
@@ -351,10 +438,20 @@ def verify_latest_artifacts(data_dir: Path) -> tuple[dict[str, Any], list[str]]:
         actual = sha256_file(path)
         if not expected or actual != expected:
             errors.append(f"sha256 mismatch for latest artifact: {name}")
+        if (
+            name == "opportunity_radar_latest.json"
+            and path.stat().st_size > MAX_OPPORTUNITY_RADAR_BYTES
+        ):
+            errors.append(
+                "opportunity_radar_latest.json exceeds hard size limit: "
+                f"{path.stat().st_size} > {MAX_OPPORTUNITY_RADAR_BYTES}"
+            )
     return manifest, errors
 
 
 __all__ = [
+    "ArtifactContractError",
+    "MAX_OPPORTUNITY_RADAR_BYTES",
     "atomic_copy",
     "atomic_write_parquet",
     "atomic_write_json",
@@ -362,6 +459,7 @@ __all__ = [
     "load_json_object",
     "load_manifest",
     "promote_snapshot",
+    "promote_verified_snapshot_to_latest",
     "publish_data_reference_artifacts",
     "sha256_file",
     "SUPPORTED_MANIFEST_SCHEMA_VERSIONS",

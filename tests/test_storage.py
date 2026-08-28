@@ -4,7 +4,15 @@ from pathlib import Path
 import shutil
 import unittest
 
-from china_stock_engine.storage import atomic_write_json, load_manifest
+import pandas as pd
+
+from china_stock_engine.storage import (
+    ArtifactContractError,
+    MAX_OPPORTUNITY_RADAR_BYTES,
+    atomic_write_json,
+    load_manifest,
+    publish_data_reference_artifacts,
+)
 
 
 TEST_ROOT = Path(__file__).resolve().parents[1] / ".test-tmp" / "storage"
@@ -41,6 +49,40 @@ class StorageTests(unittest.TestCase):
             '{\n "a":"值",\n "z":[\n  1,\n  2\n ]\n}\n',
         )
         self.assertGreater(len(text.splitlines()), 1)
+
+    def test_oversize_radar_fails_before_snapshot_or_latest_is_touched(self) -> None:
+        data_dir = TEST_ROOT / "data"
+        snapshot = data_dir / "snapshots" / "2026-08-28"
+        latest = data_dir / "latest"
+        atomic_write_json(
+            snapshot / "manifest.json",
+            {
+                "schema_version": 3,
+                "trade_date": "2026-08-28",
+                "artifacts": {"sentinel.json": {"sha256": "unused"}},
+            },
+        )
+        atomic_write_json(latest / "manifest.json", {"sentinel": "last-valid"})
+        latest_before = (latest / "manifest.json").read_bytes()
+
+        with self.assertRaisesRegex(ArtifactContractError, "hard limit"):
+            publish_data_reference_artifacts(
+                data_dir,
+                "2026-08-28",
+                pd.DataFrame({"thscode": ["600000.SH"]}),
+                {},
+                {},
+                {
+                    "candidate_union": [],
+                    "oversize": "x" * (MAX_OPPORTUNITY_RADAR_BYTES + 1),
+                },
+                {},
+                publish_latest=False,
+            )
+
+        self.assertEqual(latest_before, (latest / "manifest.json").read_bytes())
+        self.assertFalse((snapshot / "stock_state.parquet").exists())
+        self.assertFalse((snapshot / "opportunity_radar_latest.json").exists())
 
 
 if __name__ == "__main__":

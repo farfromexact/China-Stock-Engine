@@ -34,7 +34,8 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - `data/latest/security_reference.parquet`：证券名称、交易所、板块、上市日和股本等 PIT 参考数据；
 - `data/latest/stock_state.parquet`：逐证券 PIT 派生状态；
 - `data/latest/market_summary.json`：市场宽度和成交汇总；
-- `data/latest/opportunity_inputs_latest.json`：供 ChatGPT/Automation 读取的紧凑事实摘要与确定性 screens；
+- `data/latest/opportunity_inputs_latest.json`：完整的确定性 screens 与候选并集，供本地程序和研究流水线读取；
+- `data/latest/opportunity_radar_latest.json`：面向 ChatGPT/Automation 的有界事实接口（Top 100 candidate union）；
 - `data/snapshots/YYYY-MM-DD/`：按交易日冻结的完整验证快照；
 - `data/last_run_status.json`：最近一次采集尝试的状态，失败不会覆盖 `latest`。
 
@@ -80,6 +81,7 @@ data/
 │   ├── last_attempt_status.json
 │   ├── data_reference_latest.json
 │   ├── opportunity_inputs_latest.json
+│   ├── opportunity_radar_latest.json
 │   ├── stock_state.parquet
 │   ├── universe.parquet
 │   ├── security_reference.parquet
@@ -105,7 +107,7 @@ data/
 
 全市场明细保存在 Parquet，不塞入紧凑 JSON。
 
-`opportunity_inputs_latest.json` 同样控制在 2 MB 内，包含：
+`opportunity_inputs_latest.json` 控制在 2 MB 内，保留全部确定性 screen Top 25 与最多 150 只去重候选，适合 Python、本地研究和完整审计。它包含：
 
 - `trade_date / generated_at / source_snapshot_sha256` 与完整 PIT 时间；
 - 数据模式、各周期 readiness 和关键字段覆盖率；
@@ -116,7 +118,16 @@ data/
 - `return_1d/3d/5d/20d_pctile`、`amount_change_pctile`、`turnover_change_pctile`、`close_location_pctile`、成交额/换手排名及 `amount / float_market_cap`；
 - 最多 150 只证券的 `candidate_union`：仅对全部 screen 的 Top 25 结果去重，保留触发 screen、screen 内 rank/percentile、原始事实与确定性 `contradiction_flags`。
 
-每个独立 screen 最多 25 行。`candidate_union.screen_count` 只是同一证券被多少个确定性过滤器捕获，不是股票评分；所有输出均不包含综合分数、买卖标签、推荐或收益评价。该 JSON 使用键排序、一层缩进和紧凑分隔符的确定性多行序列化，兼顾 GitHub connector 分段读取与仓库体积。
+每个独立 screen 最多 25 行。`candidate_union.screen_count` 只是同一证券被多少个确定性过滤器捕获，不是股票评分；所有输出均不包含综合分数、买卖标签、推荐或收益评价。该 JSON 使用键排序、一层缩进和紧凑分隔符的确定性多行序列化。
+
+`opportunity_radar_latest.json` 是下游 LLM/Automation 的稳定传输契约：
+
+- 只保留完整输入中的 Top 100 `candidate_union`，不重复保存每个 screen 的证券行；
+- 固定截断顺序为 `screen_count` 降序、`best_screen_rank` 升序、`thscode` 升序；输出字段叫 `union_order`，仅表示确定性传输顺序，不表示相对吸引力；
+- 保留触发 screen、screen 内 rank/percentile、evidence family、1D/3D/5D/20D 原始收益、成交与换手异常、收盘位置、gap、市值、ADT20、矛盾标记及必要来源状态；
+- `generated_at` 固定等于源快照的 `collection_completed_at`，因此同一 source snapshot 重建得到完全相同的字节与哈希；
+- 目标体积约 220–250 KiB；300 KiB 是硬上限。超限会使构建失败，且不会覆盖最后有效 `latest`，绝不静默截断；
+- 可交易性、ST、停牌和涨跌停等字段通过 availability state 明确区分 `not_ready`、`unknown`、`confirmed_false`、`confirmed_true` 及已确认数值/状态；未知值绝不转换为 `false`。
 
 ## PIT 输入契约
 
@@ -129,7 +140,7 @@ data/
 - `provider_tradability.parquet`：`as_of_date, thscode, is_st, is_suspended, daily_price_limit_pct, lot_size, known_at`；
 - `facts/index/trade_date=.../index_quotes.parquet`：至少包含 `trade_date, thscode, open, close`。
 
-manifest、`stock_state` 和两个紧凑 JSON 均明确记录 `collection_started_at`、`collection_completed_at`、`configured_decision_cutoff` 与 `effective_pit_cutoff`。其中 `effective_pit_cutoff = min(configured_decision_cutoff, collection_completed_at)`，绝不会晚于实际采集完成时间。所有 PIT 记录必须满足 `known_at <= effective_pit_cutoff`。有效期数据同时按 `effective_from/effective_to` 过滤；今天的行业、成分或后来修订的数据不会自动回填为历史事实。
+manifest、`stock_state` 和三个 JSON 接口均明确记录 `collection_started_at`、`collection_completed_at`、`configured_decision_cutoff` 与 `effective_pit_cutoff`。其中 `effective_pit_cutoff = min(configured_decision_cutoff, collection_completed_at)`，绝不会晚于实际采集完成时间。所有 PIT 记录必须满足 `known_at <= effective_pit_cutoff`。有效期数据同时按 `effective_from/effective_to` 过滤；今天的行业、成分或后来修订的数据不会自动回填为历史事实。
 
 关键 `manifest.json` 不存在时可视为 missing；JSON 损坏、不是对象或 schema 不兼容会立即报错，不会静默当成空对象继续运行。
 

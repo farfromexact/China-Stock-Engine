@@ -113,8 +113,13 @@ class OpportunityInputsTests(unittest.TestCase):
         self.assertIsNone(unknown["limit_up"])
         self.assertLessEqual(len(payload["candidate_union"]), 150)
         self.assertEqual(
-            [row["rank"] for row in payload["candidate_union"]],
+            [row["union_order"] for row in payload["candidate_union"]],
             list(range(1, len(payload["candidate_union"]) + 1)),
+        )
+        self.assertNotIn("rank", payload["candidate_union"][0])
+        self.assertIn(
+            "not a relative attractiveness ordering",
+            payload["candidate_union_metadata"]["union_order_semantics"],
         )
         for row in payload["candidate_union"]:
             self.assertEqual(row["screen_count"], len(row["triggered_screens"]))
@@ -227,7 +232,10 @@ class OpportunityInputsTests(unittest.TestCase):
         self.assertIn(
             "market_cap_neutral_absolute_move__micro_lt_5bn_cny", screens
         )
-        self.assertIn("not a score", payload["candidate_union_metadata"]["screen_count_semantics"])
+        self.assertIn(
+            "raw count",
+            payload["candidate_union_metadata"]["screen_count_semantics"],
+        )
 
 
 if __name__ == "__main__":

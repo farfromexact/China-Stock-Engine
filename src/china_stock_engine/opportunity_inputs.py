@@ -10,7 +10,7 @@ import pandas as pd
 from .storage import serialize_json
 
 
-OPPORTUNITY_INPUTS_SCHEMA_VERSION = 2
+OPPORTUNITY_INPUTS_SCHEMA_VERSION = 3
 MAX_OPPORTUNITY_INPUTS_BYTES = 2 * 1024 * 1024
 DEFAULT_SCREEN_LIMIT = 25
 DEFAULT_CANDIDATE_UNION_LIMIT = 150
@@ -286,6 +286,16 @@ SCREEN_FACT_FIELDS = (
     "effective_pit_cutoff",
 )
 
+CANDIDATE_FACT_FIELDS = (
+    *SCREEN_FACT_FIELDS,
+    "volume_z20",
+    "listing_age_calendar_days",
+    "distance_from_high_20_pct",
+    "is_st",
+    "is_suspended",
+    "daily_price_limit_pct",
+)
+
 
 def _screen_rows(
     frame: pd.DataFrame,
@@ -430,7 +440,7 @@ def _build_candidate_union(
 
     ordered = sorted(captures.items(), key=ordering)
     rows: list[dict[str, Any]] = []
-    for union_rank, (thscode, triggers) in enumerate(ordered[:limit], start=1):
+    for union_order, (thscode, triggers) in enumerate(ordered[:limit], start=1):
         source = indexed.loc[thscode]
         if isinstance(source, pd.DataFrame):
             source = source.iloc[-1]
@@ -446,12 +456,12 @@ def _build_candidate_union(
         }
         facts = {
             field: _json_value(source.get(field))
-            for field in SCREEN_FACT_FIELDS
+            for field in CANDIDATE_FACT_FIELDS
             if field not in {"thscode", "security_name"} and field in source.index
         }
         rows.append(
             {
-                "rank": union_rank,
+                "union_order": union_order,
                 "thscode": thscode,
                 "security_name": _json_value(source.get("security_name")),
                 "triggered_screens": [
@@ -521,7 +531,13 @@ def build_opportunity_inputs(
         "turnover_rank",
         "amount_z20",
         "turnover_z20",
+        "volume_z20",
         "adt20",
+        "listing_age_calendar_days",
+        "distance_from_high_20_pct",
+        "is_st",
+        "is_suspended",
+        "daily_price_limit_pct",
         *PERCENTILE_SOURCE_FIELDS.keys(),
         *(f"raw_return_{periods}d_pct" for periods in HORIZONS),
         *(f"return_{periods}d_pct" for periods in HORIZONS),
@@ -947,9 +963,12 @@ def build_opportunity_inputs(
                 "screen_count descending, best_screen_rank ascending, "
                 "thscode ascending"
             ),
+            "union_order_semantics": (
+                "deterministic transport order only; not a relative "
+                "attractiveness ordering and no subjective weighting is applied"
+            ),
             "screen_count_semantics": (
-                "number of deterministic filters that captured the security; "
-                "not a score"
+                "raw count of deterministic filters that captured the security"
             ),
         },
         "contradiction_flag_definitions": CONTRADICTION_FLAG_DEFINITIONS,

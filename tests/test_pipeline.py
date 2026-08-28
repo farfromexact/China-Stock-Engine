@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import shutil
 import unittest
+from unittest.mock import patch
 
 import pandas as pd
 
@@ -13,6 +14,10 @@ from china_stock_engine.pipeline import (
     validate_latest,
 )
 from china_stock_engine.data_reference import build_data_reference_outputs
+from china_stock_engine.storage import (
+    ArtifactContractError,
+    MAX_OPPORTUNITY_RADAR_BYTES,
+)
 
 
 TEST_TEMP_ROOT = Path(__file__).resolve().parents[1] / ".test-tmp"
@@ -158,6 +163,9 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(
             (root / "data/latest/opportunity_inputs_latest.json").exists()
         )
+        self.assertTrue(
+            (root / "data/latest/opportunity_radar_latest.json").exists()
+        )
         self.assertTrue((root / "data/latest/stock_state.parquet").exists())
         self.assertFalse((root / "data/latest/candidates.parquet").exists())
         self.assertFalse((root / "data/signals").exists())
@@ -174,6 +182,21 @@ class PipelineTests(unittest.TestCase):
         self.assertGreater(len(opportunity_text.splitlines()), 1)
         self.assertLess(max(map(len, opportunity_text.splitlines())), 4096)
         opportunity_inputs = json.loads(opportunity_text)
+        radar_path = root / "data/latest/opportunity_radar_latest.json"
+        radar_before = radar_path.read_bytes()
+        radar = json.loads(radar_before)
+        self.assertLessEqual(len(radar_before), MAX_OPPORTUNITY_RADAR_BYTES)
+        self.assertEqual(
+            radar["source_snapshot_sha256"],
+            reference["run"]["source_snapshot_sha256"],
+        )
+        self.assertEqual(
+            radar["generated_at"], manifest["collection_completed_at"]
+        )
+        self.assertEqual(
+            [item["union_order"] for item in radar["candidate_union"]],
+            list(range(1, len(radar["candidate_union"]) + 1)),
+        )
         self.assertEqual(manifest["schema_version"], 3)
         for field in (
             "collection_started_at",
@@ -193,6 +216,9 @@ class PipelineTests(unittest.TestCase):
         self.assertIn(
             "opportunity_inputs_latest.json", manifest["artifacts"]
         )
+        self.assertIn(
+            "opportunity_radar_latest.json", manifest["artifacts"]
+        )
         opportunity_before = (
             root / "data/latest/opportunity_inputs_latest.json"
         ).read_bytes()
@@ -202,6 +228,7 @@ class PipelineTests(unittest.TestCase):
             opportunity_before,
             (root / "data/latest/opportunity_inputs_latest.json").read_bytes(),
         )
+        self.assertEqual(radar_before, radar_path.read_bytes())
         self.assertEqual(
             manifest_before_rebuild,
             (root / "data/latest/manifest.json").read_bytes(),
@@ -233,6 +260,35 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertNotIn("sensitive-refresh-token", all_text)
         self.assertNotIn("sensitive-access-token", all_text)
+
+    def test_radar_contract_failure_preserves_last_valid_latest(self) -> None:
+        root = make_test_workspace("radar-contract-failure")
+        first = collect_and_publish(
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+        self.assertTrue(first.ok, first.status)
+        latest_manifest = root / "data/latest/manifest.json"
+        latest_radar = root / "data/latest/opportunity_radar_latest.json"
+        manifest_before = latest_manifest.read_bytes()
+        radar_before = latest_radar.read_bytes()
+
+        with patch(
+            "china_stock_engine.pipeline.build_data_reference_outputs",
+            side_effect=ArtifactContractError("radar hard limit exceeded"),
+        ):
+            second = collect_and_publish(
+                FakeClient(), "2026-08-19", config=self.config(root)
+            )
+
+        self.assertFalse(second.ok)
+        self.assertEqual(second.status["state"], "failed_derived_contract")
+        self.assertFalse(second.status["data_fresh"])
+        self.assertEqual(second.status["last_valid_trade_date"], "2026-08-18")
+        self.assertEqual(manifest_before, latest_manifest.read_bytes())
+        self.assertEqual(radar_before, latest_radar.read_bytes())
+        self.assertTrue(
+            (root / "data/snapshots/2026-08-19/manifest.json").exists()
+        )
 
     def test_quality_failure_preserves_absence_of_latest(self) -> None:
         root = make_test_workspace("quality-failure")

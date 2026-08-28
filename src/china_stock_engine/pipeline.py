@@ -26,9 +26,11 @@ from .data_reference import (
     data_cutoff_time_for_date,
 )
 from .storage import (
+    ArtifactContractError,
     load_json_object,
     load_manifest,
     promote_snapshot,
+    promote_verified_snapshot_to_latest,
     verify_latest_artifacts,
     write_run_status,
 )
@@ -287,11 +289,13 @@ def collect_and_publish(
                 existing_manifest.get("data_reference") or {}
             )
             data_reference_error: str | None = None
+            data_reference_contract_error: str | None = None
             derived_missing = any(
                 not (config.data_dir / "latest" / name).exists()
                 for name in (
                     "data_reference_latest.json",
                     "opportunity_inputs_latest.json",
+                    "opportunity_radar_latest.json",
                 )
             )
             if config.build_data_reference and is_current_latest and derived_missing:
@@ -299,6 +303,8 @@ def collect_and_publish(
                     data_reference = build_data_reference_outputs(
                         config.data_dir, trade_date
                     )
+                except ArtifactContractError as exc:
+                    data_reference_contract_error = _safe_error(exc, client)
                 except Exception as exc:
                     data_reference_error = _safe_error(exc, client)
             unchanged_state = (
@@ -308,10 +314,16 @@ def collect_and_publish(
             )
             status = {
                 "schema_version": 2,
-                "state": "success_partial"
-                if data_reference_error
-                else unchanged_state,
-                "data_fresh": True,
+                "state": (
+                    "failed_derived_contract"
+                    if data_reference_contract_error
+                    else "success_partial"
+                    if data_reference_error
+                    else unchanged_state
+                ),
+                "data_fresh": not bool(
+                    data_reference_error or data_reference_contract_error
+                ),
                 "requested_trade_date": trade_date,
                 "last_valid_trade_date": (
                     trade_date if is_current_latest else previous_trade_date
@@ -326,14 +338,18 @@ def collect_and_publish(
             }
             if data_reference_error:
                 status["data_reference_error"] = data_reference_error
+            if data_reference_contract_error:
+                status["data_reference_error"] = data_reference_contract_error
             previous_status = _last_run_status(config.data_dir)
             if (
-                str(previous_status.get("state") or "")
+                data_reference_error
+                or data_reference_contract_error
+                or str(previous_status.get("state") or "")
                 not in {"success", "success_unchanged"}
                 or str(previous_status.get("requested_trade_date") or "") != trade_date
             ):
                 write_run_status(config.data_dir, status)
-            return CollectionResult(True, status)
+            return CollectionResult(not bool(data_reference_contract_error), status)
 
         completed_at = str(
             getattr(client, "collection_completed_at", None) or _utc_now()
@@ -385,16 +401,21 @@ def collect_and_publish(
             manifest,
             history_limit=config.history_limit,
             snapshot_limit=config.snapshot_limit,
-            promote_latest=promote_latest,
+            promote_latest=promote_latest and not config.build_data_reference,
         )
         data_reference: dict[str, Any] = {}
         data_reference_error: str | None = None
+        data_reference_contract_error: str | None = None
         if promote_latest and config.build_data_reference:
             try:
                 data_reference = build_data_reference_outputs(
                     config.data_dir, trade_date
                 )
-                final_manifest = _latest_manifest(config.data_dir)
+                final_manifest = promote_verified_snapshot_to_latest(
+                    config.data_dir, trade_date
+                )
+            except ArtifactContractError as exc:
+                data_reference_contract_error = _safe_error(exc, client)
             except Exception as exc:
                 data_reference_error = _safe_error(exc, client)
         elif not promote_latest:
@@ -411,6 +432,8 @@ def collect_and_publish(
             }
         if not promote_latest:
             result_state = "success_historical"
+        elif data_reference_contract_error:
+            result_state = "failed_derived_contract"
         elif data_reference_error:
             result_state = "success_partial"
         else:
@@ -418,10 +441,16 @@ def collect_and_publish(
         status = {
             "schema_version": 2,
             "state": result_state,
-            "data_fresh": True,
+            "data_fresh": not bool(
+                data_reference_error or data_reference_contract_error
+            ),
             "requested_trade_date": trade_date,
             "last_valid_trade_date": (
-                trade_date if promote_latest else previous_trade_date
+                trade_date
+                if promote_latest
+                and not data_reference_error
+                and not data_reference_contract_error
+                else previous_trade_date
             ),
             "previous_valid_trade_date": previous_trade_date,
             "provider": "ifind_http",
@@ -434,8 +463,10 @@ def collect_and_publish(
         }
         if data_reference_error:
             status["data_reference_error"] = data_reference_error
+        if data_reference_contract_error:
+            status["data_reference_error"] = data_reference_contract_error
         write_run_status(config.data_dir, status)
-        return CollectionResult(True, status)
+        return CollectionResult(not bool(data_reference_contract_error), status)
     except Exception as exc:
         status = {
             "schema_version": 2,

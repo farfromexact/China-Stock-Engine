@@ -17,6 +17,10 @@ from .storage import (
     publish_data_reference_artifacts,
 )
 from .opportunity_inputs import build_opportunity_inputs
+from .opportunity_radar import (
+    OPPORTUNITY_RADAR_SCHEMA_VERSION,
+    build_opportunity_radar_inputs,
+)
 
 
 DATA_REFERENCE_SCHEMA_VERSION = 3
@@ -1121,6 +1125,7 @@ def _source_snapshot_hash(manifest: dict[str, Any]) -> str:
         "stock_state.parquet",
         "data_reference_latest.json",
         "opportunity_inputs_latest.json",
+        "opportunity_radar_latest.json",
     }
     artifacts = {
         key: value
@@ -1171,6 +1176,7 @@ def _data_catalog(
         "stock_state.parquet",
         "data_reference_latest.json",
         "opportunity_inputs_latest.json",
+        "opportunity_radar_latest.json",
     }
     for name, metadata in sorted((manifest.get("artifacts") or {}).items()):
         if name in excluded:
@@ -1300,13 +1306,15 @@ def build_data_reference_outputs(
     min_adt20: float = DEFAULT_MIN_ADT20,
 ) -> dict[str, Any]:
     latest = data_dir / "latest"
-    manifest = load_manifest(latest / "manifest.json")
-    if not manifest:
-        raise FileNotFoundError("latest manifest does not exist")
-    latest_trade_date = str(manifest.get("trade_date") or "")
+    latest_manifest = load_manifest(latest / "manifest.json")
+    latest_trade_date = str(latest_manifest.get("trade_date") or "")
     selected_date = trade_date or latest_trade_date
+    if not selected_date:
+        raise FileNotFoundError("latest manifest does not exist")
     publish_latest = selected_date == latest_trade_date
-    if not publish_latest:
+    if publish_latest:
+        manifest = latest_manifest
+    else:
         snapshot_manifest = load_manifest(
             data_dir / "snapshots" / selected_date / "manifest.json"
         )
@@ -1399,12 +1407,14 @@ def build_data_reference_outputs(
         source_hash,
         pit_timing,
     )
+    opportunity_radar = build_opportunity_radar_inputs(opportunity_inputs)
     reference_metadata = {
         "schema_version": DATA_REFERENCE_SCHEMA_VERSION,
         "source_snapshot_sha256": source_hash,
         "readiness": readiness,
         "stock_state_rows": int(len(stock_state)),
         "opportunity_inputs_schema_version": opportunity_inputs["schema_version"],
+        "opportunity_radar_schema_version": OPPORTUNITY_RADAR_SCHEMA_VERSION,
     }
     final_manifest = publish_data_reference_artifacts(
         data_dir,
@@ -1412,6 +1422,7 @@ def build_data_reference_outputs(
         stock_state,
         data_reference,
         opportunity_inputs,
+        opportunity_radar,
         reference_metadata,
         manifest_updates={
             "schema_version": 3,
@@ -1438,6 +1449,13 @@ def build_data_reference_outputs(
                 latest / "opportunity_inputs_latest.json"
                 if publish_latest
                 else snapshot_dir / "opportunity_inputs_latest.json"
+            ).resolve()
+        ),
+        "opportunity_radar_path": str(
+            (
+                latest / "opportunity_radar_latest.json"
+                if publish_latest
+                else snapshot_dir / "opportunity_radar_latest.json"
             ).resolve()
         ),
     }

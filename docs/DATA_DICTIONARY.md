@@ -16,7 +16,8 @@
 | 可交易性参考 | `facts/tradability/as_of_date=YYYY-MM-DD/` | `as_of_date + thscode` | ST、停牌、价格限制、交易单位及可用资格字段 |
 | 逐股派生数据 | `features/stock_state/trade_date=YYYY-MM-DD/stock_state.parquet` | `trade_date + thscode` | 仅使用数据截止时间之前已知的事实生成 |
 | 紧凑参考接口 | `latest/data_reference_latest.json` | 单个最后有效快照 | 质量、覆盖率、市场事实汇总、数据目录与钻取路径；小于 2 MB |
-| 下游紧凑输入 | `latest/opportunity_inputs_latest.json` | 单个最后有效快照 | 市场事实、周期 readiness、板块/市值汇总和有触发原因的确定性 screens；小于 2 MB |
+| 完整确定性输入 | `latest/opportunity_inputs_latest.json` | 单个最后有效快照 | 市场事实、周期 readiness、全部确定性 screen Top 25 和最多 150 只去重候选；小于 2 MB |
+| LLM/Automation 接口 | `latest/opportunity_radar_latest.json` | 单个最后有效快照 | 不重复 screen 行的 Top 100 candidate union；目标 220–250 KiB，硬上限 300 KiB |
 
 `latest/` 只指向最后一个通过质量门的快照。采集或权限失败只更新尝试状态，不覆盖最后有效数据。
 
@@ -92,7 +93,7 @@
 - `market`、`board_summary`、`market_cap_bucket_summary`、`data_quality_drift`；
 - `cross_sectional_features`、`deterministic_screens`、`candidate_union`、`candidate_union_metadata`、`contradiction_flag_definitions` 与 `drilldown`。
 
-`schema_version=2` 的确定性 screens 分为：
+`schema_version=3` 的确定性 screens 分为：
 
 - 基础横截面：最大正/负涨跌、最高成交额、成交额/换手扩张、强/弱收盘位置、3D/5D/20D 相对强度；
 - 价格×成交确认：上涨/下跌分别与成交额及换手扩张或收缩组合，要求成交额变化与换手变化同向；
@@ -111,10 +112,32 @@
 - `amount_to_float_market_cap`：当日成交额除以流通市值；分母缺失或不大于零时为 `null`。
 - `amount_z20`、`turnover_z20`、`adt20`：仅在合法 20-session 历史齐备时输出；否则保持 `null` 并通过 `field_coverage` 明示覆盖率。
 
-`candidate_union` 是所有 screen 行的证券去重并集，最多 150 只。每行包含 `triggered_screens`、`screen_count`、`best_screen_rank`、`screen_ranks`、`screen_percentiles`、横截面 `percentiles`、`contradiction_flags` 和 `facts`。排序仅为 `screen_count` 降序、最佳 screen rank 升序、证券代码升序；`screen_count` 是过滤器重叠计数，不是证券评分。
+`candidate_union` 是所有 screen 行的证券去重并集，最多 150 只。每行包含 `union_order`、`triggered_screens`、`screen_count`、`best_screen_rank`、`screen_ranks`、`screen_percentiles`、横截面 `percentiles`、`contradiction_flags` 和 `facts`。排序仅为 `screen_count` 降序、最佳 screen rank 升序、证券代码升序；`union_order` 是可复现的传输顺序，`screen_count` 是过滤器重叠计数，两者都不是证券评分。
 
 `contradiction_flags` 仅在所需字段已知且规则成立时出现：`price_up_but_weak_close`、`volume_spike_but_negative_return`、`strong_5d_but_negative_1d`、`tiny_absolute_amount`、`micro_cap`、`high_turnover`、`gap_up_failed`。根字段 `contradiction_flag_definitions` 保存精确阈值；未知值不会制造 flag，也不会被当作 `false` 事实。
 
 该文件采用键排序、一层缩进和紧凑分隔符的确定性多行 JSON 序列化，方便 GitHub connector 按行分段读取；实际落盘文件必须小于 2 MB。所有 screen 和 union 均不包含评分、推荐、买卖动作或收益评价。
+
+## `opportunity_radar_latest.json`
+
+这是从同一份 `opportunity_inputs_latest.json` 确定性投影得到的 LLM/Automation 接口。根字段保留交易日、源快照哈希、PIT 时间、readiness、字段覆盖、市场/板块/市值汇总、数据质量漂移、screen catalog、矛盾标记定义和钻取路径，但不重复保存各个 screen 的 Top 25 证券行。
+
+`candidate_union` 固定最多 100 只，截断和 tie-break 顺序严格为：
+
+1. `screen_count` 降序；
+2. `best_screen_rank` 升序；
+3. `thscode` 字典序升序。
+
+输出使用 `union_order=1..N` 标识上述确定性传输顺序，不使用整体 `rank`，不引入主观权重或综合分数。每只证券保留 screen evidence、screen 内 rank/percentile、evidence family、关键原始事实、横截面 percentile、`contradiction_flags` 和 availability。
+
+availability 对可交易性相关字段使用以下状态，不依赖 Python/JSON truthiness：
+
+- `not_ready`：所需模块 missing、stale 或 not_entitled，且没有证券级观测；
+- `unknown`：模块可用或部分可用，但该证券字段未知；
+- `confirmed_false` / `confirmed_true`：明确观测到布尔假/真；
+- `confirmed_value`：明确观测到非布尔数值；
+- `confirmed_clear` / `confirmed_restricted`：明确观测到可交易性 clear/restricted。
+
+`generated_at` 必须等于源快照的 `collection_completed_at`，相同 source snapshot 的重复构建字节完全一致。文件使用确定性多行 JSON；220–250 KiB 是软目标，300 KiB 是硬上限。构建结果超限会 fail closed，快照不会提升为 `latest`，并且不会自动减少候选数或删除字段来静默通过。
 
 总市值分桶为固定人民币边界：`<50 亿`、`50–200 亿`、`200–800 亿`、`800–3000 亿`、`>=3000 亿`。分桶只是汇总维度，不代表投资风格判断。

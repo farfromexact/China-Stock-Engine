@@ -15,7 +15,14 @@
       "sha256": "757a6dba2c852aabe4da5623c8ab484179c3fc2672c46c92a18c79767cbf5eb5"
     },
     "opportunity_inputs_latest.json": {
-      "sha256": "3c3a31016b38b66e54e100f669823a5e73a8f0ba6999adfd1a248c600043428e"
+      "sha256": "6b43097ab263fed5a6c27ca6ae241c47ad74e897268df50c152ffaefcfe185cb"
+    },
+    "opportunity_radar_latest.json": {
+      "bytes": 249617,
+      "hard_max_bytes": 307200,
+      "rows": 100,
+      "schema_version": 1,
+      "sha256": "019ab8f542285b2a40d9e1cc087e4bb6b90be1c73190822f7a88e70d90b35eeb"
     },
     "security_reference.parquet": {
       "rows": 5551,
@@ -40,7 +47,8 @@
   "configured_decision_cutoff": "2026-08-28T20:15:00+08:00",
   "data_fresh": true,
   "data_reference": {
-    "opportunity_inputs_schema_version": 2,
+    "opportunity_inputs_schema_version": 3,
+    "opportunity_radar_schema_version": 1,
     "readiness": {
       "adjustment": {
         "coverage": 0.0,
