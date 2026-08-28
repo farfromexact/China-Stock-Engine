@@ -15,6 +15,7 @@ import pandas as pd
 
 
 SNAPSHOT_DIR_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+SUPPORTED_MANIFEST_SCHEMA_VERSIONS = {2, 3}
 
 
 def sha256_file(path: Path) -> str:
@@ -35,6 +36,42 @@ def atomic_write_json(path: Path, payload: Any) -> None:
         handle.write(text)
         handle.write("\n")
     os.replace(temporary, path)
+
+
+def load_json_object(path: Path, *, missing_ok: bool = True) -> dict[str, Any]:
+    """Read a JSON object without hiding corruption or type mismatches."""
+
+    if not path.exists():
+        if missing_ok:
+            return {}
+        raise FileNotFoundError(f"JSON file does not exist: {path}")
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"invalid JSON file {path}: {exc}") from exc
+    if not isinstance(loaded, dict):
+        raise ValueError(f"JSON file must contain an object: {path}")
+    return loaded
+
+
+def load_manifest(path: Path, *, missing_ok: bool = True) -> dict[str, Any]:
+    """Read a compatible manifest, failing closed on invalid schemas."""
+
+    manifest = load_json_object(path, missing_ok=missing_ok)
+    if not manifest:
+        return manifest
+    version = manifest.get("schema_version")
+    if isinstance(version, bool) or not isinstance(version, int):
+        raise ValueError(f"manifest schema_version must be an integer: {path}")
+    if version not in SUPPORTED_MANIFEST_SCHEMA_VERSIONS:
+        supported = ", ".join(
+            str(item) for item in sorted(SUPPORTED_MANIFEST_SCHEMA_VERSIONS)
+        )
+        raise ValueError(
+            f"unsupported manifest schema_version {version} in {path}; "
+            f"supported: {supported}"
+        )
+    return manifest
 
 
 def atomic_write_parquet(path: Path, frame: pd.DataFrame) -> None:
@@ -138,7 +175,7 @@ def promote_snapshot(
     market_summary: dict[str, Any],
     manifest: dict[str, Any],
     *,
-    history_limit: int = 252,
+    history_limit: int = 20,
     snapshot_limit: int = 60,
     promote_latest: bool = True,
 ) -> dict[str, Any]:
@@ -185,6 +222,7 @@ def promote_snapshot(
             "stock_state.parquet",
             "market_dashboard.html",
             "data_reference_latest.json",
+            "opportunity_inputs_latest.json",
             "data_reference.html",
         ):
             stale_path = latest_dir / stale_name
@@ -210,6 +248,7 @@ def publish_data_reference_artifacts(
     trade_date: str,
     stock_state: pd.DataFrame,
     data_reference: dict[str, Any],
+    opportunity_inputs: dict[str, Any],
     reference_metadata: dict[str, Any],
     *,
     publish_latest: bool = True,
@@ -231,6 +270,9 @@ def publish_data_reference_artifacts(
     atomic_write_json(
         snapshot_dir / "data_reference_latest.json", data_reference
     )
+    atomic_write_json(
+        snapshot_dir / "opportunity_inputs_latest.json", opportunity_inputs
+    )
 
     atomic_write_parquet(
         data_dir
@@ -240,7 +282,7 @@ def publish_data_reference_artifacts(
         / "stock_state.parquet",
         stock_state,
     )
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = load_manifest(manifest_path, missing_ok=False)
     manifest_artifacts = dict(manifest.get("artifacts") or {})
     for name, frame in artifacts.items():
         manifest_artifacts[name] = {
@@ -249,6 +291,9 @@ def publish_data_reference_artifacts(
         }
     manifest_artifacts["data_reference_latest.json"] = {
         "sha256": sha256_file(snapshot_dir / "data_reference_latest.json")
+    }
+    manifest_artifacts["opportunity_inputs_latest.json"] = {
+        "sha256": sha256_file(snapshot_dir / "opportunity_inputs_latest.json")
     }
     manifest["artifacts"] = manifest_artifacts
     manifest["data_reference"] = reference_metadata
@@ -263,6 +308,10 @@ def publish_data_reference_artifacts(
             snapshot_dir / "data_reference_latest.json",
             latest_dir / "data_reference_latest.json",
         )
+        atomic_copy(
+            snapshot_dir / "opportunity_inputs_latest.json",
+            latest_dir / "opportunity_inputs_latest.json",
+        )
         atomic_write_json(latest_dir / "manifest.json", manifest)
     return manifest
 
@@ -272,7 +321,7 @@ def verify_latest_artifacts(data_dir: Path) -> tuple[dict[str, Any], list[str]]:
     manifest_path = latest_dir / "manifest.json"
     if not manifest_path.exists():
         return {}, ["latest manifest does not exist"]
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = load_manifest(manifest_path, missing_ok=False)
     errors: list[str] = []
     artifacts = manifest.get("artifacts") or {}
     for name, metadata in artifacts.items():
@@ -292,9 +341,12 @@ __all__ = [
     "atomic_write_parquet",
     "atomic_write_json",
     "json_sha256",
+    "load_json_object",
+    "load_manifest",
     "promote_snapshot",
     "publish_data_reference_artifacts",
     "sha256_file",
+    "SUPPORTED_MANIFEST_SCHEMA_VERSIONS",
     "verify_latest_artifacts",
     "write_run_status",
 ]

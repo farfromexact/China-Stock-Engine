@@ -10,19 +10,27 @@ from typing import Any
 
 import pandas as pd
 
-from .storage import json_sha256, publish_data_reference_artifacts
+from .storage import (
+    json_sha256,
+    load_json_object,
+    load_manifest,
+    publish_data_reference_artifacts,
+)
+from .opportunity_inputs import build_opportunity_inputs
 
 
-DATA_REFERENCE_SCHEMA_VERSION = 2
-STOCK_STATE_SCHEMA_VERSION = 2
+DATA_REFERENCE_SCHEMA_VERSION = 3
+STOCK_STATE_SCHEMA_VERSION = 3
 MAX_DATA_REFERENCE_BYTES = 2 * 1024 * 1024
-TARGET_HISTORY_SESSIONS = 252
+TARGET_HISTORY_SESSIONS = 20
+HORIZON_SESSIONS = (1, 3, 5, 20)
+MIN_HORIZON_COVERAGE = 0.95
 MIN_ADJUSTMENT_COVERAGE = 0.98
 MIN_INDUSTRY_COVERAGE = 0.95
 MIN_TRADABILITY_COVERAGE = 0.95
 DEFAULT_MIN_ADT20 = 20_000_000.0
 DEFAULT_MIN_LISTING_AGE_DAYS = 30
-READINESS_STATES = {"ready", "stale", "missing", "not_entitled"}
+READINESS_STATES = {"ready", "partial", "stale", "missing", "not_entitled"}
 
 ADJUSTMENT_REQUIRED_COLUMNS = {
     "trade_date",
@@ -70,6 +78,10 @@ STOCK_STATE_COLUMNS = (
     "schema_version",
     "trade_date",
     "data_cutoff_time",
+    "collection_started_at",
+    "collection_completed_at",
+    "configured_decision_cutoff",
+    "effective_pit_cutoff",
     "thscode",
     "security_name",
     "exchange",
@@ -82,6 +94,10 @@ STOCK_STATE_COLUMNS = (
     "corporate_action_flag",
     "corporate_action_types",
     "adjusted_ready",
+    "raw_return_1d_pct",
+    "raw_return_3d_pct",
+    "raw_return_5d_pct",
+    "raw_return_20d_pct",
     "return_1d_pct",
     "return_3d_pct",
     "return_5d_pct",
@@ -132,6 +148,57 @@ STOCK_STATE_COLUMNS = (
 
 def data_cutoff_time_for_date(trade_date: str) -> str:
     return f"{trade_date}T20:15:00+08:00"
+
+
+def manifest_pit_timing(
+    manifest: dict[str, Any], trade_date: str | None = None
+) -> dict[str, str]:
+    """Return explicit PIT timestamps, upgrading legacy schema-2 manifests."""
+
+    selected_date = trade_date or str(manifest.get("trade_date") or "")
+    if not selected_date:
+        raise ValueError("manifest trade_date is required for PIT timing")
+    completed = str(
+        manifest.get("collection_completed_at")
+        or manifest.get("collected_at_utc")
+        or ""
+    )
+    if not completed:
+        raise ValueError("manifest collection completion time is required")
+    started = str(
+        manifest.get("collection_started_at")
+        or manifest.get("started_at_utc")
+        or completed
+    )
+    configured = str(
+        manifest.get("configured_decision_cutoff")
+        or data_cutoff_time_for_date(selected_date)
+    )
+    completed_ts = _as_utc_timestamp(completed)
+    started_ts = _as_utc_timestamp(started)
+    configured_ts = _as_utc_timestamp(configured)
+    if started_ts > completed_ts:
+        raise ValueError("collection_started_at is later than collection_completed_at")
+    expected_effective_ts = min(configured_ts, completed_ts)
+    supplied_effective = manifest.get("effective_pit_cutoff")
+    if supplied_effective:
+        effective_ts = _as_utc_timestamp(str(supplied_effective))
+        if effective_ts > completed_ts:
+            raise ValueError(
+                "effective_pit_cutoff is later than collection_completed_at"
+            )
+        if effective_ts > configured_ts:
+            raise ValueError(
+                "effective_pit_cutoff is later than configured_decision_cutoff"
+            )
+    else:
+        effective_ts = expected_effective_ts
+    return {
+        "collection_started_at": pd.Timestamp(started).isoformat(),
+        "collection_completed_at": pd.Timestamp(completed).isoformat(),
+        "configured_decision_cutoff": pd.Timestamp(configured).isoformat(),
+        "effective_pit_cutoff": effective_ts.isoformat(),
+    }
 
 
 def _as_utc_timestamp(value: str) -> pd.Timestamp:
@@ -377,7 +444,7 @@ def load_module_status(data_dir: Path, as_of_date: str) -> dict[str, Any]:
         for path in paths
         if (_partition_value(path, "as_of_date=") or "") <= as_of_date
     ]
-    return _read_json(eligible[-1]) if eligible else {}
+    return load_json_object(eligible[-1]) if eligible else {}
 
 
 def _active_intervals(
@@ -525,16 +592,29 @@ def build_tradability_state(
     ).dt.days.astype("Int64")
     limit = pd.to_numeric(current["daily_price_limit_pct"], errors="coerce")
     change = pd.to_numeric(current["change_ratio"], errors="coerce")
-    current["limit_up"] = limit.notna() & change.ge(limit - 0.05)
-    current["limit_down"] = limit.notna() & change.le(-limit + 0.05)
+    limit_observed = limit.notna() & change.notna()
+    limit_up = pd.Series(pd.NA, index=current.index, dtype="boolean")
+    limit_down = pd.Series(pd.NA, index=current.index, dtype="boolean")
+    limit_up.loc[limit_observed] = change.loc[limit_observed].ge(
+        limit.loc[limit_observed] - 0.05
+    )
+    limit_down.loc[limit_observed] = change.loc[limit_observed].le(
+        -limit.loc[limit_observed] + 0.05
+    )
+    current["limit_up"] = limit_up
+    current["limit_down"] = limit_down
+    ohlc_observed = current[["open", "high", "low", "close"]].notna().all(axis=1)
     flat_price = (
-        current[["open", "high", "low", "close"]].notna().all(axis=1)
+        ohlc_observed
         & current["high"].sub(current["low"]).abs().le(1e-8)
         & current["open"].sub(current["close"]).abs().le(1e-8)
     )
-    current["one_word_limit"] = flat_price & (
-        current["limit_up"] | current["limit_down"]
+    one_word_known = ohlc_observed & limit_up.notna() & limit_down.notna()
+    one_word_limit = pd.Series(pd.NA, index=current.index, dtype="boolean")
+    one_word_limit.loc[one_word_known] = flat_price.loc[one_word_known] & (
+        limit_up.loc[one_word_known] | limit_down.loc[one_word_known]
     )
+    current["one_word_limit"] = one_word_limit
 
     mandatory_known = (
         current["is_st"].notna()
@@ -558,7 +638,8 @@ def build_tradability_state(
         is_suspended = row.get("is_suspended")
         if not pd.isna(is_suspended) and bool(is_suspended):
             values.append("provider_suspended")
-        if bool(row.get("one_word_limit")):
+        one_word = row.get("one_word_limit")
+        if not pd.isna(one_word) and bool(one_word):
             values.append("one_word_limit")
         listing_age = row.get("listing_age_calendar_days")
         if pd.isna(listing_age) or int(listing_age) < min_listing_age_days:
@@ -633,38 +714,72 @@ def build_stock_state(
     source_snapshot_sha256: str,
     *,
     decision_time: str | None = None,
+    pit_timing: dict[str, str] | None = None,
     min_adt20: float = DEFAULT_MIN_ADT20,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     if history.empty:
         return pd.DataFrame(columns=STOCK_STATE_COLUMNS), {
-            "history": {"state": "missing", "sessions": 0},
+            "history": {
+                "state": "missing",
+                "sessions": 0,
+                "target_sessions": TARGET_HISTORY_SESSIONS,
+                "horizons": {
+                    f"{periods}D": {
+                        "state": "missing",
+                        "sessions_required": periods,
+                        "coverage": 0.0,
+                    }
+                    for periods in HORIZON_SESSIONS
+                },
+            },
             "adjustment": {"state": "missing", "coverage": 0.0},
             "industry": {"state": "missing", "coverage": 0.0},
             "index_membership": {"state": "missing", "index_count": 0},
             "tradability": {"state": "missing", "coverage": 0.0},
             "stock_state": {"state": "missing", "rows": 0},
         }
-    decision_time = decision_time or data_cutoff_time_for_date(trade_date)
+    if pit_timing is None:
+        effective = decision_time or data_cutoff_time_for_date(trade_date)
+        pit_timing = {
+            "collection_started_at": effective,
+            "collection_completed_at": effective,
+            "configured_decision_cutoff": data_cutoff_time_for_date(trade_date),
+            "effective_pit_cutoff": effective,
+        }
+    decision_time = str(pit_timing["effective_pit_cutoff"])
     scoped = history.loc[history["trade_date"].le(trade_date)].copy()
     scoped = scoped.sort_values(["thscode", "trade_date"]).reset_index(drop=True)
     adjusted = apply_adjustments(scoped, adjustments, decision_time)
     grouped = adjusted.groupby("thscode", group_keys=False)
     adjusted["history_sessions"] = grouped.cumcount() + 1
     adjusted["history_start_date"] = grouped["trade_date"].transform("min")
-    for periods in (1, 3, 5, 20, 60):
+    raw_growth = 1 + pd.to_numeric(
+        adjusted["change_ratio"], errors="coerce"
+    ) / 100.0
+    for periods in HORIZON_SESSIONS:
+        adjusted[f"raw_return_{periods}d_pct"] = raw_growth.groupby(
+            adjusted["thscode"], group_keys=False
+        ).transform(
+            lambda values, p=periods: (
+                values.rolling(p, min_periods=p).apply(
+                    lambda window: float(window.prod()), raw=True
+                )
+                - 1
+            )
+            * 100.0
+        )
         adjusted[f"return_{periods}d_pct"] = grouped["adjusted_close"].transform(
             lambda values, p=periods: _pct_change(values, p)
         )
+    adjusted["return_60d_pct"] = pd.NA
     adjusted["daily_adjusted_return_pct"] = grouped["adjusted_close"].transform(
         _pct_change
     )
-    for window in (20, 60):
-        adjusted[f"rv{window}_pct"] = grouped[
-            "daily_adjusted_return_pct"
-        ].transform(
-            lambda values, w=window: values.rolling(w, min_periods=w).std()
-            * math.sqrt(252)
-        )
+    adjusted["rv20_pct"] = grouped["daily_adjusted_return_pct"].transform(
+        lambda values: values.rolling(20, min_periods=20).std()
+        * math.sqrt(252)
+    )
+    adjusted["rv60_pct"] = pd.NA
     for column in ("turnover_ratio", "amount", "volume"):
         adjusted[f"{column}_z20"] = grouped[column].transform(_rolling_z, window=20)
     adjusted["gap_pct"] = (
@@ -681,17 +796,14 @@ def build_stock_state(
     ) * 100
     adjusted["turnover_change_pct"] = grouped["turnover_ratio"].transform(_pct_change)
     adjusted["amount_change_pct"] = grouped["amount"].transform(_pct_change)
-    for window, target in (
-        (20, "distance_from_high_20_pct"),
-        (60, "distance_from_high_60_pct"),
-        (252, "drawdown_from_high_252_pct"),
-    ):
-        rolling_high = grouped["adjusted_close"].transform(
-            lambda values, w=window: values.rolling(w, min_periods=w).max()
-        )
-        adjusted[target] = (
-            _safe_ratio(adjusted["adjusted_close"], rolling_high) - 1
-        ) * 100
+    rolling_high = grouped["adjusted_close"].transform(
+        lambda values: values.rolling(20, min_periods=20).max()
+    )
+    adjusted["distance_from_high_20_pct"] = (
+        _safe_ratio(adjusted["adjusted_close"], rolling_high) - 1
+    ) * 100
+    adjusted["distance_from_high_60_pct"] = pd.NA
+    adjusted["drawdown_from_high_252_pct"] = pd.NA
 
     current = adjusted.loc[adjusted["trade_date"].eq(trade_date)].copy()
     if current.empty:
@@ -825,6 +937,13 @@ def build_stock_state(
     )
     current["schema_version"] = STOCK_STATE_SCHEMA_VERSION
     current["data_cutoff_time"] = decision_time
+    for field in (
+        "collection_started_at",
+        "collection_completed_at",
+        "configured_decision_cutoff",
+        "effective_pit_cutoff",
+    ):
+        current[field] = pit_timing[field]
     current["source_snapshot_sha256"] = source_snapshot_sha256
     current = current.rename(
         columns={
@@ -845,24 +964,56 @@ def build_stock_state(
     current_adjustment_coverage = float(state["adjusted_ready"].fillna(False).mean())
     sw1_coverage = float(state["sw1_code"].notna().mean()) if len(state) else 0.0
     index_count = int(indexes["index_code"].nunique()) if not indexes.empty else 0
-    history_state = "ready" if session_count >= TARGET_HISTORY_SESSIONS else "missing"
+    history_state = (
+        "ready"
+        if session_count >= TARGET_HISTORY_SESSIONS
+        else "partial"
+        if session_count > 0
+        else "missing"
+    )
     adjustment_state = (
         "ready"
         if current_adjustment_coverage >= MIN_ADJUSTMENT_COVERAGE
         else "missing"
     )
     industry_state = "ready" if sw1_coverage >= MIN_INDUSTRY_COVERAGE else "missing"
-    stock_state_ready = (
-        history_state == "ready"
-        and adjustment_state == "ready"
-        and tradability_readiness["state"] == "ready"
-    )
+    horizon_readiness: dict[str, dict[str, Any]] = {}
+    for periods in HORIZON_SESSIONS:
+        raw_field = f"raw_return_{periods}d_pct"
+        adjusted_field = f"return_{periods}d_pct"
+        raw_coverage = float(state[raw_field].notna().mean()) if len(state) else 0.0
+        adjusted_coverage = (
+            float(state[adjusted_field].notna().mean()) if len(state) else 0.0
+        )
+        horizon_state = (
+            "ready"
+            if raw_coverage >= MIN_HORIZON_COVERAGE
+            else "partial"
+            if raw_coverage > 0
+            else "missing"
+        )
+        horizon_readiness[f"{periods}D"] = {
+            "state": horizon_state,
+            "sessions_required": periods,
+            "raw_return_field": raw_field,
+            "raw_return_basis": "compounded_provider_daily_change_ratio",
+            "coverage": round(raw_coverage, 6),
+            "adjusted_return_field": adjusted_field,
+            "adjusted_coverage": round(adjusted_coverage, 6),
+        }
     readiness = {
         "history": {
             "state": history_state,
             "sessions": session_count,
             "target_sessions": TARGET_HISTORY_SESSIONS,
             "scope_end": trade_date,
+            "horizons": horizon_readiness,
+            "unavailable_fields": [
+                "return_60d_pct",
+                "rv60_pct",
+                "distance_from_high_60_pct",
+                "drawdown_from_high_252_pct",
+            ],
         },
         "adjustment": {
             "state": adjustment_state,
@@ -895,8 +1046,17 @@ def build_stock_state(
         },
         "tradability": tradability_readiness,
         "stock_state": {
-            "state": "ready" if stock_state_ready else "missing",
+            "state": "ready" if len(state) else "missing",
             "rows": int(len(state)),
+            "partial_modules": [
+                name
+                for name, module_state in (
+                    ("history", history_state),
+                    ("adjustment", adjustment_state),
+                    ("tradability", tradability_readiness["state"]),
+                )
+                if module_state != "ready"
+            ],
             "tradability_state_counts": {
                 str(key): int(value)
                 for key, value in state["tradability_state"]
@@ -953,16 +1113,14 @@ def _industry_summary(stock_state: pd.DataFrame) -> list[dict[str, Any]]:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    if not path.exists():
-        return {}
-    loaded = json.loads(path.read_text(encoding="utf-8"))
-    return loaded if isinstance(loaded, dict) else {}
+    return load_json_object(path)
 
 
 def _source_snapshot_hash(manifest: dict[str, Any]) -> str:
     derived = {
         "stock_state.parquet",
         "data_reference_latest.json",
+        "opportunity_inputs_latest.json",
     }
     artifacts = {
         key: value
@@ -1012,6 +1170,7 @@ def _data_catalog(
     excluded = {
         "stock_state.parquet",
         "data_reference_latest.json",
+        "opportunity_inputs_latest.json",
     }
     for name, metadata in sorted((manifest.get("artifacts") or {}).items()):
         if name in excluded:
@@ -1049,6 +1208,7 @@ def build_data_reference(
     source_snapshot_sha256: str,
 ) -> dict[str, Any]:
     trade_date = str(manifest.get("trade_date") or "")
+    pit_timing = manifest_pit_timing(manifest, trade_date)
     factual_readiness = dict(readiness)
     for item in factual_readiness.values():
         if item.get("state") not in READINESS_STATES:
@@ -1059,9 +1219,10 @@ def build_data_reference(
         "document_type": "a_share_data_reference",
         "as_of": {
             "source_trade_date": trade_date,
-            "data_cutoff_time": data_cutoff_time_for_date(trade_date),
+            "data_cutoff_time": pit_timing["effective_pit_cutoff"],
+            **pit_timing,
             "timezone": "Asia/Shanghai",
-            "generated_at_utc": manifest.get("collected_at_utc")
+            "generated_at_utc": pit_timing["collection_completed_at"]
             or datetime.now(timezone.utc).isoformat(timespec="seconds"),
         },
         "run": {
@@ -1116,7 +1277,7 @@ def build_data_reference(
         },
         "reference_contract": {
             "data_dictionary": "docs/DATA_DICTIONARY.md",
-            "pit_policy": "known_at <= data_cutoff_time",
+            "pit_policy": "known_at <= effective_pit_cutoff",
             "missing_value_policy": "unknown values remain null",
         },
     }
@@ -1139,14 +1300,14 @@ def build_data_reference_outputs(
     min_adt20: float = DEFAULT_MIN_ADT20,
 ) -> dict[str, Any]:
     latest = data_dir / "latest"
-    manifest = _read_json(latest / "manifest.json")
+    manifest = load_manifest(latest / "manifest.json")
     if not manifest:
         raise FileNotFoundError("latest manifest does not exist")
     latest_trade_date = str(manifest.get("trade_date") or "")
     selected_date = trade_date or latest_trade_date
     publish_latest = selected_date == latest_trade_date
     if not publish_latest:
-        snapshot_manifest = _read_json(
+        snapshot_manifest = load_manifest(
             data_dir / "snapshots" / selected_date / "manifest.json"
         )
         if not snapshot_manifest:
@@ -1154,6 +1315,13 @@ def build_data_reference_outputs(
         manifest = snapshot_manifest
     if manifest.get("verified") is not True or manifest.get("data_fresh") is not True:
         raise ValueError("selected snapshot is not verified and fresh")
+    pit_timing = manifest_pit_timing(manifest, selected_date)
+    manifest = {
+        **manifest,
+        "schema_version": 3,
+        **pit_timing,
+        "collected_at_utc": pit_timing["collection_completed_at"],
+    }
     source_hash = _source_snapshot_hash(manifest)
     history = load_market_history(data_dir, selected_date)
     reference = _current_reference(data_dir, selected_date)
@@ -1190,6 +1358,7 @@ def build_data_reference_outputs(
         provider_tradability,
         selected_date,
         source_hash,
+        pit_timing=pit_timing,
         min_adt20=min_adt20,
     )
     module_status = load_module_status(data_dir, selected_date)
@@ -1217,17 +1386,32 @@ def build_data_reference_outputs(
     data_reference = build_data_reference(
         manifest, market_summary, stock_state, readiness, source_hash
     )
+    quote_path = snapshot_dir / "daily_quotes.parquet"
+    if not quote_path.exists():
+        quote_path = latest / "daily_quotes.parquet"
+    current_quotes = pd.read_parquet(quote_path)
+    opportunity_inputs = build_opportunity_inputs(
+        manifest,
+        market_summary,
+        current_quotes,
+        stock_state,
+        readiness,
+        source_hash,
+        pit_timing,
+    )
     reference_metadata = {
         "schema_version": DATA_REFERENCE_SCHEMA_VERSION,
         "source_snapshot_sha256": source_hash,
         "readiness": readiness,
         "stock_state_rows": int(len(stock_state)),
+        "opportunity_inputs_schema_version": opportunity_inputs["schema_version"],
     }
     final_manifest = publish_data_reference_artifacts(
         data_dir,
         selected_date,
         stock_state,
         data_reference,
+        opportunity_inputs,
         reference_metadata,
         publish_latest=publish_latest,
     )
@@ -1244,6 +1428,13 @@ def build_data_reference_outputs(
         "source_snapshot_sha256": source_hash,
         "manifest_artifact_count": len(final_manifest.get("artifacts") or {}),
         "data_reference_path": str(reference_path.resolve()),
+        "opportunity_inputs_path": str(
+            (
+                latest / "opportunity_inputs_latest.json"
+                if publish_latest
+                else snapshot_dir / "opportunity_inputs_latest.json"
+            ).resolve()
+        ),
     }
 
 

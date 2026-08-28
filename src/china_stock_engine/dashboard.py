@@ -10,6 +10,8 @@ from typing import Any
 
 import pandas as pd
 
+from .storage import load_json_object, load_manifest
+
 
 REQUIRED_FILES = (
     "manifest.json",
@@ -129,8 +131,8 @@ def build_dashboard(data_dir: Path, output_path: Path) -> Path:
     if missing:
         raise FileNotFoundError("latest snapshot missing: " + ", ".join(missing))
 
-    manifest = json.loads((latest / "manifest.json").read_text(encoding="utf-8"))
-    summary = json.loads((latest / "market_summary.json").read_text(encoding="utf-8"))
+    manifest = load_manifest(latest / "manifest.json", missing_ok=False)
+    summary = load_json_object(latest / "market_summary.json", missing_ok=False)
     if manifest.get("verified") is not True or manifest.get("data_fresh") is not True:
         raise ValueError("latest snapshot is not verified and fresh")
 

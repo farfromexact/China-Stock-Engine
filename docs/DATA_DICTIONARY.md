@@ -1,6 +1,6 @@
 # China-Stock-Engine 数据字典
 
-本项目只发布可审计的数据与派生字段，不生成候选池、综合评分、市场观点或交易建议。真实 iFinD 数据仅允许写入获得许可的私有存储；公开仓库只包含代码、配置模板与合成测试。
+本项目只发布可审计的数据、确定性派生字段与确定性 screens，不生成主观候选池、综合评分、市场观点或交易建议。真实 iFinD 数据的存储与分发必须符合账户合同和数据许可；仓库不保存原始 iFinD payload 或凭证。
 
 ## 分层与粒度
 
@@ -16,6 +16,7 @@
 | 可交易性参考 | `facts/tradability/as_of_date=YYYY-MM-DD/` | `as_of_date + thscode` | ST、停牌、价格限制、交易单位及可用资格字段 |
 | 逐股派生数据 | `features/stock_state/trade_date=YYYY-MM-DD/stock_state.parquet` | `trade_date + thscode` | 仅使用数据截止时间之前已知的事实生成 |
 | 紧凑参考接口 | `latest/data_reference_latest.json` | 单个最后有效快照 | 质量、覆盖率、市场事实汇总、数据目录与钻取路径；小于 2 MB |
+| 下游紧凑输入 | `latest/opportunity_inputs_latest.json` | 单个最后有效快照 | 市场事实、周期 readiness、板块/市值汇总和有触发原因的确定性 screens；小于 2 MB |
 
 `latest/` 只指向最后一个通过质量门的快照。采集或权限失败只更新尝试状态，不覆盖最后有效数据。
 
@@ -25,7 +26,10 @@
 
 - `schema_version`：逐股状态结构版本。
 - `trade_date`：源交易日。
-- `data_cutoff_time`：PIT 数据截止时间，默认当日 `20:15 Asia/Shanghai`。
+- `collection_started_at`、`collection_completed_at`：实际采集开始与完成时间。
+- `configured_decision_cutoff`：配置的当日研究截止时间，默认 `20:15 Asia/Shanghai`。
+- `effective_pit_cutoff`：实际 PIT 截止时间，取配置截止与采集完成时间的较早值。
+- `data_cutoff_time`：兼容字段，等于 `effective_pit_cutoff`。
 - `thscode`、`security_name`、`exchange`、`board`：证券标识。
 - `source_snapshot_sha256`：输入快照的稳定内容哈希。
 
@@ -40,8 +44,11 @@
 
 ### 收益、波动与成交
 
-- `return_1d_pct`、`return_3d_pct`、`return_5d_pct`、`return_20d_pct`、`return_60d_pct`：复权收益率。
-- `rv20_pct`、`rv60_pct`：日收益标准差年化后的历史波动率。
+- `raw_return_1d_pct`、`raw_return_3d_pct`、`raw_return_5d_pct`、`raw_return_20d_pct`：由供应商逐日 `change_ratio` 复合得到的未复权周期变化；分别需要 1/3/5/20 个有效交易日观测。
+- `return_1d_pct`、`return_3d_pct`、`return_5d_pct`、`return_20d_pct`：有 PIT 调整因子时计算的复权收益率；调整因子不足时保持 `null`。
+- `return_60d_pct`：兼容保留字段，当前版本固定 `null`，readiness 标记 unavailable。
+- `rv20_pct`：复权日收益标准差年化后的 20 日历史波动率；历史或调整因子不足时为空。
+- `rv60_pct`：兼容保留字段，当前版本固定 `null`。
 - `turnover_z20`、`amount_z20`、`volume_z20`：20 日滚动标准化值。
 - `gap_pct`、`intraday_range_pct`、`close_location`、`close_vs_avg_pct`：当日价格位置事实。
 - `turnover_change_pct`、`amount_change_pct`、`adt20`：成交变化及 20 日平均成交额。
@@ -49,7 +56,8 @@
 ### 规模、区间位置与相对数据
 
 - `float_market_cap`、`total_market_cap`：以当日未复权收盘价计算的流通和总市值。
-- `distance_from_high_20_pct`、`distance_from_high_60_pct`、`drawdown_from_high_252_pct`：相对滚动高点距离。
+- `distance_from_high_20_pct`：相对 20 日复权高点距离。
+- `distance_from_high_60_pct`、`drawdown_from_high_252_pct`：兼容保留字段，当前版本固定 `null`。
 - `relative_return_industry_20d_pct`：相对当日 PIT 申万一级行业均值的 20 日收益差。
 - `relative_return_csi300_20d_pct`、`relative_return_csi1000_20d_pct`：相对指数 20 日收益差。
 - `sw1_code/name`、`sw2_code/name`、`index_memberships`：截止时间有效的分类与成分事实。
@@ -65,8 +73,25 @@
 ## 空值、PIT 与质量规则
 
 - 未知字段保持 `null`，不得以零、否或停牌替代。
-- 行业、指数成分、公司行为和供应商状态必须满足 `known_at <= data_cutoff_time`。
+- `daily_price_limit_pct` 或必要行情缺失时，`limit_up`、`limit_down`、`one_word_limit` 都保持 `null`；unknown 不等于 false。
+- 行业、指数成分、公司行为和供应商状态必须满足 `known_at <= effective_pit_cutoff`。
 - 有效期数据同时满足 `effective_from <= trade_date <= effective_to`；开放结束日视为仍有效。
 - 无权限的模块记录为 `not_entitled`，不制造替代数据。
 - 原始价格与复权价格并存；复权因子不足时，相关复权字段保持为空。
 - 同一交易日相同输入应产生相同源快照哈希，且不会新增重复分区。
+- 历史总体状态为 `ready/partial/missing`，并分别给出 `1D/3D/5D/20D` readiness；部分历史仍可发布合法字段。
+- 质量报告对上一交易日检查 universe、行情/参考覆盖率、交易所/板块数量、`no_quote_observed`、总成交额及前收连续性，并保留具体 drift 指标和 alerts。
+- `manifest.json` 缺失可视为 missing；损坏、非对象或不支持的 schema 必须 fail closed。
+
+## `opportunity_inputs_latest.json`
+
+根字段包括：
+
+- `schema_version`、`document_type`、`trade_date`、`generated_at`、`source_snapshot_sha256`；
+- `pit_timing`、`data_mode`、`readiness`、`field_coverage`；
+- `market`、`board_summary`、`market_cap_bucket_summary`、`data_quality_drift`；
+- `deterministic_screens` 与 `drilldown`。
+
+当前 screens 为：`largest_positive_moves`、`largest_negative_moves`、`highest_amount`、`amount_expansion`、`turnover_expansion`、`strong_close_location`、`weak_close_location`、`relative_strength_3d/5d/20d`。每类最多 25 行；每行包含证券事实与 `trigger.metric/value/rank/rule`，不包含评分、推荐或买卖动作。
+
+总市值分桶为固定人民币边界：`<50 亿`、`50–200 亿`、`200–800 亿`、`800–3000 亿`、`>=3000 亿`。分桶只是汇总维度，不代表投资风格判断。

@@ -16,7 +16,7 @@ on:
         required: false
         type: string
       backfill_sessions:
-        description: "Optional exact SSE session count, for example 252"
+        description: "Optional exact SSE session count, default target is 20"
         required: false
         type: string
       refresh_adjustments:
@@ -131,7 +131,7 @@ jobs:
             fi
             LAST_DATE=""
             if [[ -f "${DATA_DIR}/latest/manifest.json" ]]; then
-              LAST_DATE=$(python -c 'import json, pathlib, sys; print(json.loads((pathlib.Path(sys.argv[1])/"latest"/"manifest.json").read_text(encoding="utf-8")).get("trade_date", ""))' "${DATA_DIR}")
+              LAST_DATE=$(python -c 'import pathlib, sys; from china_stock_engine.storage import load_manifest; print(load_manifest(pathlib.Path(sys.argv[1])/"latest"/"manifest.json", missing_ok=False).get("trade_date", ""))' "${DATA_DIR}")
             fi
             if [[ -n "${LAST_DATE}" && "${LAST_DATE}" < "${TARGET_DATE}" ]]; then
               CATCHUP_START=$(python -c 'from datetime import date, timedelta; import sys; print((date.fromisoformat(sys.argv[1]) + timedelta(days=1)).isoformat())' "${LAST_DATE}")

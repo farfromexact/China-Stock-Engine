@@ -159,6 +159,38 @@ class CLIBackfillTests(unittest.TestCase):
         )
         self.assertEqual(status["state"], "success_backfill")
 
+    def test_backfill_reuses_normalized_reference_and_quote_partitions(self) -> None:
+        data_dir = TEST_ROOT / "data"
+        argv = [
+            "backfill",
+            "--start",
+            "2026-08-18",
+            "--end",
+            "2026-08-20",
+            "--data-dir",
+            str(data_dir),
+            "--min-universe-size",
+            "4",
+            "--min-quote-coverage",
+            "1",
+            "--min-reference-coverage",
+            "1",
+            "--min-extended-field-coverage",
+            "1",
+        ]
+        first = RangeFakeClient()
+        with patch("china_stock_engine.cli._client", return_value=first):
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(main(argv), 0)
+        self.assertEqual(first.history_calls, 1)
+
+        second = RangeFakeClient()
+        with patch("china_stock_engine.cli._client", return_value=second):
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(main(argv), 0)
+
+        self.assertEqual(second.history_calls, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

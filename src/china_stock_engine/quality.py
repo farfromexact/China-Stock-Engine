@@ -39,9 +39,15 @@ class QualityReport:
     ok: bool
     metrics: dict[str, Any]
     errors: list[str]
+    warnings: list[str]
 
     def as_dict(self) -> dict[str, Any]:
-        return {"ok": self.ok, "metrics": self.metrics, "errors": self.errors}
+        return {
+            "ok": self.ok,
+            "metrics": self.metrics,
+            "errors": self.errors,
+            "warnings": self.warnings,
+        }
 
 
 def exchange_from_code(thscode: str) -> str:
@@ -102,6 +108,12 @@ def normalize_security_reference(
     output["as_of_date"] = _normalized_date(output["as_of_date"])
     output["listing_date"] = _normalized_date(output["listing_date"])
     output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
+    # Cached fact partitions are already normalized and therefore already carry
+    # these descriptive columns.  Drop them before joining the PIT universe so
+    # normalization is idempotent and cannot create ``*_x``/``*_y`` columns.
+    output = output.drop(
+        columns=["security_name", "exchange", "board"], errors="ignore"
+    )
     output = output.merge(metadata, how="left", on="thscode", validate="many_to_one")
     for column in ("total_shares", "float_a_shares"):
         output[column] = pd.to_numeric(output[column], errors="coerce")
@@ -126,6 +138,9 @@ def normalize_quotes(frame: pd.DataFrame, universe: pd.DataFrame) -> pd.DataFram
     output = frame.copy()
     output["trade_date"] = _normalized_date(output["trade_date"])
     output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
+    output = output.drop(
+        columns=["security_name", "exchange", "board"], errors="ignore"
+    )
     output = output.merge(metadata, how="left", on="thscode", validate="many_to_one")
     numeric = (
         "open", "high", "low", "close", "pre_close", "avg_price", "volume", "amount",
@@ -206,6 +221,229 @@ def _coverage(frame: pd.DataFrame, column: str) -> float:
     return float(frame[column].notna().mean())
 
 
+def _cross_day_drift(
+    universe: pd.DataFrame,
+    security_reference: pd.DataFrame,
+    quotes: pd.DataFrame,
+    daily_status: pd.DataFrame,
+    previous: dict[str, pd.DataFrame] | None,
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """Compare the current normalized snapshot with the prior persisted session."""
+
+    if not previous:
+        return {"state": "missing_previous_session", "alerts": []}, [], []
+    prior_universe = previous.get("universe", pd.DataFrame())
+    prior_reference = previous.get("security_reference", pd.DataFrame())
+    prior_quotes = previous.get("quotes", pd.DataFrame())
+    prior_status = previous.get("daily_status", pd.DataFrame())
+    if any(
+        frame.empty
+        for frame in (prior_universe, prior_reference, prior_quotes, prior_status)
+    ):
+        return {"state": "incomplete_previous_session", "alerts": []}, [], []
+
+    warnings: list[str] = []
+    errors: list[str] = []
+    alerts: list[dict[str, Any]] = []
+
+    def add_alert(metric: str, severity: str, message: str) -> None:
+        alerts.append({"metric": metric, "severity": severity, "message": message})
+        (errors if severity == "error" else warnings).append(message)
+
+    def code_count(frame: pd.DataFrame) -> int:
+        return int(frame["thscode"].dropna().astype(str).nunique())
+
+    current_universe_count = code_count(universe)
+    prior_universe_count = code_count(prior_universe)
+    universe_delta = current_universe_count - prior_universe_count
+    universe_delta_ratio = (
+        universe_delta / prior_universe_count if prior_universe_count else None
+    )
+    if universe_delta_ratio is not None and abs(universe_delta_ratio) > 0.08:
+        add_alert(
+            "universe_count",
+            "error",
+            f"universe_count changed {universe_delta_ratio:.2%} across sessions",
+        )
+    elif universe_delta_ratio is not None and abs(universe_delta_ratio) > 0.02:
+        add_alert(
+            "universe_count",
+            "warning",
+            f"universe_count changed {universe_delta_ratio:.2%} across sessions",
+        )
+
+    def snapshot_coverage(numerator: pd.DataFrame, denominator: pd.DataFrame) -> float:
+        total = code_count(denominator)
+        return code_count(numerator) / total if total else 0.0
+
+    coverage_metrics: dict[str, Any] = {}
+    for name, current_frame, prior_frame in (
+        ("quote_coverage", quotes, prior_quotes),
+        ("reference_coverage", security_reference, prior_reference),
+    ):
+        current_value = snapshot_coverage(current_frame, universe)
+        prior_value = snapshot_coverage(prior_frame, prior_universe)
+        delta = current_value - prior_value
+        coverage_metrics[name] = {
+            "current": round(current_value, 6),
+            "previous": round(prior_value, 6),
+            "delta": round(delta, 6),
+        }
+        if delta < -0.05:
+            add_alert(name, "error", f"{name} dropped {abs(delta):.2%} across sessions")
+        elif delta < -0.01:
+            add_alert(
+                name, "warning", f"{name} dropped {abs(delta):.2%} across sessions"
+            )
+
+    count_drift: dict[str, Any] = {}
+    for field in ("exchange", "board"):
+        current_counts = {
+            str(key): int(value)
+            for key, value in universe.groupby(field, dropna=False).size().items()
+        }
+        prior_counts = {
+            str(key): int(value)
+            for key, value in prior_universe.groupby(field, dropna=False).size().items()
+        }
+        field_metrics: dict[str, Any] = {}
+        for key in sorted(set(current_counts) | set(prior_counts)):
+            current_value = current_counts.get(key, 0)
+            prior_value = prior_counts.get(key, 0)
+            delta = current_value - prior_value
+            ratio = delta / prior_value if prior_value else None
+            field_metrics[key] = {
+                "current": current_value,
+                "previous": prior_value,
+                "delta": delta,
+                "delta_ratio": round(ratio, 6) if ratio is not None else None,
+            }
+            if prior_value >= 20 and ratio is not None and abs(ratio) > 0.20:
+                add_alert(
+                    f"{field}_count.{key}",
+                    "error",
+                    f"{field} {key} count changed {ratio:.2%} across sessions",
+                )
+            elif prior_value >= 20 and ratio is not None and abs(ratio) > 0.05:
+                add_alert(
+                    f"{field}_count.{key}",
+                    "warning",
+                    f"{field} {key} count changed {ratio:.2%} across sessions",
+                )
+        count_drift[field] = field_metrics
+
+    def no_quote_count(frame: pd.DataFrame) -> int:
+        return int(frame["observation_state"].astype(str).eq("no_quote_observed").sum())
+
+    current_no_quote = no_quote_count(daily_status)
+    prior_no_quote = no_quote_count(prior_status)
+    no_quote_delta = current_no_quote - prior_no_quote
+    if current_no_quote > max(prior_no_quote + 200, prior_no_quote * 5):
+        add_alert(
+            "no_quote_observed",
+            "error",
+            f"no_quote_observed increased from {prior_no_quote} to {current_no_quote}",
+        )
+    elif current_no_quote > max(prior_no_quote + 25, prior_no_quote * 2):
+        add_alert(
+            "no_quote_observed",
+            "warning",
+            f"no_quote_observed increased from {prior_no_quote} to {current_no_quote}",
+        )
+
+    current_amount = float(pd.to_numeric(quotes["amount"], errors="coerce").sum())
+    prior_amount = float(
+        pd.to_numeric(prior_quotes["amount"], errors="coerce").sum()
+    )
+    amount_ratio = current_amount / prior_amount if prior_amount > 0 else None
+    if amount_ratio is not None and (amount_ratio < 0.10 or amount_ratio > 10.0):
+        add_alert(
+            "total_amount",
+            "error",
+            f"total_amount ratio versus prior session is {amount_ratio:.3f}",
+        )
+    elif amount_ratio is not None and (amount_ratio < 0.35 or amount_ratio > 2.85):
+        add_alert(
+            "total_amount",
+            "warning",
+            f"total_amount ratio versus prior session is {amount_ratio:.3f}",
+        )
+
+    continuity = quotes.loc[:, ["thscode", "pre_close"]].merge(
+        prior_quotes.loc[:, ["thscode", "close"]].rename(
+            columns={"close": "previous_close"}
+        ),
+        how="inner",
+        on="thscode",
+        validate="one_to_one",
+    )
+    continuity["pre_close"] = pd.to_numeric(
+        continuity["pre_close"], errors="coerce"
+    )
+    continuity["previous_close"] = pd.to_numeric(
+        continuity["previous_close"], errors="coerce"
+    )
+    comparable = continuity[["pre_close", "previous_close"]].notna().all(axis=1)
+    comparable &= continuity["previous_close"].gt(0)
+    continuity_delta = (
+        continuity.loc[comparable, "pre_close"]
+        .div(continuity.loc[comparable, "previous_close"])
+        .sub(1)
+        .abs()
+    )
+    mismatch_count = int(continuity_delta.gt(0.05).sum())
+    comparable_count = int(comparable.sum())
+    mismatch_ratio = mismatch_count / comparable_count if comparable_count else 0.0
+    if comparable_count and mismatch_ratio > 0.10:
+        add_alert(
+            "pre_close_continuity",
+            "error",
+            f"pre_close continuity mismatch ratio is {mismatch_ratio:.2%}",
+        )
+    elif comparable_count and mismatch_ratio > 0.02:
+        add_alert(
+            "pre_close_continuity",
+            "warning",
+            f"pre_close continuity mismatch ratio is {mismatch_ratio:.2%}",
+        )
+
+    previous_dates = sorted(
+        prior_quotes["trade_date"].dropna().astype(str).unique().tolist()
+    )
+    metrics = {
+        "state": "checked",
+        "previous_trade_date": previous_dates[-1] if previous_dates else None,
+        "universe_count": {
+            "current": current_universe_count,
+            "previous": prior_universe_count,
+            "delta": universe_delta,
+            "delta_ratio": round(universe_delta_ratio, 6)
+            if universe_delta_ratio is not None
+            else None,
+        },
+        **coverage_metrics,
+        "universe_group_counts": count_drift,
+        "no_quote_observed": {
+            "current": current_no_quote,
+            "previous": prior_no_quote,
+            "delta": no_quote_delta,
+        },
+        "total_amount": {
+            "current": current_amount,
+            "previous": prior_amount,
+            "ratio": round(amount_ratio, 6) if amount_ratio is not None else None,
+        },
+        "pre_close_continuity": {
+            "comparable_count": comparable_count,
+            "mismatch_count": mismatch_count,
+            "mismatch_ratio": round(mismatch_ratio, 6),
+            "per_security_tolerance": 0.05,
+        },
+        "alerts": alerts,
+    }
+    return metrics, warnings, errors
+
+
 def validate_data(
     universe: pd.DataFrame,
     security_reference: pd.DataFrame,
@@ -218,8 +456,10 @@ def validate_data(
     min_quote_coverage: float = 0.98,
     min_reference_coverage: float = 0.98,
     min_extended_field_coverage: float = 0.95,
+    previous: dict[str, pd.DataFrame] | None = None,
 ) -> QualityReport:
     errors: list[str] = []
+    warnings: list[str] = []
     codes = lambda frame: set(
         frame.get("thscode", pd.Series(dtype=str)).dropna().astype(str)
     )
@@ -385,6 +625,11 @@ def validate_data(
         if count:
             errors.append(message.format(count))
 
+    drift, drift_warnings, drift_errors = _cross_day_drift(
+        universe, security_reference, quotes, daily_status, previous
+    )
+    warnings.extend(drift_warnings)
+    errors.extend(drift_errors)
     metrics: dict[str, Any] = {
         "requested_trade_date": requested_trade_date,
         "universe_count": universe_count,
@@ -422,8 +667,11 @@ def validate_data(
         "negative_float_shares_rows": negative_float_shares,
         "float_exceeds_total_rows": float_exceeds_total,
         "observation_state_counts": state_counts,
+        "drift": drift,
     }
-    return QualityReport(ok=not errors, metrics=metrics, errors=errors)
+    return QualityReport(
+        ok=not errors, metrics=metrics, errors=errors, warnings=warnings
+    )
 
 
 def _number(value: Any) -> float | None:

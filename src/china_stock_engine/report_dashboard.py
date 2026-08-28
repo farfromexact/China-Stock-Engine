@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .storage import load_manifest
+
 
 def _load_json(path: Path) -> dict[str, Any]:
     loaded = json.loads(path.read_text(encoding="utf-8"))
@@ -45,7 +47,11 @@ def _percent(value: Any, *, ratio: bool = False) -> str:
 
 def _status_class(state: Any) -> str:
     normalized = str(state or "missing").lower()
-    return normalized if normalized in {"ready", "stale", "missing", "not_entitled"} else "missing"
+    return (
+        normalized
+        if normalized in {"ready", "partial", "stale", "missing", "not_entitled"}
+        else "missing"
+    )
 
 
 def _readiness_cards(readiness: dict[str, Any]) -> str:
@@ -126,7 +132,9 @@ def build_data_reference_dashboard(data_dir: Path, output: Path) -> Path:
     if not reference_path.exists():
         raise FileNotFoundError("latest data_reference_latest.json does not exist")
     reference = _load_json(reference_path)
-    manifest = _load_json(data_dir / "latest" / "manifest.json")
+    manifest = load_manifest(
+        data_dir / "latest" / "manifest.json", missing_ok=False
+    )
     source_hash = str((reference.get("run") or {}).get("source_snapshot_sha256") or "")
     manifest_hash = str(
         (manifest.get("data_reference") or {}).get("source_snapshot_sha256") or ""
