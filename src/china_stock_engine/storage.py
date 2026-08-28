@@ -26,11 +26,16 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def atomic_write_json(path: Path, payload: Any) -> None:
+def atomic_write_json(path: Path, payload: Any, *, compact: bool = False) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.tmp")
+    formatting = {"separators": (",", ":")} if compact else {"indent": 2}
     text = json.dumps(
-        payload, ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        allow_nan=False,
+        **formatting,
     )
     with temporary.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(text)
@@ -272,7 +277,9 @@ def publish_data_reference_artifacts(
         snapshot_dir / "data_reference_latest.json", data_reference
     )
     atomic_write_json(
-        snapshot_dir / "opportunity_inputs_latest.json", opportunity_inputs
+        snapshot_dir / "opportunity_inputs_latest.json",
+        opportunity_inputs,
+        compact=True,
     )
 
     atomic_write_parquet(
