@@ -20,7 +20,12 @@ from .ifind_http import IFindHTTPClient, QUOTE_FIELDS
 from .pipeline import CollectionConfig, collect_and_publish, validate_latest
 from .report_dashboard import build_data_reference_dashboard
 from .data_reference import build_data_reference_outputs
-from .storage import atomic_write_json, atomic_write_parquet, write_run_status
+from .storage import (
+    atomic_write_json,
+    atomic_write_parquet,
+    load_manifest,
+    write_run_status,
+)
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -521,6 +526,8 @@ class _PreparedBackfillClient:
         self.universes = universes
         self.references = references
         self.quotes = quotes
+        self.collection_started_at: str | None = None
+        self.collection_completed_at: str | None = None
 
     @property
     def refresh_token(self) -> str | None:
@@ -632,7 +639,22 @@ def _prepare_backfill_client(
 ) -> _PreparedBackfillClient:
     universes: dict[str, pd.DataFrame] = {}
     references: dict[str, pd.DataFrame] = {}
-    union_codes: set[str] = set()
+    required_quote_columns = {
+        "trade_date",
+        "thscode",
+        "open",
+        "high",
+        "low",
+        "close",
+        "pre_close",
+        "avg_price",
+        "volume",
+        "amount",
+        "turnover_ratio",
+        "change_ratio",
+        "source_provider",
+        "source_endpoint",
+    }
     # Authentication is cached before the pool starts; at most two dates are
     # in flight, matching the conservative iFinD concurrency default.
     if hasattr(client, "get_access_token"):
@@ -641,17 +663,26 @@ def _prepare_backfill_client(
     def cached_date(
         trade_date: str,
     ) -> tuple[pd.DataFrame, pd.DataFrame] | None:
-        reference_dir = (
-            args.data_dir / "facts" / "reference" / f"as_of_date={trade_date}"
-        )
-        universe_path = reference_dir / "universe.parquet"
-        reference_path = reference_dir / "security_reference.parquet"
-        if not universe_path.exists() or not reference_path.exists():
+        candidate_dirs = [
+            args.data_dir
+            / "facts"
+            / "reference"
+            / f"as_of_date={trade_date}",
+            args.data_dir / "snapshots" / trade_date,
+        ]
+        cached_paths: tuple[Path, Path] | None = None
+        for reference_dir in candidate_dirs:
+            universe_path = reference_dir / "universe.parquet"
+            reference_path = reference_dir / "security_reference.parquet"
+            if universe_path.exists() and reference_path.exists():
+                cached_paths = universe_path, reference_path
+                break
+        if cached_paths is None:
             return None
         try:
-            universe = pd.read_parquet(universe_path)
-            reference = pd.read_parquet(reference_path)
-        except Exception:
+            universe = pd.read_parquet(cached_paths[0])
+            reference = pd.read_parquet(cached_paths[1])
+        except (OSError, ValueError):
             return None
         universe_required = {
             "as_of_date",
@@ -674,6 +705,31 @@ def _prepare_backfill_client(
         ):
             return None
         return universe, reference
+
+    def cached_quotes(trade_date: str) -> pd.DataFrame | None:
+        candidates = [
+            args.data_dir
+            / "facts"
+            / "market"
+            / f"trade_date={trade_date}"
+            / "daily_quotes.parquet",
+            args.data_dir / "snapshots" / trade_date / "daily_quotes.parquet",
+        ]
+        path = next((item for item in candidates if item.exists()), None)
+        if path is None:
+            return None
+        try:
+            frame = pd.read_parquet(path)
+        except (OSError, ValueError):
+            return None
+        if frame.empty or not required_quote_columns.issubset(frame.columns):
+            return None
+        observed_dates = set(
+            frame["trade_date"].dropna().astype(str).unique().tolist()
+        )
+        if observed_dates != {trade_date}:
+            return None
+        return frame.copy()
 
     def fetch_date(
         trade_date: str,
@@ -712,18 +768,46 @@ def _prepare_backfill_client(
             universe, reference, from_cache = future.result()
             universes[trade_date] = universe
             references[trade_date] = reference
-            union_codes.update(
-                universe["thscode"].dropna().astype(str).str.upper().tolist()
-            )
             print(
                 f"iFinD PIT universe/reference dates: {index}/{len(dates)} "
                 f"({trade_date}) {'[cached]' if from_cache else ''}",
                 flush=True,
             )
-    codes = sorted(union_codes)
     quote_frames: list[pd.DataFrame] = []
-    date_windows = [dates[start : start + 63] for start in range(0, len(dates), 63)]
+    cached_quote_dates: set[str] = set()
+    for trade_date in dates:
+        frame = cached_quotes(trade_date)
+        if frame is None:
+            continue
+        quote_frames.append(frame)
+        cached_quote_dates.add(trade_date)
+        print(f"iFinD history date: {trade_date} [cached]", flush=True)
+
+    missing_groups: list[list[str]] = []
+    active_group: list[str] = []
+    for trade_date in dates:
+        if trade_date in cached_quote_dates:
+            if active_group:
+                missing_groups.append(active_group)
+                active_group = []
+            continue
+        active_group.append(trade_date)
+    if active_group:
+        missing_groups.append(active_group)
+    date_windows = [
+        group[start : start + 63]
+        for group in missing_groups
+        for start in range(0, len(group), 63)
+    ]
     for window_index, window in enumerate(date_windows, start=1):
+        window_codes = sorted(
+            {
+                str(code).strip().upper()
+                for trade_date in window
+                for code in universes[trade_date]["thscode"].dropna().astype(str)
+                if str(code).strip()
+            }
+        )
         safe_batch = max(
             1,
             min(
@@ -741,7 +825,7 @@ def _prepare_backfill_client(
 
         quote_frames.append(
             client.fetch_daily_history(
-                codes,
+                window_codes,
                 window[0],
                 window[-1],
                 batch_size=safe_batch,
@@ -754,22 +838,6 @@ def _prepare_backfill_client(
         if quote_frames
         else pd.DataFrame()
     )
-    required_quote_columns = {
-        "trade_date",
-        "thscode",
-        "open",
-        "high",
-        "low",
-        "close",
-        "pre_close",
-        "avg_price",
-        "volume",
-        "amount",
-        "turnover_ratio",
-        "change_ratio",
-        "source_provider",
-        "source_endpoint",
-    }
     missing_quote_columns = sorted(required_quote_columns.difference(quotes.columns))
     if missing_quote_columns:
         raise RuntimeError(
@@ -784,11 +852,18 @@ def _backfill(args: argparse.Namespace) -> int:
     client = _client(args)
     config = _collection_config(args)
     initial_manifest_path = args.data_dir / "latest" / "manifest.json"
-    initial_manifest = (
-        json.loads(initial_manifest_path.read_text(encoding="utf-8"))
-        if initial_manifest_path.exists()
-        else {}
-    )
+    try:
+        initial_manifest = load_manifest(initial_manifest_path)
+    except Exception as exc:
+        error = _safe_client_error(exc, client)
+        print(
+            json.dumps(
+                {"ok": False, "state": "invalid_latest_manifest", "error": error},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 1
     initial_latest_date = initial_manifest.get("trade_date")
     completed: list[str] = []
 
@@ -820,7 +895,14 @@ def _backfill(args: argparse.Namespace) -> int:
         dates, non_trading_dates, requested_start = _resolve_backfill_dates(
             client, args
         )
+        collection_started_at = datetime.now(timezone.utc).isoformat(
+            timespec="seconds"
+        )
         prepared = _prepare_backfill_client(client, dates, args)
+        prepared.collection_started_at = collection_started_at
+        prepared.collection_completed_at = datetime.now(timezone.utc).isoformat(
+            timespec="seconds"
+        )
     except Exception as exc:
         return fail_backfill(_safe_client_error(exc, client))
 
@@ -856,11 +938,10 @@ def _backfill(args: argparse.Namespace) -> int:
                 _safe_client_error(exc, client), failed_date=completed[-1]
             )
     latest_manifest_path = args.data_dir / "latest" / "manifest.json"
-    latest_manifest = (
-        json.loads(latest_manifest_path.read_text(encoding="utf-8"))
-        if latest_manifest_path.exists()
-        else {}
-    )
+    try:
+        latest_manifest = load_manifest(latest_manifest_path)
+    except Exception as exc:
+        return fail_backfill(_safe_client_error(exc, client))
     aggregate_state = "success_backfill" if completed else "market_closed"
     write_run_status(
         args.data_dir,

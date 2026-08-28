@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import json
 from pathlib import Path
 from typing import Any, Callable
 
@@ -22,8 +21,17 @@ from .quality import (
     schema_signature,
     validate_data,
 )
-from .data_reference import build_data_reference_outputs
-from .storage import promote_snapshot, verify_latest_artifacts, write_run_status
+from .data_reference import (
+    build_data_reference_outputs,
+    data_cutoff_time_for_date,
+)
+from .storage import (
+    load_json_object,
+    load_manifest,
+    promote_snapshot,
+    verify_latest_artifacts,
+    write_run_status,
+)
 
 
 ProgressCallback = Callable[[str, int, int], None]
@@ -40,7 +48,7 @@ class CollectionConfig:
     quote_batch_size: int = 300
     request_interval_seconds: float = 0.15
     trade_calendar_offset: int = -10
-    history_limit: int = 252
+    history_limit: int = 20
     snapshot_limit: int = 60
     build_data_reference: bool = True
 
@@ -56,17 +64,11 @@ def _utc_now() -> str:
 
 
 def _load_json(path: Path) -> dict[str, Any]:
-    if not path.exists():
-        return {}
-    try:
-        loaded = json.loads(path.read_text(encoding="utf-8"))
-        return loaded if isinstance(loaded, dict) else {}
-    except Exception:
-        return {}
+    return load_json_object(path)
 
 
 def _latest_manifest(data_dir: Path) -> dict[str, Any]:
-    return _load_json(data_dir / "latest" / "manifest.json")
+    return load_manifest(data_dir / "latest" / "manifest.json")
 
 
 def _last_run_status(data_dir: Path) -> dict[str, Any]:
@@ -98,6 +100,52 @@ def _quality_thresholds(config: CollectionConfig) -> dict[str, Any]:
     }
 
 
+def _pit_timing(
+    trade_date: str, started_at: str, completed_at: str
+) -> dict[str, str]:
+    configured = data_cutoff_time_for_date(trade_date)
+    completed_ts = pd.Timestamp(completed_at)
+    if completed_ts.tzinfo is None:
+        completed_ts = completed_ts.tz_localize("UTC")
+    configured_ts = pd.Timestamp(configured).tz_convert("UTC")
+    effective = min(completed_ts.tz_convert("UTC"), configured_ts)
+    return {
+        "collection_started_at": pd.Timestamp(started_at).isoformat(),
+        "collection_completed_at": completed_ts.isoformat(),
+        "configured_decision_cutoff": pd.Timestamp(configured).isoformat(),
+        "effective_pit_cutoff": effective.isoformat(),
+    }
+
+
+def _previous_quality_context(
+    data_dir: Path, trade_date: str
+) -> dict[str, pd.DataFrame] | None:
+    market_root = data_dir / "facts" / "market"
+    dates = sorted(
+        path.name.split("=", 1)[1]
+        for path in market_root.glob("trade_date=*")
+        if path.is_dir()
+        and "=" in path.name
+        and path.name.split("=", 1)[1] < trade_date
+    )
+    if not dates:
+        return None
+    previous_date = dates[-1]
+    market_dir = market_root / f"trade_date={previous_date}"
+    reference_dir = (
+        data_dir / "facts" / "reference" / f"as_of_date={previous_date}"
+    )
+    paths = {
+        "universe": reference_dir / "universe.parquet",
+        "security_reference": reference_dir / "security_reference.parquet",
+        "quotes": market_dir / "daily_quotes.parquet",
+        "daily_status": market_dir / "daily_security_status.parquet",
+    }
+    if not all(path.exists() for path in paths.values()):
+        return None
+    return {name: pd.read_parquet(path) for name, path in paths.items()}
+
+
 def collect_and_publish(
     client: IFindHTTPClient,
     trade_date: str,
@@ -105,9 +153,12 @@ def collect_and_publish(
     config: CollectionConfig = CollectionConfig(),
     progress: ProgressCallback | None = None,
 ) -> CollectionResult:
-    started_at = _utc_now()
-    previous_trade_date = _last_valid_trade_date(config.data_dir)
+    started_at = str(
+        getattr(client, "collection_started_at", None) or _utc_now()
+    )
+    previous_trade_date: str | None = None
     try:
+        previous_trade_date = _last_valid_trade_date(config.data_dir)
         raw_calendar = client.fetch_trade_calendar(
             trade_date, offset=config.trade_calendar_offset
         )
@@ -178,6 +229,7 @@ def collect_and_publish(
             min_quote_coverage=config.min_quote_coverage,
             min_reference_coverage=config.min_reference_coverage,
             min_extended_field_coverage=config.min_extended_field_coverage,
+            previous=_previous_quality_context(config.data_dir, trade_date),
         )
         if not quality.ok:
             status = {
@@ -212,7 +264,7 @@ def collect_and_publish(
         existing_manifest = (
             latest_manifest
             if is_current_latest
-            else _load_json(
+            else load_manifest(
                 config.data_dir / "snapshots" / trade_date / "manifest.json"
             )
         )
@@ -226,9 +278,14 @@ def collect_and_publish(
                 existing_manifest.get("data_reference") or {}
             )
             data_reference_error: str | None = None
-            if config.build_data_reference and is_current_latest and not (
-                config.data_dir / "latest" / "data_reference_latest.json"
-            ).exists():
+            derived_missing = any(
+                not (config.data_dir / "latest" / name).exists()
+                for name in (
+                    "data_reference_latest.json",
+                    "opportunity_inputs_latest.json",
+                )
+            )
+            if config.build_data_reference and is_current_latest and derived_missing:
                 try:
                     data_reference = build_data_reference_outputs(
                         config.data_dir, trade_date
@@ -269,12 +326,17 @@ def collect_and_publish(
                 write_run_status(config.data_dir, status)
             return CollectionResult(True, status)
 
+        completed_at = str(
+            getattr(client, "collection_completed_at", None) or _utc_now()
+        )
+        pit_timing = _pit_timing(trade_date, started_at, completed_at)
         manifest: dict[str, Any] = {
-            "schema_version": 2,
+            "schema_version": 3,
             "trade_date": trade_date,
             "requested_trade_date": trade_date,
             "source_trade_date": trade_date,
-            "collected_at_utc": _utc_now(),
+            "collected_at_utc": completed_at,
+            **pit_timing,
             "provider": "ifind_http",
             "source_endpoints": [
                 "get_trade_dates",
@@ -390,7 +452,13 @@ def validate_latest(
     policy_min_reference_coverage: float = 0.98,
     policy_min_extended_field_coverage: float = 0.95,
 ) -> tuple[bool, dict[str, Any]]:
-    manifest, artifact_errors = verify_latest_artifacts(data_dir)
+    try:
+        manifest, artifact_errors = verify_latest_artifacts(data_dir)
+    except Exception as exc:
+        return False, {
+            "ok": False,
+            "errors": [f"{type(exc).__name__}: {str(exc)[:400]}"],
+        }
     if not manifest:
         return False, {"ok": False, "errors": artifact_errors}
     errors = list(artifact_errors)
@@ -435,10 +503,11 @@ def validate_latest(
                     )
                 ),
             ),
+            previous=_previous_quality_context(data_dir, trade_date),
         )
         errors.extend(quality.errors)
-        if int(manifest.get("schema_version") or 0) < 2:
-            errors.append("manifest schema_version is below 2")
+        if int(manifest.get("schema_version") or 0) not in {2, 3}:
+            errors.append("manifest schema_version is not supported")
         if manifest.get("verified") is not True:
             errors.append("manifest is not marked verified")
         if manifest.get("data_fresh") is not True:

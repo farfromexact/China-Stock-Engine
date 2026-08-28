@@ -17,7 +17,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 
 项目只输出数据和参考信息：
 
-- 不生成股票候选池、综合评分或市场观点；
+- 不生成主观候选池、综合评分或市场观点；只提供可复算的确定性排序筛选；
 - 不输出交易建议或收益评价；
 - 不以旧数据冒充当天数据，也不为缺失字段制造替代值；
 - 每个派生字段都能追溯到源日期、PIT 截止时间和快照哈希。
@@ -34,6 +34,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - `data/latest/security_reference.parquet`：证券名称、交易所、板块、上市日和股本等 PIT 参考数据；
 - `data/latest/stock_state.parquet`：逐证券 PIT 派生状态；
 - `data/latest/market_summary.json`：市场宽度和成交汇总；
+- `data/latest/opportunity_inputs_latest.json`：供 ChatGPT/Automation 读取的紧凑事实摘要与确定性 screens；
 - `data/snapshots/YYYY-MM-DD/`：按交易日冻结的完整验证快照；
 - `data/last_run_status.json`：最近一次采集尝试的状态，失败不会覆盖 `latest`。
 
@@ -47,12 +48,14 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - 未复权日线 OHLC、前收、均价、成交量、成交额、换手率和涨跌幅；
 - 上交所交易日历和逐证券行情观测状态；
 - 上涨、下跌、平盘家数，横截面均值/中位数和总成交额；
-- 1/3/5/20/60 日复权收益、20/60 日历史波动率、滚动成交异常和价格位置；
-- 市值、滚动高点距离、相对指数及 PIT 申万行业收益；
+- 1/3/5/20 日原始涨跌幅复合收益，以及数据充分时的复权收益；
+- 20 日历史波动率、滚动成交异常、价格位置、市值和 20 日高点距离；
 - 公司行为、行业、指数成分和可交易性参考的 PIT 输入契约；
 - 覆盖率、质量门、模块可用性、内容哈希与数据目录。
 
-默认提升门槛为证券池不少于 5,000 只，日行情和证券主数据覆盖率不低于 98%，扩展字段覆盖率不低于 95%，且沪深北交易所均有覆盖。
+默认历史目标为 20 个交易日。`1D/3D/5D/20D` 分别报告 readiness 和覆盖率；历史不足 20 日时仍计算已经合法可得的短周期字段，不会让整张 `stock_state` 失效。60 日和 252 日字段暂时保持 `null`，并在 readiness 中列为 unavailable。
+
+默认提升门槛为证券池不少于 5,000 只，日行情和证券主数据覆盖率不低于 98%，扩展字段覆盖率不低于 95%，且沪深北交易所均有覆盖。质量门同时与上一交易日比较股票池、行情/参考覆盖率、交易所和板块数量、无行情观测、总成交额及前收连续性；异常会以 warning 或 error 明确记录。
 
 历史、复权、行业、指数成分和可交易性模块必须分别通过小范围权限 canary。没有权限时记录 `not_entitled`；字段未知时保持为空。登录成功不等于数据权限可用。
 
@@ -76,6 +79,7 @@ data/
 │   ├── manifest.json
 │   ├── last_attempt_status.json
 │   ├── data_reference_latest.json
+│   ├── opportunity_inputs_latest.json
 │   ├── stock_state.parquet
 │   ├── universe.parquet
 │   ├── security_reference.parquet
@@ -101,6 +105,16 @@ data/
 
 全市场明细保存在 Parquet，不塞入紧凑 JSON。
 
+`opportunity_inputs_latest.json` 同样控制在 2 MB 内，包含：
+
+- `trade_date / generated_at / source_snapshot_sha256` 与完整 PIT 时间；
+- 数据模式、各周期 readiness 和关键字段覆盖率；
+- 市场宽度、成交额、极端涨跌数量及 1D/3D/5D/20D 横截面变化；
+- 板块和确定性市值分桶汇总；
+- 单日涨跌、成交额、成交/换手扩张、收盘位置和 3D/5D/20D 相对强度 screens，每类最多 25 行。
+
+screen 行只保留原始事实、确定性派生字段和触发规则，不包含综合分数、买卖标签、推荐或收益评价。
+
 ## PIT 输入契约
 
 可选模块读取下列规范化文件；缺文件时模块保持 `missing`，缺必需列时直接报错：
@@ -112,7 +126,9 @@ data/
 - `provider_tradability.parquet`：`as_of_date, thscode, is_st, is_suspended, daily_price_limit_pct, lot_size, known_at`；
 - `facts/index/trade_date=.../index_quotes.parquet`：至少包含 `trade_date, thscode, open, close`。
 
-所有 PIT 记录必须满足 `known_at <= data_cutoff_time`。有效期数据同时按 `effective_from/effective_to` 过滤；今天的行业、成分或后来修订的数据不会自动回填为历史事实。
+manifest、`stock_state` 和两个紧凑 JSON 均明确记录 `collection_started_at`、`collection_completed_at`、`configured_decision_cutoff` 与 `effective_pit_cutoff`。其中 `effective_pit_cutoff = min(configured_decision_cutoff, collection_completed_at)`，绝不会晚于实际采集完成时间。所有 PIT 记录必须满足 `known_at <= effective_pit_cutoff`。有效期数据同时按 `effective_from/effective_to` 过滤；今天的行业、成分或后来修订的数据不会自动回填为历史事实。
+
+关键 `manifest.json` 不存在时可视为 missing；JSON 损坏、不是对象或 schema 不兼容会立即报错，不会静默当成空对象继续运行。
 
 ## 本地使用
 
@@ -147,16 +163,17 @@ python -m china_stock_engine.cli run --date 2026-08-20 --prompt-token
 python -m china_stock_engine.cli validate
 ```
 
-首次回填最近 252 个交易日，并生成逐股状态和紧凑数据参考：
+首次回填最近 20 个交易日，并生成逐股状态和两个紧凑数据接口：
 
 ```powershell
-python -m china_stock_engine.cli backfill --sessions 252 --end 2026-08-20 --with-adjustment-snapshot --prompt-token
+python -m china_stock_engine.cli backfill --sessions 20 --end 2026-08-20 --with-adjustment-snapshot --prompt-token
 python -m china_stock_engine.cli build-state
 python -m china_stock_engine.cli build-report
 ```
 
 回填先从上交所日历解析准确交易日，再逐日取得 PIT 股票池和证券主数据，并将区间行情按日期窗口与证券批次拆分。它不会用当前股票池回填历史。
 回填预取阶段最多使用两路并发，并在认证完成后开始请求；实际并发和批次仍受 iFinD 账户额度与服务端限速约束。
+已有日期的规范化参考分区和行情分区会先做 schema/日期校验并直接复用；只有缺失日期窗口才调用 iFinD。相同日期重复执行是幂等的。
 
 ## 凭证安全
 

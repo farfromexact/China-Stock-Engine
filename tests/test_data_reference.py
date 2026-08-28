@@ -25,7 +25,7 @@ class DataReferenceTests(unittest.TestCase):
             [
                 {
                     **{field: None for field in STOCK_STATE_COLUMNS},
-                    "schema_version": 2,
+                    "schema_version": 3,
                     "trade_date": "2026-08-20",
                     "data_cutoff_time": "2026-08-20T20:15:00+08:00",
                     "thscode": "600000.SH",
@@ -41,6 +41,7 @@ class DataReferenceTests(unittest.TestCase):
             ]
         )
         manifest = {
+            "schema_version": 2,
             "trade_date": "2026-08-20",
             "collected_at_utc": "2026-08-20T10:30:00+00:00",
             "provider": "ifind_http",
@@ -57,7 +58,7 @@ class DataReferenceTests(unittest.TestCase):
             },
         }
         readiness = {
-            "history": {"state": "ready", "sessions": 252},
+            "history": {"state": "ready", "sessions": 20},
             "stock_state": {"state": "ready", "rows": 1},
         }
         reference = build_data_reference(
@@ -88,6 +89,18 @@ class DataReferenceTests(unittest.TestCase):
             self.assertNotIn(forbidden, serialized)
         self.assertEqual(reference["document_type"], "a_share_data_reference")
         self.assertEqual(reference["coverage"]["stock_state_rows"], 1)
+        self.assertEqual(
+            reference["as_of"]["configured_decision_cutoff"],
+            "2026-08-20T20:15:00+08:00",
+        )
+        self.assertEqual(
+            reference["as_of"]["effective_pit_cutoff"],
+            "2026-08-20T10:30:00+00:00",
+        )
+        self.assertLessEqual(
+            pd.Timestamp(reference["as_of"]["effective_pit_cutoff"]),
+            pd.Timestamp(reference["as_of"]["collection_completed_at"]),
+        )
 
         manifest["data_reference"] = {
             "source_snapshot_sha256": "source-hash"

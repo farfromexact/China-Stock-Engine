@@ -22,13 +22,13 @@ def data_state_fixture() -> tuple[
     pd.DataFrame,
     str,
 ]:
-    dates = pd.bdate_range("2025-08-22", periods=252).strftime("%Y-%m-%d").tolist()
+    dates = pd.bdate_range("2026-07-24", periods=20).strftime("%Y-%m-%d").tolist()
     trade_date = dates[-1]
     codes = ["600001.SH", "000001.SZ", "688001.SH"]
     names = ["Alpha", "Beta", "Gamma"]
     rows: list[dict] = []
     adjustment_rows: list[dict] = []
-    split_index = 235
+    split_index = 15
     for code_index, (code, name) in enumerate(zip(codes, names, strict=True)):
         for index, date in enumerate(dates):
             if code_index == 0:
@@ -234,19 +234,62 @@ class DataStateTests(unittest.TestCase):
             "snapshot-hash",
         )
         alpha = state.loc[state["thscode"].eq("600001.SH")].iloc[0]
-        self.assertEqual(int(alpha["history_sessions"]), 252)
-        self.assertGreater(float(alpha["return_20d_pct"]), 0)
+        self.assertEqual(int(alpha["history_sessions"]), 20)
+        self.assertGreater(float(alpha["raw_return_20d_pct"]), 0)
+        self.assertGreater(float(alpha["return_5d_pct"]), 0)
         self.assertEqual(alpha["sw1_name"], "Industry 0")
         self.assertNotEqual(alpha["sw1_name"], "Future Industry")
         self.assertEqual(alpha["index_memberships"], ["000300.SH"])
         self.assertEqual(alpha["tradability_state"], "clear")
         self.assertEqual(alpha["data_cutoff_time"], data_cutoff_time_for_date(date))
         self.assertEqual(readiness["history"]["state"], "ready")
+        self.assertEqual(readiness["history"]["horizons"]["1D"]["state"], "ready")
+        self.assertEqual(readiness["history"]["horizons"]["3D"]["state"], "ready")
+        self.assertEqual(readiness["history"]["horizons"]["5D"]["state"], "ready")
+        self.assertEqual(readiness["history"]["horizons"]["20D"]["state"], "ready")
+        self.assertTrue(pd.isna(alpha["return_60d_pct"]))
+        self.assertTrue(pd.isna(alpha["distance_from_high_60_pct"]))
+        self.assertTrue(pd.isna(alpha["drawdown_from_high_252_pct"]))
         self.assertEqual(readiness["adjustment"]["state"], "ready")
         self.assertEqual(readiness["tradability"]["state"], "ready")
 
         self.assertEqual(alpha["source_snapshot_sha256"], "snapshot-hash")
         self.assertNotIn("score", " ".join(state.columns).lower())
+
+    def test_partial_history_keeps_legal_horizons_and_stock_state(self) -> None:
+        history, reference, status, adjustments, industry, indexes, provider, date = (
+            data_state_fixture()
+        )
+        recent_dates = sorted(history["trade_date"].unique())[-5:]
+        history = history.loc[history["trade_date"].isin(recent_dates)].copy()
+        adjustments = adjustments.loc[
+            adjustments["trade_date"].isin(recent_dates)
+        ].copy()
+
+        state, readiness = build_stock_state(
+            history,
+            reference,
+            status,
+            adjustments,
+            pd.DataFrame(),
+            industry,
+            indexes,
+            pd.DataFrame(),
+            provider,
+            date,
+            "snapshot-hash",
+        )
+
+        alpha = state.loc[state["thscode"].eq("600001.SH")].iloc[0]
+        self.assertEqual(int(alpha["history_sessions"]), 5)
+        self.assertEqual(readiness["history"]["state"], "partial")
+        self.assertEqual(readiness["history"]["horizons"]["1D"]["state"], "ready")
+        self.assertEqual(readiness["history"]["horizons"]["3D"]["state"], "ready")
+        self.assertEqual(readiness["history"]["horizons"]["5D"]["state"], "ready")
+        self.assertEqual(readiness["history"]["horizons"]["20D"]["state"], "missing")
+        self.assertGreater(float(alpha["raw_return_5d_pct"]), 0)
+        self.assertTrue(pd.isna(alpha["raw_return_20d_pct"]))
+        self.assertEqual(readiness["stock_state"]["state"], "ready")
 
     def test_one_word_limit_and_unknown_provider_fields_are_classified(self) -> None:
         history, reference, status, _, _, _, provider, date = data_state_fixture()
@@ -268,6 +311,9 @@ class DataStateTests(unittest.TestCase):
         self.assertEqual(one_word["tradability_state"], "restricted")
         self.assertIn("one_word_limit", one_word["tradability_reason_codes"])
         self.assertTrue(pd.isna(unknown["is_suspended"]))
+        self.assertTrue(pd.isna(unknown["limit_up"]))
+        self.assertTrue(pd.isna(unknown["limit_down"]))
+        self.assertTrue(pd.isna(unknown["one_word_limit"]))
         self.assertEqual(unknown["tradability_state"], "unknown")
         self.assertIn(
             "provider_tradability_missing", unknown["tradability_reason_codes"]

@@ -155,6 +155,9 @@ class PipelineTests(unittest.TestCase):
             ).exists()
         )
         self.assertTrue((root / "data/latest/data_reference_latest.json").exists())
+        self.assertTrue(
+            (root / "data/latest/opportunity_inputs_latest.json").exists()
+        )
         self.assertTrue((root / "data/latest/stock_state.parquet").exists())
         self.assertFalse((root / "data/latest/candidates.parquet").exists())
         self.assertFalse((root / "data/signals").exists())
@@ -165,6 +168,43 @@ class PipelineTests(unittest.TestCase):
             (root / "data/latest/data_reference_latest.json").read_text(
                 encoding="utf-8"
             )
+        )
+        opportunity_inputs = json.loads(
+            (root / "data/latest/opportunity_inputs_latest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(manifest["schema_version"], 3)
+        for field in (
+            "collection_started_at",
+            "collection_completed_at",
+            "configured_decision_cutoff",
+            "effective_pit_cutoff",
+        ):
+            self.assertIn(field, manifest)
+        self.assertLessEqual(
+            pd.Timestamp(manifest["effective_pit_cutoff"]),
+            pd.Timestamp(manifest["collection_completed_at"]),
+        )
+        self.assertEqual(
+            opportunity_inputs["source_snapshot_sha256"],
+            reference["run"]["source_snapshot_sha256"],
+        )
+        self.assertIn(
+            "opportunity_inputs_latest.json", manifest["artifacts"]
+        )
+        opportunity_before = (
+            root / "data/latest/opportunity_inputs_latest.json"
+        ).read_bytes()
+        manifest_before_rebuild = (root / "data/latest/manifest.json").read_bytes()
+        build_data_reference_outputs(root / "data", "2026-08-18")
+        self.assertEqual(
+            opportunity_before,
+            (root / "data/latest/opportunity_inputs_latest.json").read_bytes(),
+        )
+        self.assertEqual(
+            manifest_before_rebuild,
+            (root / "data/latest/manifest.json").read_bytes(),
         )
         stock_catalog = next(
             item

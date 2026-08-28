@@ -108,6 +108,78 @@ class QualityTests(unittest.TestCase):
         self.assertTrue(report.ok, report.errors)
         self.assertEqual(report.metrics["quote_count"], 4)
 
+    def test_reference_and_quote_normalization_are_idempotent(self) -> None:
+        universe = normalize_universe(universe_frame())
+        reference = normalize_security_reference(reference_frame(), universe)
+        quotes = normalize_quotes(quote_frame(), universe)
+
+        pd.testing.assert_frame_equal(
+            normalize_security_reference(reference, universe), reference
+        )
+        pd.testing.assert_frame_equal(normalize_quotes(quotes, universe), quotes)
+
+    def test_cross_day_drift_records_stable_comparison_and_extreme_amount(self) -> None:
+        universe = normalize_universe(universe_frame())
+        reference = normalize_security_reference(reference_frame(), universe)
+        quotes = normalize_quotes(quote_frame(), universe)
+        calendar = normalize_trade_calendar(calendar_frame())
+        status = build_daily_security_status(universe, quotes, "2026-08-18")
+        prior_universe = universe.copy()
+        prior_universe["as_of_date"] = "2026-08-17"
+        prior_reference = reference.copy()
+        prior_reference["as_of_date"] = "2026-08-17"
+        prior_quotes = quotes.copy()
+        prior_quotes["trade_date"] = "2026-08-17"
+        prior_quotes["close"] = quotes["pre_close"].to_numpy()
+        prior_status = status.copy()
+        prior_status["trade_date"] = "2026-08-17"
+        previous = {
+            "universe": prior_universe,
+            "security_reference": prior_reference,
+            "quotes": prior_quotes,
+            "daily_status": prior_status,
+        }
+
+        stable = validate_data(
+            universe,
+            reference,
+            quotes,
+            calendar,
+            status,
+            "2026-08-18",
+            min_universe_size=4,
+            min_quote_coverage=1.0,
+            min_reference_coverage=1.0,
+            min_extended_field_coverage=1.0,
+            previous=previous,
+        )
+        self.assertTrue(stable.ok, stable.errors)
+        self.assertEqual(stable.metrics["drift"]["state"], "checked")
+        self.assertEqual(stable.metrics["drift"]["alerts"], [])
+
+        extreme_quotes = quotes.copy()
+        extreme_quotes["amount"] = extreme_quotes["amount"] * 20
+        extreme_status = build_daily_security_status(
+            universe, extreme_quotes, "2026-08-18"
+        )
+        drifted = validate_data(
+            universe,
+            reference,
+            extreme_quotes,
+            calendar,
+            extreme_status,
+            "2026-08-18",
+            min_universe_size=4,
+            min_quote_coverage=1.0,
+            min_reference_coverage=1.0,
+            min_extended_field_coverage=1.0,
+            previous=previous,
+        )
+        self.assertFalse(drifted.ok)
+        self.assertTrue(
+            any("total_amount ratio" in error for error in drifted.errors)
+        )
+
     def test_date_and_ohlc_failures_are_explicit(self) -> None:
         universe = normalize_universe(universe_frame())
         reference = normalize_security_reference(reference_frame(), universe)
