@@ -111,9 +111,12 @@ data/
 - 数据模式、各周期 readiness 和关键字段覆盖率；
 - 市场宽度、成交额、极端涨跌数量及 1D/3D/5D/20D 横截面变化；
 - 板块和确定性市值分桶汇总；
-- 单日涨跌、成交额、成交/换手扩张、收盘位置和 3D/5D/20D 相对强度 screens，每类最多 25 行。
+- 单日涨跌、成交额、成交/换手扩张、价格×成交×收盘位置、跨周期动量、gap/日内结构和 3D/5D/20D 相对强度 screens；
+- 按 SSE Main、SZSE Main、STAR、ChiNext、BSE 以及五档市值分桶分别计算的中性化绝对涨跌 screens；
+- `return_1d/3d/5d/20d_pctile`、`amount_change_pctile`、`turnover_change_pctile`、`close_location_pctile`、成交额/换手排名及 `amount / float_market_cap`；
+- 最多 150 只证券的 `candidate_union`：仅对全部 screen 的 Top 25 结果去重，保留触发 screen、screen 内 rank/percentile、原始事实与确定性 `contradiction_flags`。
 
-screen 行只保留原始事实、确定性派生字段和触发规则，不包含综合分数、买卖标签、推荐或收益评价。
+每个独立 screen 最多 25 行。`candidate_union.screen_count` 只是同一证券被多少个确定性过滤器捕获，不是股票评分；所有输出均不包含综合分数、买卖标签、推荐或收益评价。该 JSON 使用确定性紧凑序列化控制仓库体积。
 
 ## PIT 输入契约
 

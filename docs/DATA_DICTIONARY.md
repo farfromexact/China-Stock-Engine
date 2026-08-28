@@ -90,8 +90,31 @@
 - `schema_version`、`document_type`、`trade_date`、`generated_at`、`source_snapshot_sha256`；
 - `pit_timing`、`data_mode`、`readiness`、`field_coverage`；
 - `market`、`board_summary`、`market_cap_bucket_summary`、`data_quality_drift`；
-- `deterministic_screens` 与 `drilldown`。
+- `cross_sectional_features`、`deterministic_screens`、`candidate_union`、`candidate_union_metadata`、`contradiction_flag_definitions` 与 `drilldown`。
 
-当前 screens 为：`largest_positive_moves`、`largest_negative_moves`、`highest_amount`、`amount_expansion`、`turnover_expansion`、`strong_close_location`、`weak_close_location`、`relative_strength_3d/5d/20d`。每类最多 25 行；每行包含证券事实与 `trigger.metric/value/rank/rule`，不包含评分、推荐或买卖动作。
+`schema_version=2` 的确定性 screens 分为：
+
+- 基础横截面：最大正/负涨跌、最高成交额、成交额/换手扩张、强/弱收盘位置、3D/5D/20D 相对强度；
+- 价格×成交确认：上涨/下跌分别与成交额及换手扩张或收缩组合，要求成交额变化与换手变化同向；
+- 多周期结构：1D/3D/5D 同向正收益、1D 相对日均化 3D/5D 趋势加速、强 5D 弱 1D、弱 5D 强 1D；
+- 涨跌×收盘位置：以 1D 横截面顶部/底部 20% 结合收盘位置阈值；
+- gap/日内结构：高开强/弱收盘、低开强收盘、大振幅强/弱收盘；
+- 中性化绝对涨跌：在 SSE Main、SZSE Main、STAR、ChiNext、BSE 和五档总市值分桶内分别排名。
+
+每个独立 screen 最多 25 行；每行包含证券事实与 `trigger.metric/value/rank/percentile/rule`。`percentile` 使用当日全市场横截面 average-rank 百分位，数值越大代表原始 metric 越大。
+
+横截面字段包括：
+
+- `return_1d_pctile`、`return_3d_pctile`、`return_5d_pctile`、`return_20d_pctile`；
+- `amount_change_pctile`、`turnover_change_pctile`、`close_location_pctile`；
+- `amount_rank`、`turnover_rank`：降序名次，1 为当日最高；
+- `amount_to_float_market_cap`：当日成交额除以流通市值；分母缺失或不大于零时为 `null`。
+- `amount_z20`、`turnover_z20`、`adt20`：仅在合法 20-session 历史齐备时输出；否则保持 `null` 并通过 `field_coverage` 明示覆盖率。
+
+`candidate_union` 是所有 screen 行的证券去重并集，最多 150 只。每行包含 `triggered_screens`、`screen_count`、`best_screen_rank`、`screen_ranks`、`screen_percentiles`、横截面 `percentiles`、`contradiction_flags` 和 `facts`。排序仅为 `screen_count` 降序、最佳 screen rank 升序、证券代码升序；`screen_count` 是过滤器重叠计数，不是证券评分。
+
+`contradiction_flags` 仅在所需字段已知且规则成立时出现：`price_up_but_weak_close`、`volume_spike_but_negative_return`、`strong_5d_but_negative_1d`、`tiny_absolute_amount`、`micro_cap`、`high_turnover`、`gap_up_failed`。根字段 `contradiction_flag_definitions` 保存精确阈值；未知值不会制造 flag，也不会被当作 `false` 事实。
+
+该文件采用键排序的紧凑 JSON 序列化，实际落盘文件必须小于 2 MB。所有 screen 和 union 均不包含评分、推荐、买卖动作或收益评价。
 
 总市值分桶为固定人民币边界：`<50 亿`、`50–200 亿`、`200–800 亿`、`800–3000 亿`、`>=3000 亿`。分桶只是汇总维度，不代表投资风格判断。
