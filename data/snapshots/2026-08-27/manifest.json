@@ -9,13 +9,13 @@
       "sha256": "ec9701c5c65564298f2b4d92f1a3c3d8523a398f553090caa48d8c0e95bda16d"
     },
     "data_reference_latest.json": {
-      "sha256": "031f7c35567b1ae89e7146abfe6512a3cd93f80869f92a246c8046e871ee54da"
+      "sha256": "75d1096cd488b212a426d3b0ebdd46c80772a5e7d1f6e083e2ed381569199be3"
     },
     "market_summary.json": {
       "sha256": "e5c9927c2a8bfe461dd86c084b407f2dc18eecfb1ed4db0fa8be368aed03ecf1"
     },
     "opportunity_inputs_latest.json": {
-      "sha256": "f5b64f8f22e74a76d4a81ead2fe2737543d8c8c828538a4a989e5d22d1c18c8f"
+      "sha256": "d713676a13eea553798a4963900abf8c666f9b14074bbe2b5deeb6e37b8c3d28"
     },
     "security_reference.parquet": {
       "rows": 5550,
@@ -23,7 +23,7 @@
     },
     "stock_state.parquet": {
       "rows": 5547,
-      "sha256": "353e5f12e119f5e2fc94f3fa0a18d48c665d51e2ce8247b7f1d2b4da9c8280dc"
+      "sha256": "bd68b3671eada8cff5b7bd196be6199663ea8a912f5a5ef985259be7f8595372"
     },
     "trading_calendar.parquet": {
       "rows": 1,
@@ -34,7 +34,10 @@
       "sha256": "90c114d2d1e1a443591252c82a63460c961efabfcab21037a6f9e7549b1a3b42"
     }
   },
-  "collected_at_utc": "2026-08-27T20:40:06+00:00",
+  "collected_at_utc": "2026-08-28T08:37:24+00:00",
+  "collection_completed_at": "2026-08-28T08:37:24+00:00",
+  "collection_started_at": "2026-08-28T08:37:24+00:00",
+  "configured_decision_cutoff": "2026-08-27T20:15:00+08:00",
   "data_fresh": true,
   "data_reference": {
     "opportunity_inputs_schema_version": 1,
@@ -139,6 +142,7 @@
     "source_snapshot_sha256": "5b5a5c686a74fa0c449db7270b90e86976ed45b38b8ecad5a1f5620e70dd5ad8",
     "stock_state_rows": 5547
   },
+  "effective_pit_cutoff": "2026-08-27T12:15:00+00:00",
   "provenance": {
     "calendar": "SSE",
     "calendar_market_code": "212001",
@@ -168,6 +172,97 @@
       ],
       "change_ratio_inconsistent_rows": 0,
       "complete_ohlc_rows": 5547,
+      "drift": {
+        "alerts": [],
+        "no_quote_observed": {
+          "current": 3,
+          "delta": 0,
+          "previous": 3
+        },
+        "pre_close_continuity": {
+          "comparable_count": 5546,
+          "mismatch_count": 0,
+          "mismatch_ratio": 0.0,
+          "per_security_tolerance": 0.05
+        },
+        "previous_trade_date": "2026-08-26",
+        "quote_coverage": {
+          "current": 0.999459,
+          "delta": 0.0,
+          "previous": 0.999459
+        },
+        "reference_coverage": {
+          "current": 1.0,
+          "delta": 0.0,
+          "previous": 1.0
+        },
+        "state": "checked",
+        "total_amount": {
+          "current": 2140959919626.44,
+          "previous": 1821814999754.1,
+          "ratio": 1.17518
+        },
+        "universe_count": {
+          "current": 5550,
+          "delta": 0,
+          "delta_ratio": 0.0,
+          "previous": 5550
+        },
+        "universe_group_counts": {
+          "board": {
+            "BSE": {
+              "current": 338,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 338
+            },
+            "CHINEXT": {
+              "current": 1402,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1402
+            },
+            "SSE_MAIN": {
+              "current": 1700,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1700
+            },
+            "STAR": {
+              "current": 615,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 615
+            },
+            "SZSE_MAIN": {
+              "current": 1495,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1495
+            }
+          },
+          "exchange": {
+            "BSE": {
+              "current": 338,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 338
+            },
+            "SSE": {
+              "current": 2315,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2315
+            },
+            "SZSE": {
+              "current": 2897,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2897
+            }
+          }
+        }
+      },
       "float_exceeds_total_rows": 0,
       "future_listing_date_rows": 0,
       "invalid_ohlc_rows": 0,
@@ -227,7 +322,8 @@
       "unknown_quote_codes": 0,
       "unknown_reference_codes": 0
     },
-    "ok": true
+    "ok": true,
+    "warnings": []
   },
   "quality_thresholds": {
     "min_extended_field_coverage": 0.95,
@@ -237,7 +333,7 @@
   },
   "raw_payload_persisted": false,
   "requested_trade_date": "2026-08-27",
-  "schema_version": 2,
+  "schema_version": 3,
   "source_endpoints": [
     "get_trade_dates",
     "data_pool",
