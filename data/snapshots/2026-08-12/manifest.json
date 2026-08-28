@@ -1,0 +1,233 @@
+{
+  "artifacts": {
+    "daily_quotes.parquet": {
+      "rows": 5539,
+      "sha256": "53065efc55bf69130fd61c0360ff14ea9c69e12fa238fe893e5673dddd5956b7"
+    },
+    "daily_security_status.parquet": {
+      "rows": 5543,
+      "sha256": "9731e86270dbff109f8c9ade00cc9722527256cc3ed552b9fb161e116e7ac85a"
+    },
+    "market_summary.json": {
+      "sha256": "1457ac367b0bd1fcde4a190256e444c8eabfdbb2ddd6643b3d1b8bd6622630d1"
+    },
+    "security_reference.parquet": {
+      "rows": 5543,
+      "sha256": "4dbab9fcb4d91024e0f830ffaa14848385eadd6ff3b168e03f2020f7aca67bc2"
+    },
+    "trading_calendar.parquet": {
+      "rows": 1,
+      "sha256": "17c0246cec42900b837f66641217453f600a106e49a6d845db3b6ae1e27734d4"
+    },
+    "universe.parquet": {
+      "rows": 5543,
+      "sha256": "b1897bcdd81367158e9e0fef278e2e91aefd16cae117954cabce0da9f5ce41af"
+    }
+  },
+  "collected_at_utc": "2026-08-28T08:28:30+00:00",
+  "collection_completed_at": "2026-08-28T08:28:30+00:00",
+  "collection_started_at": "2026-08-28T08:27:07+00:00",
+  "configured_decision_cutoff": "2026-08-12T20:15:00+08:00",
+  "data_fresh": true,
+  "effective_pit_cutoff": "2026-08-12T12:15:00+00:00",
+  "provenance": {
+    "calendar": "SSE",
+    "calendar_market_code": "212001",
+    "daily_status_frame_sha256": "199f5c53499d5a071a26b5b7f8a11c1e9dfe39513031cb5c6f10f0508b83574b",
+    "daily_status_schema_signature": "7c2cde3db8e112fd112494b10ff25865a741fbaefccb0817450f864827039fd3",
+    "quotes_frame_sha256": "d62abe0553bc8698dc55ccb3a9ad9e322e7037276eba89c01f86ec354047a612",
+    "quotes_schema_signature": "098a3902f6264b64879026acd4b7dc827040a1fb2774d04e2b1daf06e5de77cb",
+    "security_reference_frame_sha256": "60e5f7e176b3026dd79e406be51327609c2eb5c8c5d61fcaa1de47d56674016d",
+    "security_reference_schema_signature": "01911771e4ad3513390355b58f98f35abf8ce31d3e4b390867fedaa488557163",
+    "trading_calendar_frame_sha256": "ae7081747022ae6738df7ff412dba66e15c8098dc3cfbb2534cb02b42448e2fc",
+    "trading_calendar_schema_signature": "2956c145239e1a0fbd0fc2ac5e2a708be0e21f12a2c4d13a2676bab0c00c6e5a",
+    "universe_block": "001005010",
+    "universe_frame_sha256": "8a7ba2486688de557d2c79b1748d5355f3bfa2b63c9ce6caee12a8c7a30ebc55",
+    "universe_report": "p03291",
+    "universe_schema_signature": "14194066c7ea6c8ea8510a106b45c02a609f616d0908986f25c68f1b3fb37bd6"
+  },
+  "provider": "ifind_http",
+  "quality": {
+    "errors": [],
+    "metrics": {
+      "average_price_outside_range_rows": 0,
+      "calendar_as_of_dates": [
+        "2026-08-12"
+      ],
+      "calendar_open_dates": [
+        "2026-08-12"
+      ],
+      "change_ratio_inconsistent_rows": 0,
+      "complete_ohlc_rows": 5539,
+      "drift": {
+        "alerts": [],
+        "no_quote_observed": {
+          "current": 4,
+          "delta": 1,
+          "previous": 3
+        },
+        "pre_close_continuity": {
+          "comparable_count": 5538,
+          "mismatch_count": 0,
+          "mismatch_ratio": 0.0,
+          "per_security_tolerance": 0.05
+        },
+        "previous_trade_date": "2026-08-11",
+        "quote_coverage": {
+          "current": 0.999278,
+          "delta": -0.00018,
+          "previous": 0.999459
+        },
+        "reference_coverage": {
+          "current": 1.0,
+          "delta": 0.0,
+          "previous": 1.0
+        },
+        "state": "checked",
+        "total_amount": {
+          "current": 2167164143116.1304,
+          "previous": 2335593609501.91,
+          "ratio": 0.927886
+        },
+        "universe_count": {
+          "current": 5543,
+          "delta": 1,
+          "delta_ratio": 0.00018,
+          "previous": 5542
+        },
+        "universe_group_counts": {
+          "board": {
+            "BSE": {
+              "current": 335,
+              "delta": 1,
+              "delta_ratio": 0.002994,
+              "previous": 334
+            },
+            "CHINEXT": {
+              "current": 1401,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1401
+            },
+            "SSE_MAIN": {
+              "current": 1700,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1700
+            },
+            "STAR": {
+              "current": 612,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 612
+            },
+            "SZSE_MAIN": {
+              "current": 1495,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1495
+            }
+          },
+          "exchange": {
+            "BSE": {
+              "current": 335,
+              "delta": 1,
+              "delta_ratio": 0.002994,
+              "previous": 334
+            },
+            "SSE": {
+              "current": 2312,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2312
+            },
+            "SZSE": {
+              "current": 2896,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2896
+            }
+          }
+        }
+      },
+      "float_exceeds_total_rows": 0,
+      "future_listing_date_rows": 0,
+      "invalid_ohlc_rows": 0,
+      "negative_amount_rows": 0,
+      "negative_float_shares_rows": 0,
+      "negative_total_shares_rows": 0,
+      "negative_turnover_rows": 0,
+      "negative_volume_rows": 0,
+      "nonpositive_price_values": 0,
+      "observation_state_counts": {
+        "no_quote_observed": 4,
+        "traded": 5539
+      },
+      "quote_count": 5539,
+      "quote_coverage": 0.999278,
+      "quote_dates": [
+        "2026-08-12"
+      ],
+      "quote_duplicates": 0,
+      "quote_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "quote_field_coverage": {
+        "avg_price": 1.0,
+        "pre_close": 1.0,
+        "turnover_ratio": 1.0
+      },
+      "reference_count": 5543,
+      "reference_coverage": 1.0,
+      "reference_dates": [
+        "2026-08-12"
+      ],
+      "reference_duplicates": 0,
+      "reference_field_coverage": {
+        "float_a_shares": 1.0,
+        "listing_date": 1.0,
+        "total_shares": 1.0
+      },
+      "requested_trade_date": "2026-08-12",
+      "status_count": 5543,
+      "status_dates": [
+        "2026-08-12"
+      ],
+      "status_duplicates": 0,
+      "universe_count": 5543,
+      "universe_dates": [
+        "2026-08-12"
+      ],
+      "universe_duplicates": 0,
+      "universe_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "unknown_quote_codes": 0,
+      "unknown_reference_codes": 0
+    },
+    "ok": true,
+    "warnings": []
+  },
+  "quality_thresholds": {
+    "min_extended_field_coverage": 0.95,
+    "min_quote_coverage": 0.98,
+    "min_reference_coverage": 0.98,
+    "min_universe_size": 5000
+  },
+  "raw_payload_persisted": false,
+  "requested_trade_date": "2026-08-12",
+  "schema_version": 3,
+  "source_endpoints": [
+    "get_trade_dates",
+    "data_pool",
+    "basic_data_service",
+    "cmd_history_quotation"
+  ],
+  "source_trade_date": "2026-08-12",
+  "trade_date": "2026-08-12",
+  "verified": true
+}
