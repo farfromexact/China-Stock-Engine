@@ -1,6 +1,10 @@
 {
   "as_of": {
-    "data_cutoff_time": "2026-08-27T20:15:00+08:00",
+    "collection_completed_at": "2026-08-27T20:40:06+00:00",
+    "collection_started_at": "2026-08-27T20:40:06+00:00",
+    "configured_decision_cutoff": "2026-08-27T20:15:00+08:00",
+    "data_cutoff_time": "2026-08-27T12:15:00+00:00",
+    "effective_pit_cutoff": "2026-08-27T12:15:00+00:00",
     "generated_at_utc": "2026-08-27T20:40:06+00:00",
     "source_trade_date": "2026-08-27",
     "timezone": "Asia/Shanghai"
@@ -22,6 +26,30 @@
       {
         "coverage_ratio": 1.0,
         "field": "data_cutoff_time",
+        "non_null_count": 5547,
+        "row_count": 5547
+      },
+      {
+        "coverage_ratio": 1.0,
+        "field": "collection_started_at",
+        "non_null_count": 5547,
+        "row_count": 5547
+      },
+      {
+        "coverage_ratio": 1.0,
+        "field": "collection_completed_at",
+        "non_null_count": 5547,
+        "row_count": 5547
+      },
+      {
+        "coverage_ratio": 1.0,
+        "field": "configured_decision_cutoff",
+        "non_null_count": 5547,
+        "row_count": 5547
+      },
+      {
+        "coverage_ratio": 1.0,
+        "field": "effective_pit_cutoff",
         "non_null_count": 5547,
         "row_count": 5547
       },
@@ -95,6 +123,30 @@
         "coverage_ratio": 1.0,
         "field": "adjusted_ready",
         "non_null_count": 5547,
+        "row_count": 5547
+      },
+      {
+        "coverage_ratio": 1.0,
+        "field": "raw_return_1d_pct",
+        "non_null_count": 5547,
+        "row_count": 5547
+      },
+      {
+        "coverage_ratio": 1.0,
+        "field": "raw_return_3d_pct",
+        "non_null_count": 5547,
+        "row_count": 5547
+      },
+      {
+        "coverage_ratio": 0.997296,
+        "field": "raw_return_5d_pct",
+        "non_null_count": 5532,
+        "row_count": 5547
+      },
+      {
+        "coverage_ratio": 0.0,
+        "field": "raw_return_20d_pct",
+        "non_null_count": 0,
         "row_count": 5547
       },
       {
@@ -182,15 +234,15 @@
         "row_count": 5547
       },
       {
-        "coverage_ratio": 0.99982,
+        "coverage_ratio": 1.0,
         "field": "turnover_change_pct",
-        "non_null_count": 5546,
+        "non_null_count": 5547,
         "row_count": 5547
       },
       {
-        "coverage_ratio": 0.99982,
+        "coverage_ratio": 1.0,
         "field": "amount_change_pct",
-        "non_null_count": 5546,
+        "non_null_count": 5547,
         "row_count": 5547
       },
       {
@@ -308,21 +360,21 @@
         "row_count": 5547
       },
       {
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 0.0,
         "field": "limit_up",
-        "non_null_count": 5547,
+        "non_null_count": 0,
         "row_count": 5547
       },
       {
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 0.0,
         "field": "limit_down",
-        "non_null_count": 5547,
+        "non_null_count": 0,
         "row_count": 5547
       },
       {
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 0.0,
         "field": "one_word_limit",
-        "non_null_count": 5547,
+        "non_null_count": 0,
         "row_count": 5547
       },
       {
@@ -431,7 +483,7 @@
       "name": "stock_state.parquet",
       "path": "features/stock_state/trade_date=2026-08-27/stock_state.parquet",
       "rows": 5547,
-      "sha256": "8febaf5ca8ba6fc365947de30d75f662b9dc7e857509e742d2d11de9f1ef9c5a"
+      "sha256": "089e3ec997ef71050e71082c3442136535dd595297a79dc04c7e9c6694bcf846"
     }
   ],
   "document_type": "a_share_data_reference",
@@ -555,10 +607,54 @@
       "state": "missing"
     },
     "history": {
+      "horizons": {
+        "1D": {
+          "adjusted_coverage": 0.0,
+          "adjusted_return_field": "return_1d_pct",
+          "coverage": 1.0,
+          "raw_return_basis": "compounded_provider_daily_change_ratio",
+          "raw_return_field": "raw_return_1d_pct",
+          "sessions_required": 1,
+          "state": "ready"
+        },
+        "20D": {
+          "adjusted_coverage": 0.0,
+          "adjusted_return_field": "return_20d_pct",
+          "coverage": 0.0,
+          "raw_return_basis": "compounded_provider_daily_change_ratio",
+          "raw_return_field": "raw_return_20d_pct",
+          "sessions_required": 20,
+          "state": "missing"
+        },
+        "3D": {
+          "adjusted_coverage": 0.0,
+          "adjusted_return_field": "return_3d_pct",
+          "coverage": 1.0,
+          "raw_return_basis": "compounded_provider_daily_change_ratio",
+          "raw_return_field": "raw_return_3d_pct",
+          "sessions_required": 3,
+          "state": "ready"
+        },
+        "5D": {
+          "adjusted_coverage": 0.0,
+          "adjusted_return_field": "return_5d_pct",
+          "coverage": 0.997296,
+          "raw_return_basis": "compounded_provider_daily_change_ratio",
+          "raw_return_field": "raw_return_5d_pct",
+          "sessions_required": 5,
+          "state": "ready"
+        }
+      },
       "scope_end": "2026-08-27",
-      "sessions": 4,
-      "state": "missing",
-      "target_sessions": 252
+      "sessions": 9,
+      "state": "partial",
+      "target_sessions": 20,
+      "unavailable_fields": [
+        "return_60d_pct",
+        "rv60_pct",
+        "distance_from_high_60_pct",
+        "drawdown_from_high_252_pct"
+      ]
     },
     "index_membership": {
       "index_count": 0,
@@ -577,8 +673,13 @@
       "state": "missing"
     },
     "stock_state": {
+      "partial_modules": [
+        "history",
+        "adjustment",
+        "tradability"
+      ],
       "rows": 5547,
-      "state": "missing",
+      "state": "ready",
       "tradability_state_counts": {
         "unknown": 5547
       }
@@ -595,7 +696,7 @@
   "reference_contract": {
     "data_dictionary": "docs/DATA_DICTIONARY.md",
     "missing_value_policy": "unknown values remain null",
-    "pit_policy": "known_at <= data_cutoff_time"
+    "pit_policy": "known_at <= effective_pit_cutoff"
   },
   "run": {
     "data_fresh": true,
@@ -604,5 +705,5 @@
     "source_snapshot_sha256": "5b5a5c686a74fa0c449db7270b90e86976ed45b38b8ecad5a1f5620e70dd5ad8",
     "state": "ready"
   },
-  "schema_version": 2
+  "schema_version": 3
 }
