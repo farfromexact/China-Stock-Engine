@@ -169,11 +169,11 @@ class PipelineTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        opportunity_inputs = json.loads(
-            (root / "data/latest/opportunity_inputs_latest.json").read_text(
-                encoding="utf-8"
-            )
-        )
+        opportunity_path = root / "data/latest/opportunity_inputs_latest.json"
+        opportunity_text = opportunity_path.read_text(encoding="utf-8")
+        self.assertGreater(len(opportunity_text.splitlines()), 1)
+        self.assertLess(max(map(len, opportunity_text.splitlines())), 4096)
+        opportunity_inputs = json.loads(opportunity_text)
         self.assertEqual(manifest["schema_version"], 3)
         for field in (
             "collection_started_at",

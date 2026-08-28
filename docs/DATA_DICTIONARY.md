@@ -115,6 +115,6 @@
 
 `contradiction_flags` 仅在所需字段已知且规则成立时出现：`price_up_but_weak_close`、`volume_spike_but_negative_return`、`strong_5d_but_negative_1d`、`tiny_absolute_amount`、`micro_cap`、`high_turnover`、`gap_up_failed`。根字段 `contradiction_flag_definitions` 保存精确阈值；未知值不会制造 flag，也不会被当作 `false` 事实。
 
-该文件采用键排序的紧凑 JSON 序列化，实际落盘文件必须小于 2 MB。所有 screen 和 union 均不包含评分、推荐、买卖动作或收益评价。
+该文件采用键排序、一层缩进和紧凑分隔符的确定性多行 JSON 序列化，方便 GitHub connector 按行分段读取；实际落盘文件必须小于 2 MB。所有 screen 和 union 均不包含评分、推荐、买卖动作或收益评价。
 
 总市值分桶为固定人民币边界：`<50 亿`、`50–200 亿`、`200–800 亿`、`800–3000 亿`、`>=3000 亿`。分桶只是汇总维度，不代表投资风格判断。

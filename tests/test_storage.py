@@ -32,10 +32,15 @@ class StorageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported manifest schema_version"):
             load_manifest(path)
 
-    def test_compact_json_is_deterministic_and_has_no_pretty_print_padding(self) -> None:
+    def test_compact_json_is_deterministic_and_multiline(self) -> None:
         path = TEST_ROOT / "compact.json"
         atomic_write_json(path, {"z": [1, 2], "a": "值"}, compact=True)
-        self.assertEqual(path.read_text(encoding="utf-8"), '{"a":"值","z":[1,2]}\n')
+        text = path.read_text(encoding="utf-8")
+        self.assertEqual(
+            text,
+            '{\n "a":"值",\n "z":[\n  1,\n  2\n ]\n}\n',
+        )
+        self.assertGreater(len(text.splitlines()), 1)
 
 
 if __name__ == "__main__":

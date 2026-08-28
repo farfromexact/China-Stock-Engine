@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import unittest
 
 import pandas as pd
@@ -10,6 +9,7 @@ from china_stock_engine.opportunity_inputs import (
     OPPORTUNITY_INPUTS_SCHEMA_VERSION,
     build_opportunity_inputs,
 )
+from china_stock_engine.storage import serialize_json
 
 
 class OpportunityInputsTests(unittest.TestCase):
@@ -96,10 +96,10 @@ class OpportunityInputsTests(unittest.TestCase):
             timing,
         )
 
-        encoded = json.dumps(payload, ensure_ascii=False, allow_nan=False).encode(
-            "utf-8"
-        )
+        encoded = serialize_json(payload, compact=True).encode("utf-8")
         self.assertLess(len(encoded), MAX_OPPORTUNITY_INPUTS_BYTES)
+        self.assertGreater(len(encoded.splitlines()), 1)
+        self.assertLess(max(map(len, encoded.splitlines())), 4096)
         self.assertEqual(payload["schema_version"], OPPORTUNITY_INPUTS_SCHEMA_VERSION)
         self.assertEqual(payload["trade_date"], "2026-08-20")
         self.assertEqual(payload["market"]["changes"]["20D"]["state"], "ready")

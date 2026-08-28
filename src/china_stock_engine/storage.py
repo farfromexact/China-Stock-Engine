@@ -26,20 +26,29 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def atomic_write_json(path: Path, payload: Any, *, compact: bool = False) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f".{path.name}.tmp")
-    formatting = {"separators": (",", ":")} if compact else {"indent": 2}
-    text = json.dumps(
+def serialize_json(payload: Any, *, compact: bool = False) -> str:
+    """Serialize deterministic JSON, with connector-friendly compact newlines."""
+
+    formatting = (
+        {"indent": 1, "separators": (",", ":")}
+        if compact
+        else {"indent": 2}
+    )
+    return json.dumps(
         payload,
         ensure_ascii=False,
         sort_keys=True,
         allow_nan=False,
         **formatting,
-    )
+    ) + "\n"
+
+
+def atomic_write_json(path: Path, payload: Any, *, compact: bool = False) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    text = serialize_json(payload, compact=compact)
     with temporary.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(text)
-        handle.write("\n")
     os.replace(temporary, path)
 
 

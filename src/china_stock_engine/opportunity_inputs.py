@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import math
 from typing import Any, Callable
 
 import pandas as pd
+
+from .storage import serialize_json
 
 
 OPPORTUNITY_INPUTS_SCHEMA_VERSION = 2
@@ -968,16 +969,7 @@ def build_opportunity_inputs(
         },
     }
     payload = _json_value(payload)
-    encoded = (
-        json.dumps(
-            payload,
-            ensure_ascii=False,
-            allow_nan=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        )
-        + "\n"
-    ).encode("utf-8")
+    encoded = serialize_json(payload, compact=True).encode("utf-8")
     if len(encoded) > MAX_OPPORTUNITY_INPUTS_BYTES:
         raise ValueError(
             "opportunity_inputs_latest.json is "
