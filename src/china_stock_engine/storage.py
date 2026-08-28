@@ -251,6 +251,7 @@ def publish_data_reference_artifacts(
     opportunity_inputs: dict[str, Any],
     reference_metadata: dict[str, Any],
     *,
+    manifest_updates: dict[str, Any] | None = None,
     publish_latest: bool = True,
 ) -> dict[str, Any]:
     """Atomically attach deterministic, opinion-free reference data."""
@@ -283,6 +284,7 @@ def publish_data_reference_artifacts(
         stock_state,
     )
     manifest = load_manifest(manifest_path, missing_ok=False)
+    manifest = {**manifest, **(manifest_updates or {})}
     manifest_artifacts = dict(manifest.get("artifacts") or {})
     for name, frame in artifacts.items():
         manifest_artifacts[name] = {

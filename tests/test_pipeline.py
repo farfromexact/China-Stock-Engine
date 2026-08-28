@@ -266,6 +266,44 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(manifest_before, manifest_path.read_bytes())
         self.assertEqual(status_before, status_path.read_bytes())
 
+    def test_identical_data_upgrades_legacy_manifest_metadata(self) -> None:
+        root = make_test_workspace("legacy-metadata-upgrade")
+        first = collect_and_publish(
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+        self.assertTrue(first.ok, first.status)
+        for path in (
+            root / "data/latest/manifest.json",
+            root / "data/snapshots/2026-08-18/manifest.json",
+        ):
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["schema_version"] = 2
+            for field in (
+                "collection_started_at",
+                "collection_completed_at",
+                "configured_decision_cutoff",
+                "effective_pit_cutoff",
+            ):
+                manifest.pop(field, None)
+            (manifest.get("quality", {}).get("metrics", {})).pop("drift", None)
+            path.write_text(
+                json.dumps(manifest, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+
+        upgraded = collect_and_publish(
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+
+        self.assertTrue(upgraded.ok, upgraded.status)
+        self.assertEqual(upgraded.status["state"], "success")
+        manifest = json.loads(
+            (root / "data/latest/manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["schema_version"], 3)
+        self.assertIn("effective_pit_cutoff", manifest)
+        self.assertIsInstance(manifest["quality"]["metrics"]["drift"], dict)
+
     def test_identical_success_clears_previous_failure_status(self) -> None:
         root = make_test_workspace("failure-recovery")
         first = collect_and_publish(
@@ -396,6 +434,47 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(
             reference["readiness"]["adjustment"]["state"], "not_entitled"
         )
+
+    def test_derived_rebuild_persists_legacy_manifest_pit_upgrade(self) -> None:
+        root = make_test_workspace("derived-legacy-upgrade")
+        result = collect_and_publish(
+            FakeClient(), "2026-08-18", config=self.config(root)
+        )
+        self.assertTrue(result.ok, result.status)
+        for path in (
+            root / "data/latest/manifest.json",
+            root / "data/snapshots/2026-08-18/manifest.json",
+        ):
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["schema_version"] = 2
+            for field in (
+                "collection_started_at",
+                "collection_completed_at",
+                "configured_decision_cutoff",
+                "effective_pit_cutoff",
+            ):
+                manifest.pop(field, None)
+            path.write_text(
+                json.dumps(manifest, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+
+        build_data_reference_outputs(root / "data", "2026-08-18")
+
+        latest_manifest = json.loads(
+            (root / "data/latest/manifest.json").read_text(encoding="utf-8")
+        )
+        snapshot_manifest = json.loads(
+            (root / "data/snapshots/2026-08-18/manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        for manifest in (latest_manifest, snapshot_manifest):
+            self.assertEqual(manifest["schema_version"], 3)
+            self.assertIn("collection_started_at", manifest)
+            self.assertIn("collection_completed_at", manifest)
+            self.assertIn("configured_decision_cutoff", manifest)
+            self.assertIn("effective_pit_cutoff", manifest)
 
     def test_market_closed_is_explicit_and_does_not_promote(self) -> None:
         root = make_test_workspace("market-closed")

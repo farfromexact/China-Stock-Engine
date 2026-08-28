@@ -273,7 +273,16 @@ def collect_and_publish(
             existing_provenance.get(key) == value
             for key, value in frame_hashes.items()
         )
-        if unchanged:
+        existing_drift = (
+            ((existing_manifest.get("quality") or {}).get("metrics") or {}).get(
+                "drift"
+            )
+        )
+        metadata_upgrade_needed = (
+            int(existing_manifest.get("schema_version") or 0) != 3
+            or not isinstance(existing_drift, dict)
+        )
+        if unchanged and not metadata_upgrade_needed:
             data_reference: dict[str, Any] = (
                 existing_manifest.get("data_reference") or {}
             )
