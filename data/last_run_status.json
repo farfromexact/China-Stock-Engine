@@ -1,16 +1,335 @@
 {
-  "completed_at_utc": "2026-08-31T12:14:48+00:00",
-  "completed_count": 1,
-  "completed_trade_dates": [
-    "2026-08-31"
-  ],
+  "artifacts": {
+    "daily_quotes.parquet": {
+      "rows": 5545,
+      "sha256": "c63b9dba47255c1a661b007631c2c18d42594934cad0335f0eb70694458eef0d"
+    },
+    "daily_security_status.parquet": {
+      "rows": 5551,
+      "sha256": "4e9c433a070b77f6ba7eb0411335ce334dbe852d518c620f4286c8245bbe2b2f"
+    },
+    "data_reference_latest.json": {
+      "sha256": "03b771aa5c5e48e372cb5b3ba8280524ab96ce48062e875252795df1aa40f72b"
+    },
+    "market_summary.json": {
+      "sha256": "0e6ab2ba1416200c1c3ddd62ee667b6543c7fa9488aecee3d9facbb178383f4f"
+    },
+    "opportunity_inputs_latest.json": {
+      "sha256": "2f3123296734ec1b8d165abb6c7979069a7f95f72cb7090eb0231bb5ca08f93c"
+    },
+    "opportunity_radar_latest.json": {
+      "bytes": 250839,
+      "hard_max_bytes": 307200,
+      "rows": 100,
+      "schema_version": 1,
+      "sha256": "78e54c72c4c3ca6a5669cc52c2af9ea6446fa907fba186a8c09abe0546450148"
+    },
+    "security_reference.parquet": {
+      "rows": 5551,
+      "sha256": "ac3b7cc3f3fd1c9744c2b753315368d8ce14c778beaad9290f425d63563dc690"
+    },
+    "stock_state.parquet": {
+      "rows": 5545,
+      "sha256": "761d36ab3c4209b700bb9e4386027151f2afc7958e88325c87b865101fe3acc0"
+    },
+    "trading_calendar.parquet": {
+      "rows": 11,
+      "sha256": "87d4ba650236f550c6b30f0ea57fb0f7f186a8a721215c34da6c49acc849a02f"
+    },
+    "universe.parquet": {
+      "rows": 5551,
+      "sha256": "3505eb19a635697cf8e425609d4f5c2a9c6478e6b2c0fc94aaa37e1a89ff5b63"
+    }
+  },
+  "completed_at_utc": "2026-08-31T17:42:44+00:00",
   "data_fresh": true,
+  "data_reference": {
+    "data_reference_path": "/home/runner/work/China-Stock-Engine/China-Stock-Engine/data/latest/data_reference_latest.json",
+    "manifest_artifact_count": 10,
+    "ok": true,
+    "opportunity_inputs_path": "/home/runner/work/China-Stock-Engine/China-Stock-Engine/data/latest/opportunity_inputs_latest.json",
+    "opportunity_radar_path": "/home/runner/work/China-Stock-Engine/China-Stock-Engine/data/latest/opportunity_radar_latest.json",
+    "readiness": {
+      "adjustment": {
+        "coverage": 0.0,
+        "method": "point_in_time_factor_input",
+        "state": "missing"
+      },
+      "corporate_actions": {
+        "events_effective_today": 0,
+        "state": "missing"
+      },
+      "history": {
+        "horizons": {
+          "1D": {
+            "adjusted_coverage": 0.0,
+            "adjusted_return_field": "return_1d_pct",
+            "coverage": 1.0,
+            "raw_return_basis": "compounded_provider_daily_change_ratio",
+            "raw_return_field": "raw_return_1d_pct",
+            "sessions_required": 1,
+            "state": "ready"
+          },
+          "20D": {
+            "adjusted_coverage": 0.0,
+            "adjusted_return_field": "return_20d_pct",
+            "coverage": 0.993327,
+            "raw_return_basis": "compounded_provider_daily_change_ratio",
+            "raw_return_field": "raw_return_20d_pct",
+            "sessions_required": 20,
+            "state": "ready"
+          },
+          "3D": {
+            "adjusted_coverage": 0.0,
+            "adjusted_return_field": "return_3d_pct",
+            "coverage": 0.99982,
+            "raw_return_basis": "compounded_provider_daily_change_ratio",
+            "raw_return_field": "raw_return_3d_pct",
+            "sessions_required": 3,
+            "state": "ready"
+          },
+          "5D": {
+            "adjusted_coverage": 0.0,
+            "adjusted_return_field": "return_5d_pct",
+            "coverage": 0.99982,
+            "raw_return_basis": "compounded_provider_daily_change_ratio",
+            "raw_return_field": "raw_return_5d_pct",
+            "sessions_required": 5,
+            "state": "ready"
+          }
+        },
+        "scope_end": "2026-08-31",
+        "sessions": 20,
+        "state": "ready",
+        "target_sessions": 20,
+        "unavailable_fields": [
+          "return_60d_pct",
+          "rv60_pct",
+          "distance_from_high_60_pct",
+          "drawdown_from_high_252_pct"
+        ]
+      },
+      "index_membership": {
+        "index_count": 0,
+        "state": "missing"
+      },
+      "index_prices": {
+        "benchmarks": {
+          "CSI1000": null,
+          "CSI300": null
+        },
+        "state": "missing"
+      },
+      "industry": {
+        "classification": "SW",
+        "coverage": 0.0,
+        "state": "missing"
+      },
+      "stock_state": {
+        "partial_modules": [
+          "adjustment",
+          "tradability"
+        ],
+        "rows": 5545,
+        "state": "ready",
+        "tradability_state_counts": {
+          "unknown": 5545
+        }
+      },
+      "tradability": {
+        "clear_count": 0,
+        "coverage": 0.0,
+        "restricted_count": 0,
+        "state": "missing",
+        "unknown_count": 5545,
+        "unknown_is_not_suspension": true
+      }
+    },
+    "source_snapshot_sha256": "263e5ca3be25cb6d1ad5f4e80f31bba0015a7e10ef5104ffac9e4741fb4ef4ed",
+    "stock_state_rows": 5545,
+    "trade_date": "2026-08-31"
+  },
   "last_valid_trade_date": "2026-08-31",
-  "non_trading_dates": [],
+  "previous_valid_trade_date": "2026-08-31",
   "provider": "ifind_http",
+  "quality": {
+    "errors": [],
+    "metrics": {
+      "average_price_outside_range_rows": 0,
+      "calendar_as_of_dates": [
+        "2026-08-31"
+      ],
+      "calendar_open_dates": [
+        "2026-08-17",
+        "2026-08-18",
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21",
+        "2026-08-24",
+        "2026-08-25",
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-31"
+      ],
+      "change_ratio_inconsistent_rows": 0,
+      "complete_ohlc_rows": 5545,
+      "drift": {
+        "alerts": [],
+        "no_quote_observed": {
+          "current": 6,
+          "delta": 2,
+          "previous": 4
+        },
+        "pre_close_continuity": {
+          "comparable_count": 5543,
+          "mismatch_count": 0,
+          "mismatch_ratio": 0.0,
+          "per_security_tolerance": 0.05
+        },
+        "previous_trade_date": "2026-08-28",
+        "quote_coverage": {
+          "current": 0.998919,
+          "delta": -0.00036,
+          "previous": 0.999279
+        },
+        "reference_coverage": {
+          "current": 1.0,
+          "delta": 0.0,
+          "previous": 1.0
+        },
+        "state": "checked",
+        "total_amount": {
+          "current": 2145356257431.9202,
+          "previous": 2117732336241.1099,
+          "ratio": 1.013044
+        },
+        "universe_count": {
+          "current": 5551,
+          "delta": 0,
+          "delta_ratio": 0.0,
+          "previous": 5551
+        },
+        "universe_group_counts": {
+          "board": {
+            "BSE": {
+              "current": 339,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 339
+            },
+            "CHINEXT": {
+              "current": 1402,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1402
+            },
+            "SSE_MAIN": {
+              "current": 1700,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1700
+            },
+            "STAR": {
+              "current": 615,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 615
+            },
+            "SZSE_MAIN": {
+              "current": 1495,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1495
+            }
+          },
+          "exchange": {
+            "BSE": {
+              "current": 339,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 339
+            },
+            "SSE": {
+              "current": 2315,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2315
+            },
+            "SZSE": {
+              "current": 2897,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2897
+            }
+          }
+        }
+      },
+      "float_exceeds_total_rows": 0,
+      "future_listing_date_rows": 0,
+      "invalid_ohlc_rows": 0,
+      "negative_amount_rows": 0,
+      "negative_float_shares_rows": 0,
+      "negative_total_shares_rows": 0,
+      "negative_turnover_rows": 0,
+      "negative_volume_rows": 0,
+      "nonpositive_price_values": 0,
+      "observation_state_counts": {
+        "no_quote_observed": 6,
+        "traded": 5545
+      },
+      "quote_count": 5545,
+      "quote_coverage": 0.998919,
+      "quote_dates": [
+        "2026-08-31"
+      ],
+      "quote_duplicates": 0,
+      "quote_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "quote_field_coverage": {
+        "avg_price": 1.0,
+        "pre_close": 1.0,
+        "turnover_ratio": 1.0
+      },
+      "reference_count": 5551,
+      "reference_coverage": 1.0,
+      "reference_dates": [
+        "2026-08-31"
+      ],
+      "reference_duplicates": 0,
+      "reference_field_coverage": {
+        "float_a_shares": 1.0,
+        "listing_date": 1.0,
+        "total_shares": 1.0
+      },
+      "requested_trade_date": "2026-08-31",
+      "status_count": 5551,
+      "status_dates": [
+        "2026-08-31"
+      ],
+      "status_duplicates": 0,
+      "universe_count": 5551,
+      "universe_dates": [
+        "2026-08-31"
+      ],
+      "universe_duplicates": 0,
+      "universe_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "unknown_quote_codes": 0,
+      "unknown_reference_codes": 0
+    },
+    "ok": true,
+    "warnings": []
+  },
   "raw_payload_persisted": false,
-  "requested_end": "2026-08-31",
-  "requested_start": "2026-08-29",
+  "requested_trade_date": "2026-08-31",
   "schema_version": 2,
-  "state": "success_backfill"
+  "started_at_utc": "2026-08-31T17:40:39+00:00",
+  "state": "success"
 }

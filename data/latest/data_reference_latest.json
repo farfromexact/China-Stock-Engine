@@ -435,7 +435,7 @@
       "name": "daily_quotes.parquet",
       "path": "snapshots/2026-08-31/daily_quotes.parquet",
       "rows": 5545,
-      "sha256": "8345f74e6a97958ab2a6f52bd353963d199ab07003422781b856982d5e2c9366"
+      "sha256": "c63b9dba47255c1a661b007631c2c18d42594934cad0335f0eb70694458eef0d"
     },
     {
       "description": "quote observation status by security",
@@ -459,15 +459,15 @@
       "name": "security_reference.parquet",
       "path": "snapshots/2026-08-31/security_reference.parquet",
       "rows": 5551,
-      "sha256": "5bb5d1853f3dc7db2a9a0666dc7ebd58c17a1870c6807d7ea7c0d0e245d19e6f"
+      "sha256": "ac3b7cc3f3fd1c9744c2b753315368d8ce14c778beaad9290f425d63563dc690"
     },
     {
       "description": "SSE trading-calendar observations",
       "layer": "snapshot",
       "name": "trading_calendar.parquet",
       "path": "snapshots/2026-08-31/trading_calendar.parquet",
-      "rows": 1,
-      "sha256": "8262c9d70c165f01c2ac0ffdc6ba497ff32321a71b6662ad28de7f2aea14d979"
+      "rows": 11,
+      "sha256": "87d4ba650236f550c6b30f0ea57fb0f7f186a8a721215c34da6c49acc849a02f"
     },
     {
       "description": "PIT A-share security universe",
@@ -483,7 +483,7 @@
       "name": "stock_state.parquet",
       "path": "features/stock_state/trade_date=2026-08-31/stock_state.parquet",
       "rows": 5545,
-      "sha256": "d83f7648050c727869a7d85ccceca39bda2184cd68cbe641ba1c06fc90031d6b"
+      "sha256": "c4a2c6a4ed5daf912420e7f1b12408073e214499eeb035c1d7eee0da65c11dc2"
     }
   ],
   "document_type": "a_share_data_reference",
@@ -523,6 +523,16 @@
           "2026-08-31"
         ],
         "calendar_open_dates": [
+          "2026-08-17",
+          "2026-08-18",
+          "2026-08-19",
+          "2026-08-20",
+          "2026-08-21",
+          "2026-08-24",
+          "2026-08-25",
+          "2026-08-26",
+          "2026-08-27",
+          "2026-08-28",
           "2026-08-31"
         ],
         "change_ratio_inconsistent_rows": 0,
@@ -793,7 +803,7 @@
     "data_fresh": true,
     "provider": "ifind_http",
     "raw_payload_persisted": false,
-    "source_snapshot_sha256": "263e5ca3be25cb6d1ad5f4e80f31bba0015a7e10ef5104ffac9e4741fb4ef4ed",
+    "source_snapshot_sha256": "7ee61e9cb2a198e94ea9367291fb2c864931d37c35de193f1c7d102933784247",
     "state": "ready"
   },
   "schema_version": 3
