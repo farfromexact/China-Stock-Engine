@@ -304,6 +304,17 @@ def run_collection(client, data_dir: Path, *, modules, codes, trade_date, as_of_
         raise ValueError("supplemental scope must be 1..100 explicit A-share codes")
     if not 1 <= event_days <= 31:
         raise ValueError("event window must be 1..31 calendar days")
+    previous = {}
+    pointer_path = data_dir / "latest" / "supplemental_manifest.json"
+    if pointer_path.exists():
+        previous = load_json_object(pointer_path, missing_ok=False)
+        if (previous.get("schema_version") != 1 or previous.get("ok") is not True
+                or not isinstance(previous.get("modules"), dict) or not previous["modules"]
+                or not isinstance(previous.get("as_of_date"), str)
+                or not isinstance(previous.get("market_trade_date"), str)):
+            raise ArtifactContractError("incompatible supplemental manifest")
+        for metadata in previous["modules"].values():
+            _verify_ref(data_dir, metadata)
     codes = sorted(set(codes))
     if report_period is None:
         report_period = (pd.Timestamp(trade_date).to_period("Q").start_time - pd.Timedelta(days=1)).date().isoformat()
@@ -347,10 +358,11 @@ def run_collection(client, data_dir: Path, *, modules, codes, trade_date, as_of_
               "modules": statuses, "requests": getattr(client, "audit", []),
               "raw_payload_persisted": False}
     atomic_write_json(data_dir / "supplemental_last_attempt.json", status)
-    if ok:
+    if (ok and previous.get("as_of_date", "") <= as_of_date
+            and previous.get("market_trade_date", "") <= trade_date):
         pointer = {key: value for key, value in status.items() if key != "requests"}
         pointer["modules"] = {key: {k: v for k, v in item.items() if k != "reused"} for key, item in statuses.items()}
-        atomic_write_json(data_dir / "latest" / "supplemental_manifest.json", pointer)
+        atomic_write_json(pointer_path, pointer)
     return status
 
 

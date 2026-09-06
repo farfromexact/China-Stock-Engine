@@ -61,3 +61,27 @@ Official references:
 
 - [Financial PIT and HTTP examples](https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html)
 - [Daily CPS parameters and announcement output fields](https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/help-center/manual.html)
+
+## Verified live run on 2026-09-06
+
+[Run 34032947976](https://github.com/farfromexact/China-Stock-Engine/actions/runs/34032947976)
+completed successfully against the 2026-09-04 radar union (100 securities):
+
+| Module | Normalized observations | Provider-reported dataVol |
+| --- | ---: | ---: |
+| Parent net profit and disclosure date, 2026 H1 | 100 issuers | 200 |
+| Announcements, publication window 2026-08-29 to 2026-09-04 | 251 records / 64 issuers | 417 |
+| Dividend-reinvested prices/factors, 21 stored dates | 2,043 rows / 100 issuers | 2,043 |
+
+Announcement-date queries can return records whose publication timestamps are
+outside the requested publication window; these are excluded from the normalized
+window, not relabeled. Empty/missing issuer observations are not confirmed absent.
+Some securities have fewer than 21 price observations; none are filled with zero.
+Ten factor observations differ from one. Cached raw closes were reused throughout.
+A read-only replay of the real checkpoints used zero API requests and reproduced
+the exact supplemental pointer. The original 2026-09-04 market manifest and all
+its artifact hashes were unchanged and verified. The new facts are known on
+2026-09-06; they must not appear as knowledge available on 2026-09-04.
+
+This verifies the bounded adapters, **not** complete financial statements,
+full-market coverage, announcement PDF access, or a corporate-action ledger.

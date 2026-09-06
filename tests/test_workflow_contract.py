@@ -40,6 +40,13 @@ class DailyWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("IFIND_DATA_REPOSITORY", self.workflow)
         self.assertNotIn(".remote-stock-data", self.workflow)
 
+    def test_supplemental_step_is_bounded_opt_in_and_before_report_build(self):
+        self.assertIn("vars.IFIND_SUPPLEMENTAL_SCOPE != ''", self.workflow)
+        self.assertIn('--scope "$SUPPLEMENTAL_SCOPE" --max-requests 12', self.workflow)
+        self.assertLess(self.workflow.index("Collect bounded supplemental facts when enabled"),
+                        self.workflow.index("Refresh compact data reference"))
+        self.assertNotIn("--renew-access-token", self.workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

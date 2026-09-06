@@ -39,10 +39,15 @@
 | first_seen_at | 采集系统首次发现时间，不得伪装为历史发布时间 |
 | known_at | 可供本系统消费的实际已知时间 |
 | revision | 来源修订标识，非空字符串 |
-| source_url | 可追溯HTTPS文件/公告链接，不可包含认证信息 |
+| source_url | 可追溯HTTPS文件/公告链接；受限链接无法安全保留时可为供应商查询文档，必须通过source_url_kind明确区分；不可包含认证信息 |
 | document_sha256 | 原文件哈希；无法取得时明确null，不能哈希伪造正文 |
 
 严格要求 `published_at <= first_seen_at <= known_at <= collection_completed_at`。不保存原文件、公告正文或原始iFinD响应。输入中的时间、覆盖与来源须由适配器/操作者提供可靠证据，软件不能自行认证这些声明。
+
+可选字段 `source_url_kind` 为 `public_document/provider_query_documentation`；
+`document_access` 为 `public_link_not_downloaded/authenticated_link_omitted/not_resolved`。
+使用查询文档作为来源不代表已经拿到公告PDF；鉴权链接不得通过删除参数后假装成可用原文链接。
+旧批次没有这两个可选字段时保持原内容哈希，不作追溯改写。
 
 ### Financials
 

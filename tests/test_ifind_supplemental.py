@@ -81,15 +81,27 @@ class SupplementalTests(unittest.TestCase):
     def test_budget_and_failure_do_not_replace_last_valid_pointer(self):
         with tempfile.TemporaryDirectory() as directory:
             data_dir = Path(directory)
-            (data_dir / "latest").mkdir()
+            run_collection(self.client(), data_dir, modules=["financials"], codes=["600000.SH"],
+                           trade_date="2026-09-04", as_of_date="2026-09-06")
             target = data_dir / "latest/supplemental_manifest.json"
-            target.write_text("last valid sentinel", encoding="utf-8")
-            result = run_collection(self.client(max_requests=1), data_dir, modules=["financials", "events"],
+            previous = target.read_bytes()
+            result = run_collection(self.client(max_requests=0), data_dir, modules=["financials", "events"],
                                     codes=["600000.SH"], trade_date="2026-09-04", as_of_date="2026-09-06")
             self.assertFalse(result["ok"])
-            self.assertEqual(target.read_text(), "last valid sentinel")
+            self.assertEqual(target.read_bytes(), previous)
             self.assertEqual(len(list((data_dir / "facts/research/financials").glob("*.json"))), 1)
         self.assertNotIn("private-secret", str(safe_failure(IFindHTTPError("private-secret code -4318"))))
+
+    def test_corrupt_manifest_fails_before_any_api_request(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data_dir = Path(directory)
+            (data_dir / "latest").mkdir()
+            (data_dir / "latest/supplemental_manifest.json").write_text('{"schema_version":999}')
+            client = self.client()
+            with self.assertRaises(ArtifactContractError):
+                run_collection(client, data_dir, modules=["financials"], codes=["600000.SH"],
+                               trade_date="2026-09-04", as_of_date="2026-09-06")
+            self.assertEqual(client.audit, [])
 
     def test_feature_completion_includes_same_day_late_factor_not_future_day(self):
         timing = {"collection_started_at": "2026-09-04T10:00:00Z",
