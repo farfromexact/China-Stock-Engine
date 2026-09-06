@@ -59,7 +59,7 @@
 - `float_market_cap`、`total_market_cap`：以当日未复权收盘价计算的流通和总市值。
 - `distance_from_high_20_pct`：相对 20 日复权高点距离。
 - `distance_from_high_60_pct`、`drawdown_from_high_252_pct`：兼容保留字段，当前版本固定 `null`。
-- `relative_return_industry_20d_pct`：相对当日 PIT 申万一级行业均值的 20 日收益差。
+- `relative_return_industry_20d_pct`：证券20D复权收益减逐日PIT申万一级同业等权日收益的复合值；每一天只用当天15:00前已知且有效的成员关系，不把当前分类回填20日。任一天缺少必要成员/收益，结果为空。
 - `relative_return_csi300_20d_pct`、`relative_return_csi1000_20d_pct`：相对指数 20 日收益差。
 - `sw1_code/name`、`sw2_code/name`、`index_memberships`：截止时间有效的分类与成分事实。
 
@@ -93,7 +93,7 @@
 - `market`、`board_summary`、`market_cap_bucket_summary`、`data_quality_drift`；
 - `cross_sectional_features`、`deterministic_screens`、`candidate_union`、`candidate_union_metadata`、`contradiction_flag_definitions` 与 `drilldown`。
 
-`schema_version=3` 的确定性 screens 分为：
+`schema_version=4` 的确定性 screens 分为：
 
 - 基础横截面：最大正/负涨跌、最高成交额、成交额/换手扩张、强/弱收盘位置、3D/5D/20D 相对强度；
 - 价格×成交确认：上涨/下跌分别与成交额及换手扩张或收缩组合，要求成交额变化与换手变化同向；
@@ -112,7 +112,9 @@
 - `amount_to_float_market_cap`：当日成交额除以流通市值；分母缺失或不大于零时为 `null`。
 - `amount_z20`、`turnover_z20`、`adt20`：仅在合法 20-session 历史齐备时输出；否则保持 `null` 并通过 `field_coverage` 明示覆盖率。
 
-`candidate_union` 是所有 screen 行的证券去重并集，最多 150 只。每行包含 `union_order`、`triggered_screens`、`screen_count`、`best_screen_rank`、`screen_ranks`、`screen_percentiles`、横截面 `percentiles`、`contradiction_flags` 和 `facts`。排序仅为 `screen_count` 降序、最佳 screen rank 升序、证券代码升序；`union_order` 是可复现的传输顺序，`screen_count` 是过滤器重叠计数，两者都不是证券评分。
+`candidate_union` 是所有screen行的证券去重并集，最多150只。每行保留 `union_order`、`triggered_screens`、`screen_count`、`best_screen_rank`、`screen_ranks`、`screen_percentiles`、`percentiles`、`contradiction_flags` 和 `facts`。按下述 `family_round_robin_v1` 取样，`screen_count` 和最佳名次不再参与跨类别截断；它们仍是事实统计，不是评分。
+
+`relative_strength_3d/5d/20d` 是原始供应商日涨跌幅复合收益减全市场同期横截面中位数，不是行业或指数超额收益；trigger.basis 明示此口径。空screen不自动表示无数据：`state` 表示metric是否可用；`match_state` 区分 `observed_matches`、确定性单指标全覆盖时的 `confirmed_no_matches` 与无法证明所有条件的 `unknown`。
 
 `contradiction_flags` 仅在所需字段已知且规则成立时出现：`price_up_but_weak_close`、`volume_spike_but_negative_return`、`strong_5d_but_negative_1d`、`tiny_absolute_amount`、`micro_cap`、`high_turnover`、`gap_up_failed`。根字段 `contradiction_flag_definitions` 保存精确阈值；未知值不会制造 flag，也不会被当作 `false` 事实。
 
@@ -124,9 +126,11 @@
 
 `candidate_union` 固定最多 100 只，截断和 tie-break 顺序严格为：
 
-1. `screen_count` 降序；
-2. `best_screen_rank` 升序；
-3. `thscode` 字典序升序。
+1. 固定 `selection_policy_version=family_round_robin_v1`，类别名升序轮转，每类每轮取一只未出现证券；
+2. 类内对 `{metric,definition,scope}` 的canonical JSON SHA256升序轮转，每条规则每轮取一只；类内同规则别名及相同有序队列不增加槽位，相同规则配置到不同类别直接失败；
+3. 规则内部按screen rank、thscode升序，类内和全局分别去重；从全部捕获结果计算序列，不先按重叠数挑150再挑100。前100严格等于前150的前100。
+
+Radar结构版本为2；`selection_diagnostics` 展示截断前后数量、板块、市值桶、正负涨跌和±9.5%数量，以及逐screen的 eligible/captured/selected/dropped。`screen_catalog` 包括零入选screen。价量子类别统一属于TAPE，不提供“独立证据数量”。原schema3输入/schema1 radar历史文件不改写，不能混用旧截断与新policy。
 
 输出使用 `union_order=1..N` 标识上述确定性传输顺序，不使用整体 `rank`，不引入主观权重或综合分数。每只证券保留 screen evidence、screen 内 rank/percentile、evidence family、关键原始事实、横截面 percentile、`contradiction_flags` 和 availability。
 
@@ -138,6 +142,12 @@ availability 对可交易性相关字段使用以下状态，不依赖 Python/JS
 - `confirmed_value`：明确观测到非布尔数值；
 - `confirmed_clear` / `confirmed_restricted`：明确观测到可交易性 clear/restricted。
 
-`generated_at` 必须等于源快照的 `collection_completed_at`，相同 source snapshot 的重复构建字节完全一致。文件使用确定性多行 JSON；220–250 KiB 是软目标，300 KiB 是硬上限。构建结果超限会 fail closed，快照不会提升为 `latest`，并且不会自动减少候选数或删除字段来静默通过。
+`generated_at` 必须等于行情源快照的 `collection_completed_at`，相同完整输入和规则版本的重复构建字节一致。`source_snapshot_sha256` 不含派生产物；`feature_input_sha256` 另绑定历史、日历、可选事实和特征参数，避免循环哈希。文件使用确定性多行JSON；220–250 KiB是软目标，300 KiB是硬上限。超限会fail closed，不提升latest，也不自动删除字段或减少候选。
+
+## 20日窗口和研究事实版本
+
+逐股状态和data reference现为schema4。历史默认读取21个价格点，研究窗口仍为20日。每个horizon分别列出 `coverage`（供应商原始复合收益）、`adjusted_coverage`、`adjusted_state`、`adjusted_price_points_required`。`history_sessions` 是读取窗口内实际价格观测数（上限20），不意味着连续性；收益计算另检查连续窗口。`price_points_loaded` 计全市场已读价格日期，`unconfirmed_calendar_dates` 明示旧日历未认证的缺口。
+
+研究事实入口为schema1，详细字段、单位、时间及修订语义见 [RESEARCH_CONTRACT.md](RESEARCH_CONTRACT.md)。批次、研究索引与分片均不保留raw响应；财务或公告缺失不是 `not_entitled`，后者只传播截止时间前已记录的明确权限拒绝。
 
 总市值分桶为固定人民币边界：`<50 亿`、`50–200 亿`、`200–800 亿`、`800–3000 亿`、`>=3000 亿`。分桶只是汇总维度，不代表投资风格判断。

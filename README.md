@@ -10,7 +10,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 
 这个仓库负责四件事：
 
-1. 每个工作日北京时间 18:30 自动提取当日 A 股数据；
+1. 由外部 ChatGPT 调度桥在工作日收盘后触发采集（daily workflow 本身为 dispatch-only，没有 cron 保证）；
 2. 校验证券池、行情、参考数据和交易日历的覆盖率与结构；
 3. 将通过校验的数据持久化到本仓库，而非只保留在运行日志或 artifact；
 4. 为其他 automation 提供稳定、可追溯的读取入口。
@@ -36,6 +36,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - `data/latest/market_summary.json`：市场宽度和成交汇总；
 - `data/latest/opportunity_inputs_latest.json`：完整的确定性 screens 与候选并集，供本地程序和研究流水线读取；
 - `data/latest/opportunity_radar_latest.json`：面向 ChatGPT/Automation 的有界事实接口（Top 100 candidate union）；
+- `data/latest/research_inputs_latest.json`：全股票池研究事实索引；按哈希前缀读取 `research_*.json` 分片，不限于行情 Top100；
 - `data/snapshots/YYYY-MM-DD/`：按交易日冻结的完整验证快照；
 - `data/last_run_status.json`：最近一次采集尝试的状态，失败不会覆盖 `latest`。
 
@@ -54,7 +55,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - 公司行为、行业、指数成分和可交易性参考的 PIT 输入契约；
 - 覆盖率、质量门、模块可用性、内容哈希与数据目录。
 
-默认历史目标为 20 个交易日。`1D/3D/5D/20D` 分别报告 readiness 和覆盖率；历史不足 20 日时仍计算已经合法可得的短周期字段，不会让整张 `stock_state` 失效。60 日和 252 日字段暂时保持 `null`，并在 readiness 中列为 unavailable。
+默认研究窗口为20个交易日，读取21个价格点（额外一个价格锚点），供20D复权收益/RV20使用。`1D/3D/5D/20D` 分别报告原始与复权 readiness；历史不足时仍计算合法的短周期字段。按交易日对齐，缺行情不填零、不跨过缺口复合收益；旧缓存未覆盖的工作日日历缺口保守视为未确认，而不擅自认定为休市。60日和252日字段保持 `null`。
 
 默认提升门槛为证券池不少于 5,000 只，日行情和证券主数据覆盖率不低于 98%，扩展字段覆盖率不低于 95%，且沪深北交易所均有覆盖。质量门同时与上一交易日比较股票池、行情/参考覆盖率、交易所和板块数量、无行情观测、总成交额及前收连续性；异常会以 warning 或 error 明确记录。
 
@@ -122,12 +123,36 @@ data/
 
 `opportunity_radar_latest.json` 是下游 LLM/Automation 的稳定传输契约：
 
-- 只保留完整输入中的 Top 100 `candidate_union`，不重复保存每个 screen 的证券行；
-- 固定截断顺序为 `screen_count` 降序、`best_screen_rank` 升序、`thscode` 升序；输出字段叫 `union_order`，仅表示确定性传输顺序，不表示相对吸引力；
+- 从所有 screen 捕获的证券构造同一条去重序列：完整接口取前150，radar取前100；不重复保存每个 screen 的证券行；
+- `selection_policy_version=family_round_robin_v1`：类别名升序轮转，每类每轮取一只未出现证券；类内按 canonical rule hash 升序轮转，规则内按 screen rank、代码升序。类内同规则别名与相同有序队列不增加席位；相同规则配置到不同类别直接报错。`screen_count` 不参与准入，`union_order` 仅表示传输顺序；
+- `selection_diagnostics` 报告每个 screen 的 eligible/captured/selected/dropped，以及前后板块、市值桶和涨跌分布。所有价量子类别都属于 `TAPE`，不代表相互独立的证据；
 - 保留触发 screen、screen 内 rank/percentile、evidence family、1D/3D/5D/20D 原始收益、成交与换手异常、收盘位置、gap、市值、ADT20、矛盾标记及必要来源状态；
-- `generated_at` 固定等于源快照的 `collection_completed_at`，因此同一 source snapshot 重建得到完全相同的字节与哈希；
+- `generated_at` 固定等于行情源快照的 `collection_completed_at`。相同输入集合和规则版本重复构建字节相同；`source_snapshot_sha256` 绑定行情快照，`feature_input_sha256` 另绑定历史、日历、可选输入和参数；
 - 目标体积约 220–250 KiB；300 KiB 是硬上限。超限会使构建失败，且不会覆盖最后有效 `latest`，绝不静默截断；
 - 可交易性、ST、停牌和涨跌停等字段通过 availability state 明确区分 `not_ready`、`unknown`、`confirmed_false`、`confirmed_true` 及已确认数值/状态；未知值绝不转换为 `false`。
+
+## 财务、估值与事件研究入口
+
+本次完成的是规范化事实接入、PIT加工与读取契约，不是已经抓到了全市场财务/公告。当前真实输出中的这些模块为 `missing`；iFinD HTTP指标映射、公告接口和权限尚未验证，不会用登录成功、空结果或自然语言猜测冒充数据可用。
+
+- `research_inputs_latest.json` 是小索引，列出源哈希、行情/信息各自截止时间、覆盖范围、确定性发现路径计数和分片哈希。
+- 所有当日参考股票都可查询。对标准代码（如 `600000.SH`）计算 ASCII SHA256 的首个十六进制字符，从 `shards` 找到对应页；页内按代码升序。按240 KiB目标分片，每份JSON硬上限300 KiB，超限失败，不静默删记录。
+- 财报保留营收、归母/扣非净利润、经营现金流、归母权益、现金、有息债务和资本支出。仅支持明确的合并口径、人民币、自然年YTD，统一元；通过可见历史报表计算单季、TTM、可比较的同比。
+- PE TTM、PB只用已知的正分母计算。负/零分母标记 `not_meaningful`；股息率、同业分位和历史估值分位尚未接入，保持空。没有构造通用FCF或“超预期”标签。
+- 公告保留事件ID、类型、计划/完成状态、来源、发布时间、首次发现时间、known_at和修订版。事件后的价格响应从公告发布后的首个完整开盘日计算，是事实收益而非PnL/投资评价。
+- 财务变化、现金流矛盾及公告类型都有独立发现入口，扫描全股票池，不需要先通过行情Top100。
+
+接入已经标准化且有时间/来源证据的批次：
+
+```powershell
+python -m china_stock_engine.cli import-research --input normalized_financial_batch.json
+python -m china_stock_engine.cli build-report
+python -m china_stock_engine.cli validate
+```
+
+导入不访问API，按内容哈希追加到 `facts/research/{financials,events}/`；重复导入复用文件，不覆盖旧修订。批次格式见 [研究事实契约](docs/RESEARCH_CONTRACT.md)。未来供应商适配器必须先通过小范围canary再写这个契约。`canary --module financials --spec ...` 可复用单股指标探针；没有spec时直接返回 `not_configured`，不访问API。公告实时适配器、预期修正、行业经营数据仍未实施。
+
+Actions现有 `build-report` 流程会自动生成并发布上述入口；没有新增全市场收费请求。历史日期不会批量重算；本轮只更新最新日期派生输出，旧版可按此前Git commit读取。
 
 ## PIT 输入契约
 

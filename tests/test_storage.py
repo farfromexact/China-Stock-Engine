@@ -27,6 +27,9 @@ class StorageTests(unittest.TestCase):
     def test_manifest_missing_is_missing_but_corruption_fails_closed(self) -> None:
         path = TEST_ROOT / "manifest.json"
         self.assertEqual(load_manifest(path), {})
+        path.write_text("{}", encoding="utf-8")
+        with self.assertRaisesRegex(ArtifactContractError, "empty object"):
+            load_manifest(path)
 
         path.write_text("{broken", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "invalid JSON file"):
@@ -83,6 +86,27 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(latest_before, (latest / "manifest.json").read_bytes())
         self.assertFalse((snapshot / "stock_state.parquet").exists())
         self.assertFalse((snapshot / "opportunity_radar_latest.json").exists())
+
+    def test_oversize_research_fails_before_any_artifact_is_written(self):
+        data_dir = TEST_ROOT / "data"
+        snapshot = data_dir / "snapshots" / "2026-08-28"
+        atomic_write_json(snapshot / "manifest.json", {"schema_version": 3})
+        before = (snapshot / "manifest.json").read_bytes()
+        with self.assertRaisesRegex(ArtifactContractError, "research hard limit"):
+            publish_data_reference_artifacts(
+                data_dir,
+                "2026-08-28",
+                pd.DataFrame(),
+                {},
+                {},
+                {},
+                {},
+                research_artifacts={
+                    "research_inputs_latest.json": {"text": "x" * (300 * 1024)}
+                },
+            )
+        self.assertEqual(before, (snapshot / "manifest.json").read_bytes())
+        self.assertFalse((snapshot / "stock_state.parquet").exists())
 
 
 if __name__ == "__main__":

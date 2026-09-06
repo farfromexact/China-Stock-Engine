@@ -296,6 +296,7 @@ def collect_and_publish(
                     "data_reference_latest.json",
                     "opportunity_inputs_latest.json",
                     "opportunity_radar_latest.json",
+                    "research_inputs_latest.json",
                 )
             )
             if config.build_data_reference and is_current_latest and derived_missing:

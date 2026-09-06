@@ -8,9 +8,15 @@ from typing import Any, Callable
 import pandas as pd
 
 from .storage import serialize_json
+from .screen_selection import (
+    ORDERING_POLICY,
+    SELECTION_POLICY_VERSION,
+    selection_order,
+    selection_diagnostics,
+)
 
 
-OPPORTUNITY_INPUTS_SCHEMA_VERSION = 3
+OPPORTUNITY_INPUTS_SCHEMA_VERSION = 4
 MAX_OPPORTUNITY_INPUTS_BYTES = 2 * 1024 * 1024
 DEFAULT_SCREEN_LIMIT = 25
 DEFAULT_CANDIDATE_UNION_LIMIT = 150
@@ -49,9 +55,7 @@ CONTRADICTION_FLAG_DEFINITIONS = {
         "change_ratio < 0 and either amount_change_pct or "
         "turnover_change_pct is positive"
     ),
-    "strong_5d_but_negative_1d": (
-        "raw_return_5d_pct > 0 and raw_return_1d_pct < 0"
-    ),
+    "strong_5d_but_negative_1d": ("raw_return_5d_pct > 0 and raw_return_1d_pct < 0"),
     "tiny_absolute_amount": "amount < 20,000,000 CNY",
     "micro_cap": "total_market_cap < 5,000,000,000 CNY",
     "high_turnover": "turnover_ratio is at or above the daily 95th percentile",
@@ -105,7 +109,7 @@ def _market_horizon_summary(
     frame: pd.DataFrame, readiness: dict[str, Any]
 ) -> dict[str, Any]:
     output: dict[str, Any] = {}
-    horizons = ((readiness.get("history") or {}).get("horizons") or {})
+    horizons = (readiness.get("history") or {}).get("horizons") or {}
     for periods in HORIZONS:
         raw_field = f"raw_return_{periods}d_pct"
         values = pd.to_numeric(frame.get(raw_field), errors="coerce").dropna()
@@ -115,9 +119,7 @@ def _market_horizon_summary(
             "return_field": raw_field,
             "return_basis": "compounded_provider_daily_change_ratio",
             "observations": int(len(values)),
-            "coverage_ratio": round(len(values) / len(frame), 6)
-            if len(frame)
-            else 0.0,
+            "coverage_ratio": round(len(values) / len(frame), 6) if len(frame) else 0.0,
             "equal_weight_mean_pct": _finite(values.mean()) if len(values) else None,
             "median_pct": _finite(values.median()) if len(values) else None,
             "positive_count": int(values.gt(0).sum()),
@@ -181,9 +183,7 @@ def _cross_sectional_percentile(values: pd.Series) -> pd.Series:
 
 def _descending_rank(values: pd.Series) -> pd.Series:
     numeric = pd.to_numeric(values, errors="coerce")
-    return numeric.rank(method="min", ascending=False, na_option="keep").astype(
-        "Int64"
-    )
+    return numeric.rank(method="min", ascending=False, na_option="keep").astype("Int64")
 
 
 def _dailyized_return(values: pd.Series, periods: int) -> pd.Series:
@@ -195,9 +195,9 @@ def _dailyized_return(values: pd.Series, periods: int) -> pd.Series:
 
 def _prepare_cross_section(frame: pd.DataFrame) -> pd.DataFrame:
     prepared = frame.copy()
-    prepared["market_cap_bucket"] = _numeric_series(
-        prepared, "total_market_cap"
-    ).map(_market_cap_bucket)
+    prepared["market_cap_bucket"] = _numeric_series(prepared, "total_market_cap").map(
+        _market_cap_bucket
+    )
     for output_field, source_field in PERCENTILE_SOURCE_FIELDS.items():
         prepared[output_field] = _cross_sectional_percentile(
             _numeric_series(prepared, source_field)
@@ -208,8 +208,8 @@ def _prepare_cross_section(frame: pd.DataFrame) -> pd.DataFrame:
     )
     amount = _numeric_series(prepared, "amount")
     float_market_cap = _numeric_series(prepared, "float_market_cap")
-    prepared["amount_to_float_market_cap"] = (
-        amount / float_market_cap.where(float_market_cap.gt(0))
+    prepared["amount_to_float_market_cap"] = amount / float_market_cap.where(
+        float_market_cap.gt(0)
     )
     prepared["dailyized_return_3d_pct"] = _dailyized_return(
         _numeric_series(prepared, "raw_return_3d_pct"), 3
@@ -234,8 +234,8 @@ def _prepare_cross_section(frame: pd.DataFrame) -> pd.DataFrame:
         ],
         axis=1,
     )
-    prepared["activity_expansion_confirmation_pctile"] = (
-        activity_percentiles.min(axis=1, skipna=False)
+    prepared["activity_expansion_confirmation_pctile"] = activity_percentiles.min(
+        axis=1, skipna=False
     )
     prepared["activity_contraction_confirmation_pctile"] = 1 - (
         activity_percentiles.max(axis=1, skipna=False)
@@ -347,7 +347,16 @@ def _screen_rows(
             facts["trigger"]["basis"] = basis
         rows.append(facts)
     output = {
-        "state": "ready" if rows else "unavailable",
+        "state": "ready" if values.notna().any() else "not_ready",
+        "match_state": (
+            "observed_matches"
+            if rows
+            else (
+                "confirmed_no_matches"
+                if len(values) and values.notna().all() and eligibility is None
+                else "unknown"
+            )
+        ),
         "definition": definition,
         "metric": metric,
         "eligible_count": int(eligible.sum()),
@@ -382,9 +391,9 @@ def _contradiction_flags(row: pd.Series) -> list[str]:
         if change > 0 and close_location < 0.4:
             flags.append("price_up_but_weak_close")
     if change is not None and change < 0:
-        expansion_observed = (
-            amount_change is not None and amount_change > 0
-        ) or (turnover_change is not None and turnover_change > 0)
+        expansion_observed = (amount_change is not None and amount_change > 0) or (
+            turnover_change is not None and turnover_change > 0
+        )
         if expansion_observed:
             flags.append("volume_spike_but_negative_return")
     if (
@@ -433,12 +442,7 @@ def _build_candidate_union(
 
     indexed = frame.drop_duplicates("thscode", keep="last").set_index("thscode")
 
-    def ordering(item: tuple[str, list[dict[str, Any]]]) -> tuple[int, int, str]:
-        thscode, triggers = item
-        ranks = [int(trigger["rank"]) for trigger in triggers]
-        return (-len(triggers), min(ranks), thscode)
-
-    ordered = sorted(captures.items(), key=ordering)
+    ordered = [(code, captures[code]) for code in selection_order(screens)]
     rows: list[dict[str, Any]] = []
     for union_order, (thscode, triggers) in enumerate(ordered[:limit], start=1):
         source = indexed.loc[thscode]
@@ -451,8 +455,7 @@ def _build_candidate_union(
             str(trigger["screen"]): trigger.get("percentile") for trigger in triggers
         }
         percentiles = {
-            field: _finite(source.get(field))
-            for field in PERCENTILE_SOURCE_FIELDS
+            field: _finite(source.get(field)) for field in PERCENTILE_SOURCE_FIELDS
         }
         facts = {
             field: _json_value(source.get(field))
@@ -464,9 +467,7 @@ def _build_candidate_union(
                 "union_order": union_order,
                 "thscode": thscode,
                 "security_name": _json_value(source.get("security_name")),
-                "triggered_screens": [
-                    str(trigger["screen"]) for trigger in triggers
-                ],
+                "triggered_screens": [str(trigger["screen"]) for trigger in triggers],
                 "screen_count": len(triggers),
                 "best_screen_rank": min(screen_ranks.values()),
                 "screen_ranks": screen_ranks,
@@ -502,9 +503,7 @@ def build_opportunity_inputs(
         for field in ("thscode", "change_ratio", "amount", "volume", "turnover_ratio")
         if field in quotes.columns
     ]
-    current_quotes = quotes.loc[:, quote_fields].drop_duplicates(
-        "thscode", keep="last"
-    )
+    current_quotes = quotes.loc[:, quote_fields].drop_duplicates("thscode", keep="last")
     frame = _prepare_cross_section(
         stock_state.merge(
             current_quotes,
@@ -617,15 +616,11 @@ def build_opportunity_inputs(
             f"relative_strength_{periods}d_pct",
             ascending=False,
             limit=screen_limit,
-            definition=(
-                f"{raw_field} minus cross-sectional median, descending"
-            ),
+            definition=(f"{raw_field} minus cross-sectional median, descending"),
             derived_values=relative,
-            basis="compounded_provider_daily_change_ratio",
+            basis="compounded_provider_daily_change_ratio_minus_market_cross_section_median_not_index_or_industry",
         )
-        screens[f"relative_strength_{periods}d"]["market_median_pct"] = _finite(
-            median
-        )
+        screens[f"relative_strength_{periods}d"]["market_median_pct"] = _finite(median)
 
     change = _numeric_series(frame, "change_ratio")
     return_1d = _numeric_series(frame, "raw_return_1d_pct")
@@ -743,9 +738,7 @@ def build_opportunity_inputs(
             "raw_return_1d_pct > 0; confirmation descending"
         ),
         eligibility=(
-            return_5d_pctile.le(0.2)
-            & return_1d_pctile.ge(0.8)
-            & return_1d.gt(0)
+            return_5d_pctile.le(0.2) & return_1d_pctile.ge(0.8) & return_1d.gt(0)
         ),
         derived_values=reversal_confirmation,
         basis="minimum of return_1d_pctile and one minus return_5d_pctile",
@@ -777,13 +770,17 @@ def build_opportunity_inputs(
         ),
         "large_negative_weak_close": (
             large_negative & close_location.lt(0.2),
-            pd.concat(
-                [1 - return_1d_pctile, 1 - close_location_pctile], axis=1
-            ).min(axis=1, skipna=False),
+            pd.concat([1 - return_1d_pctile, 1 - close_location_pctile], axis=1).min(
+                axis=1, skipna=False
+            ),
             "negative bottom-quintile 1D return and close_location < 0.2",
         ),
     }
-    for screen_name, (eligibility, confirmation, definition) in close_combinations.items():
+    for screen_name, (
+        eligibility,
+        confirmation,
+        definition,
+    ) in close_combinations.items():
         screens[screen_name] = _screen_rows(
             frame,
             "return_close_confirmation_pctile",
@@ -897,9 +894,7 @@ def build_opportunity_inputs(
             "trade_advice_produced": False,
         },
         "readiness": readiness,
-        "field_coverage": {
-            field: _coverage(frame, field) for field in field_names
-        },
+        "field_coverage": {field: _coverage(frame, field) for field in field_names},
         "market": {
             "breadth": {
                 "advancers": market_summary.get("advancers"),
@@ -916,9 +911,7 @@ def build_opportunity_inputs(
             },
             "extreme_moves": {
                 "moves_ge_9_5pct": market_summary.get("moves_ge_9_5pct"),
-                "moves_le_minus_9_5pct": market_summary.get(
-                    "moves_le_minus_9_5pct"
-                ),
+                "moves_le_minus_9_5pct": market_summary.get("moves_le_minus_9_5pct"),
             },
             "changes": market_changes,
             "observation_state_counts": market_summary.get(
@@ -951,6 +944,10 @@ def build_opportunity_inputs(
         },
         "deterministic_screens": screens,
         "candidate_union": candidate_union,
+        "feature_input_sha256": manifest.get("feature_input_sha256"),
+        "selection_diagnostics": selection_diagnostics(
+            screens, [row["thscode"] for row in candidate_union]
+        ),
         "candidate_union_metadata": {
             "definition": (
                 "deduplicated union of deterministic screen rows; no security "
@@ -959,10 +956,8 @@ def build_opportunity_inputs(
             "unique_security_count_before_limit": unique_candidate_count,
             "returned_count": len(candidate_union),
             "limit": candidate_union_limit,
-            "ordering": (
-                "screen_count descending, best_screen_rank ascending, "
-                "thscode ascending"
-            ),
+            "selection_policy_version": SELECTION_POLICY_VERSION,
+            "ordering": ORDERING_POLICY,
             "union_order_semantics": (
                 "deterministic transport order only; not a relative "
                 "attractiveness ordering and no subjective weighting is applied"

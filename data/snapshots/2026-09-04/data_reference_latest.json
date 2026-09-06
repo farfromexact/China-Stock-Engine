@@ -132,15 +132,15 @@
         "row_count": 5548
       },
       {
-        "coverage_ratio": 0.99964,
+        "coverage_ratio": 0.999459,
         "field": "raw_return_3d_pct",
-        "non_null_count": 5546,
+        "non_null_count": 5545,
         "row_count": 5548
       },
       {
-        "coverage_ratio": 0.999099,
+        "coverage_ratio": 0.998558,
         "field": "raw_return_5d_pct",
-        "non_null_count": 5543,
+        "non_null_count": 5540,
         "row_count": 5548
       },
       {
@@ -483,7 +483,7 @@
       "name": "stock_state.parquet",
       "path": "features/stock_state/trade_date=2026-09-04/stock_state.parquet",
       "rows": 5548,
-      "sha256": "468cbcc87e9b382dfd08ad1d86f57078f6b17a4e685f513a322d6646f4bc957f"
+      "sha256": "866829128c9e4c239bd51d4922dbc6926b87c8dbbae03462910f8ba78c2184e0"
     }
   ],
   "document_type": "a_share_data_reference",
@@ -699,10 +699,13 @@
       "state": "missing"
     },
     "history": {
+      "calendar_basis": "cached_exchange_calendar_with_unknown_weekday_gaps",
       "horizons": {
         "1D": {
           "adjusted_coverage": 0.0,
+          "adjusted_price_points_required": 2,
           "adjusted_return_field": "return_1d_pct",
+          "adjusted_state": "missing",
           "coverage": 1.0,
           "raw_return_basis": "compounded_provider_daily_change_ratio",
           "raw_return_field": "raw_return_1d_pct",
@@ -711,7 +714,9 @@
         },
         "20D": {
           "adjusted_coverage": 0.0,
+          "adjusted_price_points_required": 21,
           "adjusted_return_field": "return_20d_pct",
+          "adjusted_state": "missing",
           "coverage": 0.993511,
           "raw_return_basis": "compounded_provider_daily_change_ratio",
           "raw_return_field": "raw_return_20d_pct",
@@ -720,8 +725,10 @@
         },
         "3D": {
           "adjusted_coverage": 0.0,
+          "adjusted_price_points_required": 4,
           "adjusted_return_field": "return_3d_pct",
-          "coverage": 0.99964,
+          "adjusted_state": "missing",
+          "coverage": 0.999459,
           "raw_return_basis": "compounded_provider_daily_change_ratio",
           "raw_return_field": "raw_return_3d_pct",
           "sessions_required": 3,
@@ -729,14 +736,17 @@
         },
         "5D": {
           "adjusted_coverage": 0.0,
+          "adjusted_price_points_required": 6,
           "adjusted_return_field": "return_5d_pct",
-          "coverage": 0.999099,
+          "adjusted_state": "missing",
+          "coverage": 0.998558,
           "raw_return_basis": "compounded_provider_daily_change_ratio",
           "raw_return_field": "raw_return_5d_pct",
           "sessions_required": 5,
           "state": "ready"
         }
       },
+      "price_points_loaded": 21,
       "scope_end": "2026-09-04",
       "sessions": 20,
       "state": "ready",
@@ -746,7 +756,8 @@
         "rv60_pct",
         "distance_from_high_60_pct",
         "drawdown_from_high_252_pct"
-      ]
+      ],
+      "unconfirmed_calendar_dates": []
     },
     "index_membership": {
       "index_count": 0,
@@ -780,7 +791,7 @@
       "coverage": 0.0,
       "restricted_count": 0,
       "state": "missing",
-      "unknown_count": 5548,
+      "unknown_count": 5556,
       "unknown_is_not_suspension": true
     }
   },
@@ -796,5 +807,5 @@
     "source_snapshot_sha256": "19be8e4f5a3ffaa2aa34112b446b1dadeb304ec013cb45467ce73a53d7fc9f54",
     "state": "ready"
   },
-  "schema_version": 3
+  "schema_version": 4
 }

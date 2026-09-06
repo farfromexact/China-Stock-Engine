@@ -20,6 +20,7 @@ from .ifind_http import IFindHTTPClient, QUOTE_FIELDS
 from .pipeline import CollectionConfig, collect_and_publish, validate_latest
 from .report_dashboard import build_data_reference_dashboard
 from .data_reference import build_data_reference_outputs
+from .research_inputs import import_research_batch
 from .storage import (
     atomic_write_json,
     atomic_write_parquet,
@@ -63,7 +64,14 @@ def _parser() -> argparse.ArgumentParser:
     canary.add_argument(
         "--module",
         required=True,
-        choices=("history", "adjustment", "industry", "index-membership", "tradability"),
+        choices=(
+            "history",
+            "adjustment",
+            "industry",
+            "index-membership",
+            "tradability",
+            "financials",
+        ),
     )
     canary.add_argument("--code", default="000001.SZ")
     canary.add_argument("--date", default=default_trade_date())
@@ -133,6 +141,12 @@ def _parser() -> argparse.ArgumentParser:
     build_report.add_argument("--date")
     build_report.add_argument("--data-dir", type=Path, default=Path("data"))
     build_report.add_argument("--min-adt20", type=float, default=20_000_000.0)
+    research_import = subparsers.add_parser(
+        "import-research",
+        help="validate and append normalized PIT financial/event facts; no API calls",
+    )
+    research_import.add_argument("--input", type=Path, required=True)
+    research_import.add_argument("--data-dir", type=Path, default=Path("data"))
     return parser
 
 
@@ -287,9 +301,7 @@ def _record_canary_status(
     modules = dict(payload.get("modules") or {})
     modules[module] = {
         "state": state,
-        "checked_at_utc": datetime.now(timezone.utc).isoformat(
-            timespec="seconds"
-        ),
+        "checked_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "raw_payload_persisted": False,
     }
     atomic_write_json(
@@ -304,8 +316,25 @@ def _record_canary_status(
 
 
 def _canary(args: argparse.Namespace) -> int:
+    if args.module not in {"history", "adjustment"} and args.spec is None:
+        payload = {
+            "module": args.module,
+            "state": "not_configured",
+            "ok": False,
+            "reason": "provide a validated provider indicator spec; no API request was made",
+            "raw_payload_persisted": False,
+        }
+        if args.record_status:
+            _record_canary_status(
+                args.data_dir, args.module, args.date, "not_configured"
+            )
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 2
     client = _client(args)
-    start = args.start or (pd.Timestamp(args.date) - pd.Timedelta(days=10)).date().isoformat()
+    start = (
+        args.start
+        or (pd.Timestamp(args.date) - pd.Timedelta(days=10)).date().isoformat()
+    )
     try:
         if args.module == "history":
             frame = client.fetch_daily_history(
@@ -319,7 +348,13 @@ def _canary(args: argparse.Namespace) -> int:
                 "module": args.module,
                 "state": "ready" if not frame.empty else "missing",
                 "rows": int(len(frame)),
-                "source_dates": sorted(frame.get("trade_date", pd.Series(dtype=str)).dropna().astype(str).unique().tolist()),
+                "source_dates": sorted(
+                    frame.get("trade_date", pd.Series(dtype=str))
+                    .dropna()
+                    .astype(str)
+                    .unique()
+                    .tolist()
+                ),
                 "columns": list(frame.columns),
                 "raw_payload_persisted": False,
             }
@@ -335,9 +370,17 @@ def _canary(args: argparse.Namespace) -> int:
             factors = pd.to_numeric(frame.get("adj_factor"), errors="coerce")
             payload = {
                 "module": args.module,
-                "state": "ready" if not frame.empty and factors.gt(0).all() else "missing",
+                "state": (
+                    "ready" if not frame.empty and factors.gt(0).all() else "missing"
+                ),
                 "rows": int(len(frame)),
-                "source_dates": sorted(frame.get("trade_date", pd.Series(dtype=str)).dropna().astype(str).unique().tolist()),
+                "source_dates": sorted(
+                    frame.get("trade_date", pd.Series(dtype=str))
+                    .dropna()
+                    .astype(str)
+                    .unique()
+                    .tolist()
+                ),
                 "factor_min": None if factors.empty else float(factors.min()),
                 "factor_max": None if factors.empty else float(factors.max()),
                 "method": "ifind_forward1_dividend_plan",
@@ -359,7 +402,9 @@ def _canary(args: argparse.Namespace) -> int:
                 print(json.dumps(payload, ensure_ascii=False, indent=2))
                 return 2
             loaded = json.loads(args.spec.read_text(encoding="utf-8"))
-            specs = _replace_spec_placeholders(loaded.get("indicators") or [], args.date)
+            specs = _replace_spec_placeholders(
+                loaded.get("indicators") or [], args.date
+            )
             frame = client.fetch_basic_indicators([str(args.code).upper()], specs)
             requested = [str(item.get("indicator")) for item in specs]
             payload = {
@@ -385,9 +430,7 @@ def _canary(args: argparse.Namespace) -> int:
         error = _safe_client_error(exc, client)
         state = "not_entitled" if _is_entitlement_error(error) else "failed"
         if args.record_status:
-            _record_canary_status(
-                args.data_dir, args.module, args.date, state
-            )
+            _record_canary_status(args.data_dir, args.module, args.date, state)
         print(
             json.dumps(
                 {
@@ -422,7 +465,9 @@ def _run(args: argparse.Namespace) -> int:
                 client,
                 args.data_dir,
                 args.adjustment_start
-                or (pd.Timestamp(args.date) - pd.Timedelta(days=400)).date().isoformat(),
+                or (pd.Timestamp(args.date) - pd.Timedelta(days=400))
+                .date()
+                .isoformat(),
                 args.date,
                 args.adjustment_batch_size,
             )
@@ -460,11 +505,7 @@ def _refresh_adjustments(
     if start_date > end_date:
         raise ValueError("adjustment start cannot be after end")
     partition_universe = (
-        data_dir
-        / "facts"
-        / "reference"
-        / f"as_of_date={end_date}"
-        / "universe.parquet"
+        data_dir / "facts" / "reference" / f"as_of_date={end_date}" / "universe.parquet"
     )
     universe_path = (
         partition_universe
@@ -521,11 +562,13 @@ class _PreparedBackfillClient:
         universes: dict[str, pd.DataFrame],
         references: dict[str, pd.DataFrame],
         quotes: pd.DataFrame,
+        trading_calendar: pd.DataFrame | None = None,
     ) -> None:
         self.base = base
         self.universes = universes
         self.references = references
         self.quotes = quotes
+        self.trading_calendar = trading_calendar
         self.collection_started_at: str | None = None
         self.collection_completed_at: str | None = None
 
@@ -539,6 +582,12 @@ class _PreparedBackfillClient:
 
     def fetch_trade_calendar(self, trade_date: str, *, offset: int) -> pd.DataFrame:
         del offset
+        if self.trading_calendar is not None:
+            calendar = self.trading_calendar.loc[
+                self.trading_calendar["trade_date"].le(trade_date)
+            ].copy()
+            calendar["as_of_date"] = trade_date
+            return calendar
         return pd.DataFrame(
             {
                 "as_of_date": [trade_date],
@@ -600,10 +649,9 @@ def _resolve_backfill_dates(
         business_count = len(pd.date_range(args.start, args.end, freq="B"))
         offset = -max(business_count * 2, 60)
     calendar = client.fetch_trade_calendar(args.end, offset=offset)
+    args._resolved_trading_calendar = calendar.copy()
     available = sorted(
-        calendar.loc[
-            calendar["is_open"].fillna(False).astype(bool), "trade_date"
-        ]
+        calendar.loc[calendar["is_open"].fillna(False).astype(bool), "trade_date"]
         .dropna()
         .astype(str)
         .loc[lambda values: values.le(args.end)]
@@ -664,10 +712,7 @@ def _prepare_backfill_client(
         trade_date: str,
     ) -> tuple[pd.DataFrame, pd.DataFrame] | None:
         candidate_dirs = [
-            args.data_dir
-            / "facts"
-            / "reference"
-            / f"as_of_date={trade_date}",
+            args.data_dir / "facts" / "reference" / f"as_of_date={trade_date}",
             args.data_dir / "snapshots" / trade_date,
         ]
         cached_paths: tuple[Path, Path] | None = None
@@ -724,9 +769,7 @@ def _prepare_backfill_client(
             return None
         if frame.empty or not required_quote_columns.issubset(frame.columns):
             return None
-        observed_dates = set(
-            frame["trade_date"].dropna().astype(str).unique().tolist()
-        )
+        observed_dates = set(frame["trade_date"].dropna().astype(str).unique().tolist())
         if observed_dates != {trade_date}:
             return None
         return frame.copy()
@@ -834,9 +877,7 @@ def _prepare_backfill_client(
             )
         )
     quotes = (
-        pd.concat(quote_frames, ignore_index=True)
-        if quote_frames
-        else pd.DataFrame()
+        pd.concat(quote_frames, ignore_index=True) if quote_frames else pd.DataFrame()
     )
     missing_quote_columns = sorted(required_quote_columns.difference(quotes.columns))
     if missing_quote_columns:
@@ -845,7 +886,13 @@ def _prepare_backfill_client(
             + ", ".join(missing_quote_columns)
         )
     quotes = quotes.loc[quotes["trade_date"].isin(dates)].copy()
-    return _PreparedBackfillClient(client, universes, references, quotes)
+    return _PreparedBackfillClient(
+        client,
+        universes,
+        references,
+        quotes,
+        getattr(args, "_resolved_trading_calendar", None),
+    )
 
 
 def _backfill(args: argparse.Namespace) -> int:
@@ -867,9 +914,7 @@ def _backfill(args: argparse.Namespace) -> int:
     initial_latest_date = initial_manifest.get("trade_date")
     completed: list[str] = []
 
-    def fail_backfill(
-        error: str, *, failed_date: str | None = None
-    ) -> int:
+    def fail_backfill(error: str, *, failed_date: str | None = None) -> int:
         status = {
             "schema_version": 2,
             "state": "failed_backfill",
@@ -895,9 +940,7 @@ def _backfill(args: argparse.Namespace) -> int:
         dates, non_trading_dates, requested_start = _resolve_backfill_dates(
             client, args
         )
-        collection_started_at = datetime.now(timezone.utc).isoformat(
-            timespec="seconds"
-        )
+        collection_started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         prepared = _prepare_backfill_client(client, dates, args)
         prepared.collection_started_at = collection_started_at
         prepared.collection_completed_at = datetime.now(timezone.utc).isoformat(
@@ -911,9 +954,7 @@ def _backfill(args: argparse.Namespace) -> int:
 
     for trade_date in dates:
         print(f"Backfill date: {trade_date}", flush=True)
-        date_config = replace(
-            config, build_data_reference=trade_date == dates[-1]
-        )
+        date_config = replace(config, build_data_reference=trade_date == dates[-1])
         result = collect_and_publish(
             prepared, trade_date, config=date_config, progress=progress
         )
@@ -1015,6 +1056,14 @@ def _dashboard(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command == "import-research":
+        try:
+            result = import_research_batch(args.data_dir, args.input)
+        except (ValueError, OSError) as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
+            return 1
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
     if args.command == "probe":
         return _probe(args)
     if args.command == "canary":

@@ -34,18 +34,17 @@ def sha256_file(path: Path) -> str:
 def serialize_json(payload: Any, *, compact: bool = False) -> str:
     """Serialize deterministic JSON, with connector-friendly compact newlines."""
 
-    formatting = (
-        {"indent": 1, "separators": (",", ":")}
-        if compact
-        else {"indent": 2}
+    formatting = {"indent": 1, "separators": (",", ":")} if compact else {"indent": 2}
+    return (
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            allow_nan=False,
+            **formatting,
+        )
+        + "\n"
     )
-    return json.dumps(
-        payload,
-        ensure_ascii=False,
-        sort_keys=True,
-        allow_nan=False,
-        **formatting,
-    ) + "\n"
 
 
 def atomic_write_json(path: Path, payload: Any, *, compact: bool = False) -> None:
@@ -78,7 +77,11 @@ def load_manifest(path: Path, *, missing_ok: bool = True) -> dict[str, Any]:
 
     manifest = load_json_object(path, missing_ok=missing_ok)
     if not manifest:
-        return manifest
+        if not path.exists():
+            return manifest
+        raise ArtifactContractError(
+            f"manifest is an empty object without a schema: {path}"
+        )
     version = manifest.get("schema_version")
     if isinstance(version, bool) or not isinstance(version, int):
         raise ValueError(f"manifest schema_version must be an integer: {path}")
@@ -178,7 +181,9 @@ def _prune_snapshots(data_dir: Path, snapshot_limit: int) -> None:
     for path in snapshots[:-snapshot_limit]:
         resolved = path.resolve()
         if resolved.parent != snapshots_dir.resolve():
-            raise RuntimeError(f"refusing to prune unexpected snapshot path: {resolved}")
+            raise RuntimeError(
+                f"refusing to prune unexpected snapshot path: {resolved}"
+            )
         datetime.strptime(path.name, "%Y-%m-%d")
         shutil.rmtree(path)
 
@@ -283,10 +288,8 @@ def _validate_snapshot_artifacts(
         expected = str((metadata or {}).get("sha256") or "")
         actual = sha256_file(path)
         if not expected or actual != expected:
-            raise ArtifactContractError(
-                f"snapshot artifact sha256 mismatch: {path}"
-            )
-        if name == "opportunity_radar_latest.json":
+            raise ArtifactContractError(f"snapshot artifact sha256 mismatch: {path}")
+        if name == "opportunity_radar_latest.json" or name.startswith("research_"):
             size = path.stat().st_size
             if size > MAX_OPPORTUNITY_RADAR_BYTES:
                 raise ArtifactContractError(
@@ -332,6 +335,12 @@ def promote_verified_snapshot_to_latest(
 
     for stale_name in ("market_dashboard.html", "data_reference.html"):
         _remove_file(latest_dir / stale_name)
+    # Only obsolete, generated research pages; unrelated files remain untouched.
+    for old in latest_dir.glob("research_*.json"):
+        if old.name not in manifest["artifacts"] and re.fullmatch(
+            r"research_[a-f0-9]_[0-9]+\.json", old.name
+        ):
+            _remove_file(old)
     return manifest
 
 
@@ -346,6 +355,7 @@ def publish_data_reference_artifacts(
     *,
     manifest_updates: dict[str, Any] | None = None,
     publish_latest: bool = True,
+    research_artifacts: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Atomically attach deterministic, opinion-free reference data."""
 
@@ -353,6 +363,18 @@ def publish_data_reference_artifacts(
     manifest_path = snapshot_dir / "manifest.json"
     if not manifest_path.exists():
         raise FileNotFoundError(f"snapshot manifest does not exist: {manifest_path}")
+    manifest = load_manifest(manifest_path, missing_ok=False)
+    research_artifacts = research_artifacts or {}
+    for name, payload in research_artifacts.items():
+        if name != "research_inputs_latest.json" and not re.fullmatch(
+            r"research_[a-f0-9]_[0-9]+\.json", name
+        ):
+            raise ArtifactContractError("unsafe or unsupported research artifact name")
+        if (
+            len(serialize_json(payload, compact=True).encode("utf-8"))
+            > MAX_OPPORTUNITY_RADAR_BYTES
+        ):
+            raise ArtifactContractError(f"{name} exceeds research hard limit")
 
     radar_encoded = serialize_json(opportunity_radar, compact=True).encode("utf-8")
     if len(radar_encoded) > MAX_OPPORTUNITY_RADAR_BYTES:
@@ -368,9 +390,7 @@ def publish_data_reference_artifacts(
     for item in data_reference.get("data_catalog") or []:
         if isinstance(item, dict) and item.get("name") in artifacts:
             item["sha256"] = sha256_file(snapshot_dir / str(item["name"]))
-    atomic_write_json(
-        snapshot_dir / "data_reference_latest.json", data_reference
-    )
+    atomic_write_json(snapshot_dir / "data_reference_latest.json", data_reference)
     atomic_write_json(
         snapshot_dir / "opportunity_inputs_latest.json",
         opportunity_inputs,
@@ -381,6 +401,8 @@ def publish_data_reference_artifacts(
         opportunity_radar,
         compact=True,
     )
+    for name, payload in sorted(research_artifacts.items()):
+        atomic_write_json(snapshot_dir / name, payload, compact=True)
 
     atomic_write_parquet(
         data_dir
@@ -390,9 +412,20 @@ def publish_data_reference_artifacts(
         / "stock_state.parquet",
         stock_state,
     )
-    manifest = load_manifest(manifest_path, missing_ok=False)
     manifest = {**manifest, **(manifest_updates or {})}
-    manifest_artifacts = dict(manifest.get("artifacts") or {})
+    manifest_artifacts = {
+        name: value
+        for name, value in (manifest.get("artifacts") or {}).items()
+        if not research_artifacts or not name.startswith("research_")
+    }
+    for name, payload in research_artifacts.items():
+        path = snapshot_dir / name
+        manifest_artifacts[name] = {
+            "sha256": sha256_file(path),
+            "bytes": path.stat().st_size,
+            "hard_max_bytes": MAX_OPPORTUNITY_RADAR_BYTES,
+            "schema_version": payload["schema_version"],
+        }
     for name, frame in artifacts.items():
         manifest_artifacts[name] = {
             "rows": int(len(frame)),
@@ -439,9 +472,8 @@ def verify_latest_artifacts(data_dir: Path) -> tuple[dict[str, Any], list[str]]:
         if not expected or actual != expected:
             errors.append(f"sha256 mismatch for latest artifact: {name}")
         if (
-            name == "opportunity_radar_latest.json"
-            and path.stat().st_size > MAX_OPPORTUNITY_RADAR_BYTES
-        ):
+            name == "opportunity_radar_latest.json" or name.startswith("research_")
+        ) and path.stat().st_size > MAX_OPPORTUNITY_RADAR_BYTES:
             errors.append(
                 "opportunity_radar_latest.json exceeds hard size limit: "
                 f"{path.stat().st_size} > {MAX_OPPORTUNITY_RADAR_BYTES}"

@@ -4,6 +4,13 @@ from __future__ import annotations
 
 import math
 from typing import Any
+from .screen_selection import (
+    ORDERING_POLICY,
+    SELECTION_POLICY_VERSION,
+    screen_family as _screen_family,
+    selection_order,
+    selection_diagnostics,
+)
 
 from .storage import (
     ArtifactContractError,
@@ -12,7 +19,7 @@ from .storage import (
 )
 
 
-OPPORTUNITY_RADAR_SCHEMA_VERSION = 1
+OPPORTUNITY_RADAR_SCHEMA_VERSION = 2
 DEFAULT_RADAR_CANDIDATE_LIMIT = 100
 RADAR_SOFT_TARGET_MIN_BYTES = 220 * 1024
 RADAR_SOFT_TARGET_MAX_BYTES = 250 * 1024
@@ -74,39 +81,6 @@ AVAILABILITY_STATE_CONTRACT = {
 UNREADY_MODULE_STATES = {"missing", "not_entitled", "stale"}
 
 
-def _screen_family(screen: str) -> str:
-    if screen.startswith("board_neutral_absolute_move__"):
-        return "board_neutral_move"
-    if screen.startswith("market_cap_neutral_absolute_move__"):
-        return "market_cap_neutral_move"
-    if screen in {"amount_expansion", "turnover_expansion", "highest_amount"}:
-        return "liquidity_activity"
-    if screen.startswith("gap_") or screen.startswith("large_intraday_range_"):
-        return "gap_intraday_structure"
-    if screen.startswith("large_positive_") or screen.startswith("large_negative_"):
-        return "return_close_location"
-    if screen in {"largest_positive_moves", "largest_negative_moves"}:
-        return "directional_price_move"
-    if screen in {
-        "momentum_acceleration_1d_vs_3d_5d",
-        "positive_momentum_1d_3d_5d",
-        "strong_5d_negative_1d_pullback",
-        "weak_5d_positive_1d_reversal",
-    }:
-        return "multi_horizon_momentum"
-    if screen.startswith("price_up_activity_") or screen.startswith(
-        "price_down_activity_"
-    ):
-        return "price_activity_confirmation"
-    if screen.startswith("relative_strength_"):
-        return "multi_horizon_relative_strength"
-    if screen in {"strong_close_location", "weak_close_location"}:
-        return "close_location"
-    raise ArtifactContractError(
-        f"opportunity_radar_latest.json has unmapped screen family: {screen}"
-    )
-
-
 def _finite(value: Any) -> float | int | None:
     if value is None or isinstance(value, bool):
         return None
@@ -126,9 +100,7 @@ def _module_state(source: dict[str, Any], module: str) -> str:
 
 def _missing_observation(module_state: str) -> dict[str, Any]:
     return {
-        "state": "not_ready"
-        if module_state in UNREADY_MODULE_STATES
-        else "unknown",
+        "state": "not_ready" if module_state in UNREADY_MODULE_STATES else "unknown",
         "value": None,
     }
 
@@ -149,9 +121,7 @@ def _numeric_observation(value: Any, module_state: str) -> dict[str, Any]:
     return _missing_observation(module_state)
 
 
-def _tradability_observation(
-    value: Any, module_state: str
-) -> dict[str, Any]:
+def _tradability_observation(value: Any, module_state: str) -> dict[str, Any]:
     normalized = str(value or "unknown")
     if normalized == "clear":
         return {"state": "confirmed_clear", "value": "clear"}
@@ -167,26 +137,6 @@ def _tradability_observation(
     return observation
 
 
-def _candidate_order_key(row: dict[str, Any]) -> tuple[int, int, str]:
-    thscode = str(row.get("thscode") or "")
-    if not thscode:
-        raise ArtifactContractError(
-            "opportunity_radar_latest.json candidate is missing thscode"
-        )
-    try:
-        screen_count = int(row.get("screen_count"))
-        best_screen_rank = int(row.get("best_screen_rank"))
-    except (TypeError, ValueError) as exc:
-        raise ArtifactContractError(
-            f"opportunity_radar_latest.json candidate ordering is invalid: {thscode}"
-        ) from exc
-    if screen_count < 1 or best_screen_rank < 1:
-        raise ArtifactContractError(
-            f"opportunity_radar_latest.json candidate ordering is invalid: {thscode}"
-        )
-    return (-screen_count, best_screen_rank, thscode)
-
-
 def _candidate_availability(
     facts: dict[str, Any], tradability_module_state: str
 ) -> dict[str, Any]:
@@ -194,9 +144,9 @@ def _candidate_availability(
         "tradability": _tradability_observation(
             facts.get("tradability_state"), tradability_module_state
         )["state"],
-        "is_st": _boolean_observation(
-            facts.get("is_st"), tradability_module_state
-        )["state"],
+        "is_st": _boolean_observation(facts.get("is_st"), tradability_module_state)[
+            "state"
+        ],
         "is_suspended": _boolean_observation(
             facts.get("is_suspended"), tradability_module_state
         )["state"],
@@ -261,9 +211,7 @@ def _compact_candidate(
         "screen_evidence": screen_evidence,
         "percentiles": compact_percentiles,
         "facts": compact_facts,
-        "availability": _candidate_availability(
-            facts, tradability_module_state
-        ),
+        "availability": _candidate_availability(facts, tradability_module_state),
         "contradiction_flags": sorted(
             {str(flag) for flag in row.get("contradiction_flags") or []}
         ),
@@ -274,13 +222,7 @@ def _screen_catalog(
     source: dict[str, Any], candidates: list[dict[str, Any]]
 ) -> dict[str, dict[str, Any]]:
     screens = source.get("deterministic_screens") or {}
-    triggered = sorted(
-        {
-            evidence["screen"]
-            for candidate in candidates
-            for evidence in candidate["screen_evidence"]
-        }
-    )
+    triggered = sorted(screens)
     catalog: dict[str, dict[str, Any]] = {}
     for name in triggered:
         screen = screens.get(name)
@@ -289,6 +231,7 @@ def _screen_catalog(
                 f"opportunity_radar_latest.json is missing screen metadata: {name}"
             )
         catalog[name] = {
+            "evidence_domain": "TAPE",
             "evidence_family": _screen_family(name),
             "definition": screen.get("definition"),
             "metric": screen.get("metric"),
@@ -328,7 +271,21 @@ def build_opportunity_radar_inputs(
         raise ArtifactContractError(
             "opportunity radar source candidate_union contains duplicate thscode"
         )
-    ordered = sorted(source_candidates, key=_candidate_order_key)
+    if (source.get("candidate_union_metadata") or {}).get(
+        "selection_policy_version"
+    ) != SELECTION_POLICY_VERSION:
+        raise ArtifactContractError(
+            "rebuild full inputs with current selection_policy_version before radar"
+        )
+    screens = source.get("deterministic_screens") or {}
+    full_order = selection_order(screens)
+    by_code = {row["thscode"]: row for row in source_candidates}
+    selected_codes = full_order[:candidate_limit]
+    if any(code not in by_code for code in selected_codes):
+        raise ArtifactContractError(
+            "source candidate union is not a complete selection-policy prefix"
+        )
+    ordered = [by_code[code] for code in selected_codes]
     tradability_module_state = _module_state(source, "tradability")
     candidates = [
         _compact_candidate(
@@ -345,6 +302,7 @@ def build_opportunity_radar_inputs(
         "generated_at": generated_at,
         "generated_at_semantics": "source_collection_completed_at",
         "source_snapshot_sha256": source_snapshot_sha256,
+        "feature_input_sha256": source.get("feature_input_sha256"),
         "pit_timing": pit_timing,
         "data_mode": source.get("data_mode") or {},
         "readiness": source.get("readiness") or {},
@@ -356,16 +314,17 @@ def build_opportunity_radar_inputs(
         "cross_sectional_features": source.get("cross_sectional_features") or {},
         "availability_state_contract": AVAILABILITY_STATE_CONTRACT,
         "screen_catalog": _screen_catalog(source, candidates),
+        "selection_diagnostics": selection_diagnostics(screens, selected_codes),
         "candidate_union_metadata": {
-            "source_candidate_count": len(source_candidates),
+            "source_candidate_count": len(full_order),
+            "materialized_full_union_count": len(source_candidates),
             "returned_count": len(candidates),
             "limit": candidate_limit,
-            "truncation_applied": len(source_candidates) > candidate_limit,
-            "ordering_policy": [
-                "screen_count descending",
-                "best_screen_rank ascending",
-                "thscode ascending",
-            ],
+            "truncation_applied": len(full_order) > candidate_limit,
+            "selection_policy_version": SELECTION_POLICY_VERSION,
+            "evidence_domain": "TAPE",
+            "ordering_policy": ORDERING_POLICY,
+            "evidence_semantics": "all price subfamilies are TAPE; family counts are not independent evidence or scores",
             "union_order_semantics": (
                 "deterministic transport order only; not a relative "
                 "attractiveness ordering and no subjective weighting is applied"
@@ -375,9 +334,7 @@ def build_opportunity_radar_inputs(
             ),
         },
         "candidate_union": candidates,
-        "contradiction_flag_definitions": source.get(
-            "contradiction_flag_definitions"
-        )
+        "contradiction_flag_definitions": source.get("contradiction_flag_definitions")
         or {},
         "artifact_contract": {
             "soft_target_min_bytes": RADAR_SOFT_TARGET_MIN_BYTES,

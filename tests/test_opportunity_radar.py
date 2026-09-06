@@ -8,6 +8,10 @@ from china_stock_engine.opportunity_radar import (
     build_opportunity_radar_inputs,
 )
 from china_stock_engine.storage import ArtifactContractError, serialize_json
+from china_stock_engine.screen_selection import (
+    SELECTION_POLICY_VERSION,
+    ORDERING_POLICY,
+)
 
 
 TIMING = {
@@ -67,13 +71,11 @@ def candidate(
     }
 
 
-def source_payload(candidates: list[dict], *, tradability_state: str = "missing") -> dict:
+def source_payload(
+    candidates: list[dict], *, tradability_state: str = "missing"
+) -> dict:
     screen_names = sorted(
-        {
-            screen
-            for item in candidates
-            for screen in item["triggered_screens"]
-        }
+        {screen for item in candidates for screen in item["triggered_screens"]}
     )
     return {
         "schema_version": 3,
@@ -92,16 +94,44 @@ def source_payload(candidates: list[dict], *, tradability_state: str = "missing"
             name: {
                 "definition": f"deterministic definition for {name}",
                 "metric": "change_ratio",
+                "rows": [
+                    {
+                        "thscode": row["thscode"],
+                        **row["facts"],
+                        "trigger": {"rank": row["screen_ranks"][name]},
+                    }
+                    for row in candidates
+                    if name in row["triggered_screens"]
+                ],
             }
             for name in screen_names
         },
         "candidate_union": candidates,
+        "candidate_union_metadata": {
+            "selection_policy_version": SELECTION_POLICY_VERSION
+        },
         "contradiction_flag_definitions": {},
         "drilldown": {},
     }
 
 
 class OpportunityRadarTests(unittest.TestCase):
+    def test_legacy_or_early_truncated_union_is_rejected_not_reranked(self):
+        rows = [
+            candidate("600001.SH", [("highest_amount", 1)]),
+            candidate("600002.SH", [("largest_positive_moves", 1)]),
+        ]
+        source = source_payload(rows)
+        source["candidate_union"] = rows[:1]
+        with self.assertRaisesRegex(
+            ArtifactContractError, "complete selection-policy prefix"
+        ):
+            build_opportunity_radar_inputs(source)
+        source = source_payload(rows)
+        source.pop("candidate_union_metadata")
+        with self.assertRaisesRegex(ArtifactContractError, "rebuild full inputs"):
+            build_opportunity_radar_inputs(source)
+
     def test_deterministic_union_order_and_idempotent_bytes(self) -> None:
         rows = [
             candidate("600003.SH", [("highest_amount", 1)]),
@@ -119,7 +149,7 @@ class OpportunityRadarTests(unittest.TestCase):
             source_payload(list(reversed(copy.deepcopy(rows))))
         )
 
-        expected = ["600002.SH", "600001.SH", "600003.SH"]
+        expected = ["600002.SH", "600003.SH", "600001.SH"]
         self.assertEqual(
             [item["thscode"] for item in first["candidate_union"]], expected
         )
@@ -132,11 +162,7 @@ class OpportunityRadarTests(unittest.TestCase):
         self.assertEqual(first["generated_at"], TIMING["collection_completed_at"])
         self.assertEqual(
             first["candidate_union_metadata"]["ordering_policy"],
-            [
-                "screen_count descending",
-                "best_screen_rank ascending",
-                "thscode ascending",
-            ],
+            ORDERING_POLICY,
         )
         self.assertNotIn("rank", first["candidate_union"][0])
         self.assertEqual(
@@ -177,9 +203,7 @@ class OpportunityRadarTests(unittest.TestCase):
         self.assertEqual(unknown["is_st"], "unknown")
         self.assertEqual(confirmed["availability"]["tradability"], "confirmed_clear")
         self.assertEqual(confirmed["availability"]["is_st"], "confirmed_false")
-        self.assertEqual(
-            confirmed["availability"]["is_suspended"], "confirmed_true"
-        )
+        self.assertEqual(confirmed["availability"]["is_suspended"], "confirmed_true")
         self.assertEqual(
             confirmed["availability"]["daily_price_limit_pct"],
             "confirmed_value",

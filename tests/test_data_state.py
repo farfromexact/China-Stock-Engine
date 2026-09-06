@@ -192,6 +192,89 @@ def data_state_fixture() -> tuple[
 
 
 class DataStateTests(unittest.TestCase):
+    def _with_anchor(self):
+        parts = list(data_state_fixture())
+        first = parts[0]["trade_date"].min()
+        anchor_date = (pd.Timestamp(first) - pd.offsets.BDay()).date().isoformat()
+        for index in (0, 3):
+            anchor = parts[index].loc[parts[index]["trade_date"].eq(first)].copy()
+            anchor["trade_date"] = anchor_date
+            parts[index] = pd.concat([anchor, parts[index]], ignore_index=True)
+        return parts
+
+    def _build(self, parts, **kwargs):
+        history, reference, status, adjustments, industry, indexes, provider, date = (
+            parts
+        )
+        return build_stock_state(
+            history,
+            reference,
+            status,
+            adjustments,
+            pd.DataFrame(),
+            industry,
+            indexes,
+            pd.DataFrame(),
+            provider,
+            date,
+            "hash",
+            **kwargs,
+        )
+
+    def test_twenty_day_adjusted_return_and_rv_require_twenty_one_prices(self):
+        state, readiness = self._build(self._with_anchor())
+        self.assertTrue(state["return_20d_pct"].notna().all())
+        self.assertTrue(state["rv20_pct"].notna().all())
+        self.assertEqual(readiness["history"]["sessions"], 20)
+        self.assertEqual(readiness["history"]["price_points_loaded"], 21)
+        self.assertEqual(
+            readiness["history"]["horizons"]["20D"]["adjusted_coverage"], 1.0
+        )
+
+    def test_missing_stock_or_global_session_cannot_be_bridged(self):
+        for global_gap in (False, True):
+            parts = self._with_anchor()
+            sessions = sorted(parts[0]["trade_date"].unique())
+            mask = parts[0]["trade_date"].eq(sessions[10])
+            if not global_gap:
+                mask &= parts[0]["thscode"].eq("600001.SH")
+            parts[0] = parts[0].loc[~mask].copy()
+            state, _ = self._build(parts, trading_sessions=sessions)
+            alpha = state.set_index("thscode").loc["600001.SH"]
+            self.assertTrue(pd.isna(alpha["raw_return_20d_pct"]))
+            self.assertTrue(pd.isna(alpha["return_20d_pct"]))
+            self.assertTrue(pd.isna(alpha["rv20_pct"]))
+            self.assertTrue(pd.isna(alpha["adt20"]))
+            self.assertFalse(pd.isna(alpha["raw_return_5d_pct"]))
+            self.assertEqual(len(state), 3)
+
+    def test_today_known_industry_cannot_be_backfilled_into_twenty_day_peers(self):
+        parts = self._with_anchor()
+        parts[4]["known_at"] = f"{parts[-1]}T00:00:00+08:00"
+        state, _ = self._build(parts)
+        self.assertTrue(state["sw1_code"].notna().all())
+        self.assertTrue(state["relative_return_industry_20d_pct"].isna().all())
+
+    def test_missing_peer_return_cannot_be_silently_dropped_from_industry_mean(self):
+        parts = self._with_anchor()
+        parts[4] = parts[4].loc[parts[4]["industry_code"].ne("FUTURE")].copy()
+        parts[4].loc[parts[4]["level"].eq("SW1"), "industry_code"] = "SHARED"
+        sessions = sorted(parts[0]["trade_date"].unique())
+        parts[0] = (
+            parts[0]
+            .loc[
+                ~(
+                    parts[0]["thscode"].eq("000001.SZ")
+                    & parts[0]["trade_date"].eq(sessions[10])
+                )
+            ]
+            .copy()
+        )
+        state, _ = self._build(parts, trading_sessions=sessions)
+        alpha = state.set_index("thscode").loc["600001.SH"]
+        self.assertFalse(pd.isna(alpha["return_20d_pct"]))
+        self.assertTrue(pd.isna(alpha["relative_return_industry_20d_pct"]))
+
     def test_adjustments_neutralize_cash_split_and_rights_discontinuities(self) -> None:
         decision_time = "2026-08-20T20:15:00+08:00"
         history = pd.DataFrame(
@@ -293,7 +376,9 @@ class DataStateTests(unittest.TestCase):
 
     def test_one_word_limit_and_unknown_provider_fields_are_classified(self) -> None:
         history, reference, status, _, _, _, provider, date = data_state_fixture()
-        current_mask = history["trade_date"].eq(date) & history["thscode"].eq("600001.SH")
+        current_mask = history["trade_date"].eq(date) & history["thscode"].eq(
+            "600001.SH"
+        )
         history.loc[current_mask, ["open", "high", "low", "close"]] = 100.0
         history.loc[current_mask, "change_ratio"] = 10.0
         provider = provider.loc[provider["thscode"].ne("000001.SZ")].copy()

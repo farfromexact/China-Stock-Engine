@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -15,16 +16,19 @@ from .storage import (
     load_json_object,
     load_manifest,
     publish_data_reference_artifacts,
+    sha256_file,
+    ArtifactContractError,
 )
 from .opportunity_inputs import build_opportunity_inputs
+from .research_inputs import build_research_artifacts
 from .opportunity_radar import (
     OPPORTUNITY_RADAR_SCHEMA_VERSION,
     build_opportunity_radar_inputs,
 )
 
 
-DATA_REFERENCE_SCHEMA_VERSION = 3
-STOCK_STATE_SCHEMA_VERSION = 3
+DATA_REFERENCE_SCHEMA_VERSION = 4
+STOCK_STATE_SCHEMA_VERSION = 4
 MAX_DATA_REFERENCE_BYTES = 2 * 1024 * 1024
 TARGET_HISTORY_SESSIONS = 20
 HORIZON_SESSIONS = (1, 3, 5, 20)
@@ -150,6 +154,7 @@ STOCK_STATE_COLUMNS = (
     "source_snapshot_sha256",
 )
 
+
 def data_cutoff_time_for_date(trade_date: str) -> str:
     return f"{trade_date}T20:15:00+08:00"
 
@@ -258,9 +263,7 @@ def normalize_corporate_actions(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def normalize_industry_membership(frame: pd.DataFrame) -> pd.DataFrame:
-    output = _require_columns(
-        frame, INDUSTRY_REQUIRED_COLUMNS, "industry membership"
-    )
+    output = _require_columns(frame, INDUSTRY_REQUIRED_COLUMNS, "industry membership")
     output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
     for column in ("effective_from", "effective_to"):
         _normalize_date_column(output, column)
@@ -316,12 +319,10 @@ def _partition_value(path: Path, prefix: str) -> str | None:
 
 
 def load_market_history(
-    data_dir: Path, end_date: str, *, limit: int = TARGET_HISTORY_SESSIONS
+    data_dir: Path, end_date: str, *, limit: int = TARGET_HISTORY_SESSIONS + 1
 ) -> pd.DataFrame:
     paths = sorted(
-        (data_dir / "facts" / "market").glob(
-            "trade_date=*/daily_quotes.parquet"
-        )
+        (data_dir / "facts" / "market").glob("trade_date=*/daily_quotes.parquet")
     )
     eligible = [
         path
@@ -335,16 +336,12 @@ def load_market_history(
             if path.parent.name <= end_date
         )
     selected_dates = sorted(
-        {
-            _partition_value(path, "trade_date=") or path.parent.name
-            for path in eligible
-        }
+        {_partition_value(path, "trade_date=") or path.parent.name for path in eligible}
     )[-limit:]
     selected = [
         path
         for path in eligible
-        if (_partition_value(path, "trade_date=") or path.parent.name)
-        in selected_dates
+        if (_partition_value(path, "trade_date=") or path.parent.name) in selected_dates
     ]
     if not selected:
         return pd.DataFrame()
@@ -367,21 +364,56 @@ def load_market_history(
     for column in numeric:
         if column in output.columns:
             output[column] = pd.to_numeric(output[column], errors="coerce")
-    return (
+    output = (
         output.loc[output["trade_date"].le(end_date)]
         .drop_duplicates(["trade_date", "thscode"], keep="last")
         .sort_values(["thscode", "trade_date"])
         .reset_index(drop=True)
     )
+    # Retain independently observed calendar dates even when a quote partition
+    # is absent. Single-day calendar caches cannot certify intervening holidays.
+    calendars = [
+        pd.read_parquet(path)
+        for path in sorted(
+            (data_dir / "facts" / "reference").glob(
+                "as_of_date=*/trading_calendar.parquet"
+            )
+        )
+        if (_partition_value(path, "as_of_date=") or "") <= end_date
+    ]
+    if calendars:
+        calendar = pd.concat(calendars, ignore_index=True)
+        calendar = calendar.loc[
+            calendar["trade_date"].between(output["trade_date"].min(), end_date)
+        ]
+        open_dates = set(
+            calendar.loc[calendar["is_open"].eq(True), "trade_date"].astype(str)
+        )
+        closed_dates = (
+            set(calendar.loc[calendar["is_open"].eq(False), "trade_date"].astype(str))
+            - open_dates
+        )
+        slots = set(
+            pd.bdate_range(output["trade_date"].min(), end_date).strftime("%Y-%m-%d")
+        )
+        observed = set(output["trade_date"])
+        output.attrs["session_dates"] = sorted(
+            (slots | open_dates | observed) - closed_dates
+        )[-limit:]
+        output.attrs["unconfirmed_calendar_dates"] = sorted(
+            slots - open_dates - closed_dates - observed
+        )
+        output.attrs["calendar_basis"] = (
+            "cached_exchange_calendar_with_unknown_weekday_gaps"
+        )
+    return output
 
 
 def load_index_history(
-    data_dir: Path, end_date: str, *, limit: int = TARGET_HISTORY_SESSIONS
+    data_dir: Path, end_date: str, *, limit: int = TARGET_HISTORY_SESSIONS + 1
 ) -> pd.DataFrame:
     paths = sorted(
-        (data_dir / "facts" / "index").glob(
-            "trade_date=*/index_quotes.parquet"
-        )
+        (data_dir / "facts" / "index").glob("trade_date=*/index_quotes.parquet")
     )
     eligible = [
         path
@@ -439,9 +471,7 @@ def load_adjustment_snapshot(data_dir: Path, as_of_date: str) -> pd.DataFrame:
 
 def load_module_status(data_dir: Path, as_of_date: str) -> dict[str, Any]:
     paths = sorted(
-        (data_dir / "facts" / "module_status").glob(
-            "as_of_date=*/module_status.json"
-        )
+        (data_dir / "facts" / "module_status").glob("as_of_date=*/module_status.json")
     )
     eligible = [
         path
@@ -569,9 +599,9 @@ def build_tradability_state(
             normalized_provider["as_of_date"].eq(trade_date)
             & _known_by(normalized_provider, decision_time)
         ].copy()
-        normalized_provider = normalized_provider.sort_values("known_at").drop_duplicates(
-            "thscode", keep="last"
-        )
+        normalized_provider = normalized_provider.sort_values(
+            "known_at"
+        ).drop_duplicates("thscode", keep="last")
     provider_columns = [
         "thscode",
         "is_st",
@@ -660,18 +690,14 @@ def build_tradability_state(
         mandatory_known & current["tradability_reason_codes"].map(len).eq(0),
         "tradability_state",
     ] = "clear"
-    provider_coverage = (
-        float(mandatory_known.mean()) if len(mandatory_known) else 0.0
-    )
+    provider_coverage = float(mandatory_known.mean()) if len(mandatory_known) else 0.0
     readiness = {
-        "state": "ready"
-        if provider_coverage >= MIN_TRADABILITY_COVERAGE
-        else "missing",
+        "state": (
+            "ready" if provider_coverage >= MIN_TRADABILITY_COVERAGE else "missing"
+        ),
         "coverage": round(provider_coverage, 6),
         "clear_count": int(current["tradability_state"].eq("clear").sum()),
-        "restricted_count": int(
-            current["tradability_state"].eq("restricted").sum()
-        ),
+        "restricted_count": int(current["tradability_state"].eq("restricted").sum()),
         "unknown_count": int(current["tradability_state"].eq("unknown").sum()),
         "unknown_is_not_suspension": True,
     }
@@ -720,6 +746,7 @@ def build_stock_state(
     decision_time: str | None = None,
     pit_timing: dict[str, str] | None = None,
     min_adt20: float = DEFAULT_MIN_ADT20,
+    trading_sessions: list[str] | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     if history.empty:
         return pd.DataFrame(columns=STOCK_STATE_COLUMNS), {
@@ -752,14 +779,31 @@ def build_stock_state(
         }
     decision_time = str(pit_timing["effective_pit_cutoff"])
     scoped = history.loc[history["trade_date"].le(trade_date)].copy()
+    observed_dates = sorted(scoped["trade_date"].unique())
+    supplied_sessions = trading_sessions or history.attrs.get("session_dates")
+    slots = supplied_sessions or sorted(
+        set(observed_dates)
+        | set(pd.bdate_range(observed_dates[0], trade_date).strftime("%Y-%m-%d"))
+    )
+    slots = [day for day in slots if observed_dates[0] <= day <= trade_date][-21:]
+    observed_codes_today = set(
+        scoped.loc[scoped["trade_date"].eq(trade_date), "thscode"]
+    )
+    grid = pd.MultiIndex.from_product(
+        [sorted(scoped["thscode"].unique()), slots], names=["thscode", "trade_date"]
+    )
+    scoped = scoped.set_index(["thscode", "trade_date"]).reindex(grid).reset_index()
     scoped = scoped.sort_values(["thscode", "trade_date"]).reset_index(drop=True)
     adjusted = apply_adjustments(scoped, adjustments, decision_time)
     grouped = adjusted.groupby("thscode", group_keys=False)
-    adjusted["history_sessions"] = grouped.cumcount() + 1
-    adjusted["history_start_date"] = grouped["trade_date"].transform("min")
-    raw_growth = 1 + pd.to_numeric(
-        adjusted["change_ratio"], errors="coerce"
-    ) / 100.0
+    adjusted["history_sessions"] = grouped["close"].transform(
+        lambda values: values.notna().cumsum().clip(upper=20)
+    )
+    observed_start = (
+        scoped.loc[scoped["close"].notna()].groupby("thscode")["trade_date"].min()
+    )
+    adjusted["history_start_date"] = adjusted["thscode"].map(observed_start)
+    raw_growth = 1 + pd.to_numeric(adjusted["change_ratio"], errors="coerce") / 100.0
     for periods in HORIZON_SESSIONS:
         adjusted[f"raw_return_{periods}d_pct"] = raw_growth.groupby(
             adjusted["thscode"], group_keys=False
@@ -773,15 +817,16 @@ def build_stock_state(
             * 100.0
         )
         adjusted[f"return_{periods}d_pct"] = grouped["adjusted_close"].transform(
-            lambda values, p=periods: _pct_change(values, p)
+            lambda values, p=periods: _pct_change(values, p).where(
+                values.rolling(p + 1, min_periods=p + 1).count().eq(p + 1)
+            )
         )
     adjusted["return_60d_pct"] = pd.NA
     adjusted["daily_adjusted_return_pct"] = grouped["adjusted_close"].transform(
         _pct_change
     )
     adjusted["rv20_pct"] = grouped["daily_adjusted_return_pct"].transform(
-        lambda values: values.rolling(20, min_periods=20).std()
-        * math.sqrt(252)
+        lambda values: values.rolling(20, min_periods=20).std() * math.sqrt(252)
     )
     adjusted["rv60_pct"] = pd.NA
     for column in ("turnover_ratio", "amount", "volume"):
@@ -809,7 +854,10 @@ def build_stock_state(
     adjusted["distance_from_high_60_pct"] = pd.NA
     adjusted["drawdown_from_high_252_pct"] = pd.NA
 
-    current = adjusted.loc[adjusted["trade_date"].eq(trade_date)].copy()
+    current = adjusted.loc[
+        adjusted["trade_date"].eq(trade_date)
+        & adjusted["thscode"].isin(observed_codes_today)
+    ].copy()
     if current.empty:
         raise ValueError(f"market history does not contain requested date {trade_date}")
     reference_current = reference.sort_values("as_of_date").drop_duplicates(
@@ -845,24 +893,62 @@ def build_stock_state(
             selected, how="left", on="thscode", validate="one_to_one"
         )
     current["relative_return_industry_20d_pct"] = pd.NA
-    if "sw1_code" in current.columns:
-        industry_mean = current.groupby("sw1_code", dropna=True)[
-            "return_20d_pct"
-        ].transform("mean")
-        current["relative_return_industry_20d_pct"] = (
-            current["return_20d_pct"] - industry_mean
+    if not industry_membership.empty:
+        daily_peers = []
+        for day in slots:
+            # Membership used for each daily return must have been known by
+            # that day's close, not today's revised sector assignment.
+            membership = _industry_for_date(
+                industry_membership, day, f"{day}T15:00:00+08:00"
+            )
+            membership = membership.loc[
+                membership["level"].str.upper().eq("SW1"), ["thscode", "industry_code"]
+            ]
+            daily = adjusted.loc[
+                adjusted["trade_date"].eq(day),
+                ["thscode", "trade_date", "daily_adjusted_return_pct"],
+            ].merge(membership, on="thscode", how="left")
+            peer_groups = daily.groupby("industry_code")["daily_adjusted_return_pct"]
+            complete_peers = peer_groups.transform("count").eq(
+                peer_groups.transform("size")
+            )
+            daily["peer_growth"] = (1 + peer_groups.transform("mean") / 100).where(
+                complete_peers
+            )
+            daily_peers.append(daily)
+        peers = pd.concat(daily_peers).sort_values(["thscode", "trade_date"])
+        peers["peer_return"] = peers.groupby("thscode")["peer_growth"].transform(
+            lambda s: (
+                s.rolling(20, min_periods=20).apply(lambda w: w.prod(), raw=True) - 1
+            )
+            * 100
         )
+        peer_today = peers.loc[peers["trade_date"].eq(trade_date)].set_index("thscode")[
+            "peer_return"
+        ]
+        current["relative_return_industry_20d_pct"] = current[
+            "return_20d_pct"
+        ] - current["thscode"].map(peer_today)
     benchmark_returns: dict[str, float | None] = {
         "000300.SH": None,
         "000852.SH": None,
     }
     if not index_history.empty:
-        index_scoped = index_history.loc[index_history["trade_date"].le(trade_date)].copy()
+        index_scoped = index_history.loc[
+            index_history["trade_date"].le(trade_date)
+        ].copy()
         for code in benchmark_returns:
-            values = index_scoped.loc[
-                index_scoped["thscode"].eq(code), "close"
-            ].dropna()
-            if len(values) >= 21 and values.iloc[-21] > 0:
+            values = (
+                index_scoped.loc[index_scoped["thscode"].eq(code)]
+                .drop_duplicates("trade_date")
+                .set_index("trade_date")["close"]
+                .reindex(slots)
+            )
+            if (
+                len(values) >= 21
+                and values.iloc[-21:].notna().all()
+                and values.iloc[-21] > 0
+            ):
                 benchmark_returns[code] = float(
                     (values.iloc[-1] / values.iloc[-21] - 1) * 100
                 )
@@ -882,8 +968,7 @@ def build_stock_state(
     if not corporate_actions.empty:
         actions = normalize_corporate_actions(corporate_actions)
         actions = actions.loc[
-            actions["effective_at"].eq(trade_date)
-            & _known_by(actions, decision_time)
+            actions["effective_at"].eq(trade_date) & _known_by(actions, decision_time)
         ]
         action_map = {
             str(code): sorted(set(group["event_type"].dropna().astype(str)))
@@ -892,9 +977,7 @@ def build_stock_state(
         current["corporate_action_types"] = current["thscode"].map(
             lambda value: action_map.get(str(value), [])
         )
-        current["corporate_action_flag"] = current[
-            "corporate_action_types"
-        ].map(bool)
+        current["corporate_action_flag"] = current["corporate_action_types"].map(bool)
 
     indexes = _index_for_date(index_membership, trade_date, decision_time)
     membership_map: dict[str, list[str]] = {}
@@ -955,8 +1038,12 @@ def build_stock_state(
             "turnover_ratio_z20": "turnover_z20",
         }
     )
-    current["volume_z20"] = current.get("volume_z20", pd.Series(pd.NA, index=current.index))
-    current["amount_z20"] = current.get("amount_z20", pd.Series(pd.NA, index=current.index))
+    current["volume_z20"] = current.get(
+        "volume_z20", pd.Series(pd.NA, index=current.index)
+    )
+    current["amount_z20"] = current.get(
+        "amount_z20", pd.Series(pd.NA, index=current.index)
+    )
     for column in ("sw1_code", "sw1_name", "sw2_code", "sw2_name"):
         if column not in current.columns:
             current[column] = pd.NA
@@ -964,21 +1051,17 @@ def build_stock_state(
     current = current.replace([float("inf"), float("-inf")], pd.NA)
     state = current.reindex(columns=STOCK_STATE_COLUMNS).sort_values("thscode")
 
-    session_count = int(scoped["trade_date"].nunique())
+    session_count = min(TARGET_HISTORY_SESSIONS, len(set(observed_dates) & set(slots)))
     current_adjustment_coverage = float(state["adjusted_ready"].fillna(False).mean())
     sw1_coverage = float(state["sw1_code"].notna().mean()) if len(state) else 0.0
     index_count = int(indexes["index_code"].nunique()) if not indexes.empty else 0
     history_state = (
         "ready"
         if session_count >= TARGET_HISTORY_SESSIONS
-        else "partial"
-        if session_count > 0
-        else "missing"
+        else "partial" if session_count > 0 else "missing"
     )
     adjustment_state = (
-        "ready"
-        if current_adjustment_coverage >= MIN_ADJUSTMENT_COVERAGE
-        else "missing"
+        "ready" if current_adjustment_coverage >= MIN_ADJUSTMENT_COVERAGE else "missing"
     )
     industry_state = "ready" if sw1_coverage >= MIN_INDUSTRY_COVERAGE else "missing"
     horizon_readiness: dict[str, dict[str, Any]] = {}
@@ -992,9 +1075,7 @@ def build_stock_state(
         horizon_state = (
             "ready"
             if raw_coverage >= MIN_HORIZON_COVERAGE
-            else "partial"
-            if raw_coverage > 0
-            else "missing"
+            else "partial" if raw_coverage > 0 else "missing"
         )
         horizon_readiness[f"{periods}D"] = {
             "state": horizon_state,
@@ -1004,11 +1085,33 @@ def build_stock_state(
             "coverage": round(raw_coverage, 6),
             "adjusted_return_field": adjusted_field,
             "adjusted_coverage": round(adjusted_coverage, 6),
+            "adjusted_price_points_required": periods + 1,
+            "adjusted_state": (
+                "ready"
+                if adjusted_coverage >= MIN_HORIZON_COVERAGE
+                else "partial" if adjusted_coverage else "missing"
+            ),
         }
     readiness = {
         "history": {
             "state": history_state,
             "sessions": session_count,
+            "price_points_loaded": len(set(observed_dates) & set(slots)),
+            "calendar_basis": (
+                "explicit_session_calendar"
+                if trading_sessions
+                else history.attrs.get(
+                    "calendar_basis", "observed_sessions_with_conservative_weekday_gaps"
+                )
+            ),
+            "unconfirmed_calendar_dates": history.attrs.get(
+                "unconfirmed_calendar_dates",
+                (
+                    sorted(set(slots) - set(observed_dates))
+                    if not trading_sessions
+                    else []
+                ),
+            ),
             "target_sessions": TARGET_HISTORY_SESSIONS,
             "scope_end": trade_date,
             "horizons": horizon_readiness,
@@ -1040,9 +1143,11 @@ def build_stock_state(
             "index_count": index_count,
         },
         "index_prices": {
-            "state": "ready"
-            if all(value is not None for value in benchmark_returns.values())
-            else "missing",
+            "state": (
+                "ready"
+                if all(value is not None for value in benchmark_returns.values())
+                else "missing"
+            ),
             "benchmarks": {
                 "CSI300": _finite(benchmark_returns["000300.SH"]),
                 "CSI1000": _finite(benchmark_returns["000852.SH"]),
@@ -1130,7 +1235,7 @@ def _source_snapshot_hash(manifest: dict[str, Any]) -> str:
     artifacts = {
         key: value
         for key, value in (manifest.get("artifacts") or {}).items()
-        if key not in derived
+        if key not in derived and not key.startswith("research_")
     }
     return json_sha256(
         {
@@ -1152,9 +1257,7 @@ def _field_coverage(stock_state: pd.DataFrame) -> list[dict[str, Any]]:
                 "field": field,
                 "non_null_count": non_null,
                 "row_count": row_count,
-                "coverage_ratio": round(non_null / row_count, 6)
-                if row_count
-                else 0.0,
+                "coverage_ratio": round(non_null / row_count, 6) if row_count else 0.0,
             }
         )
     return output
@@ -1179,7 +1282,7 @@ def _data_catalog(
         "opportunity_radar_latest.json",
     }
     for name, metadata in sorted((manifest.get("artifacts") or {}).items()):
-        if name in excluded:
+        if name in excluded or name.startswith("research_"):
             continue
         catalog.append(
             {
@@ -1232,9 +1335,12 @@ def build_data_reference(
             or datetime.now(timezone.utc).isoformat(timespec="seconds"),
         },
         "run": {
-            "state": "ready"
-            if manifest.get("verified") is True and manifest.get("data_fresh") is True
-            else "stale",
+            "state": (
+                "ready"
+                if manifest.get("verified") is True
+                and manifest.get("data_fresh") is True
+                else "stale"
+            ),
             "data_fresh": bool(manifest.get("data_fresh")),
             "source_snapshot_sha256": source_snapshot_sha256,
             "provider": manifest.get("provider"),
@@ -1319,7 +1425,9 @@ def build_data_reference_outputs(
             data_dir / "snapshots" / selected_date / "manifest.json"
         )
         if not snapshot_manifest:
-            raise FileNotFoundError(f"snapshot manifest does not exist: {selected_date}")
+            raise FileNotFoundError(
+                f"snapshot manifest does not exist: {selected_date}"
+            )
         manifest = snapshot_manifest
     if manifest.get("verified") is not True or manifest.get("data_fresh") is not True:
         raise ValueError("selected snapshot is not verified and fresh")
@@ -1331,6 +1439,23 @@ def build_data_reference_outputs(
         "collected_at_utc": pit_timing["collection_completed_at"],
     }
     source_hash = _source_snapshot_hash(manifest)
+    snapshot_dir = data_dir / "snapshots" / selected_date
+    for name in (
+        "universe.parquet",
+        "security_reference.parquet",
+        "daily_quotes.parquet",
+        "daily_security_status.parquet",
+        "trading_calendar.parquet",
+        "market_summary.json",
+    ):
+        metadata = (manifest.get("artifacts") or {}).get(name)
+        if metadata and (
+            not (snapshot_dir / name).is_file()
+            or sha256_file(snapshot_dir / name) != metadata.get("sha256")
+        ):
+            raise ArtifactContractError(
+                f"source snapshot artifact hash mismatch: {name}"
+            )
     history = load_market_history(data_dir, selected_date)
     reference = _current_reference(data_dir, selected_date)
     snapshot_dir = data_dir / "snapshots" / selected_date
@@ -1354,6 +1479,37 @@ def build_data_reference_outputs(
     provider_tradability = _latest_partition_frame(
         data_dir, "tradability", "provider_tradability.parquet", selected_date
     )
+    frames_for_hash = {
+        "history": history,
+        "reference": reference,
+        "status": daily_status,
+        "adjustments": adjustments,
+        "corporate_actions": corporate_actions,
+        "industry": industry,
+        "indexes": indexes,
+        "index_history": index_history,
+        "provider_tradability": provider_tradability,
+    }
+    feature_input_hash = json_sha256(
+        {
+            "stock_state_schema": STOCK_STATE_SCHEMA_VERSION,
+            "source_snapshot_sha256": source_hash,
+            "calendar": history.attrs,
+            "min_adt20": min_adt20,
+            "normalized_frames": {
+                name: hashlib.sha256(
+                    frame.to_json(
+                        orient="split",
+                        index=False,
+                        date_format="iso",
+                        double_precision=15,
+                    ).encode("utf-8")
+                ).hexdigest()
+                for name, frame in frames_for_hash.items()
+            },
+        }
+    )
+    manifest["feature_input_sha256"] = feature_input_hash
     stock_state, readiness = build_stock_state(
         history,
         reference,
@@ -1408,11 +1564,15 @@ def build_data_reference_outputs(
         pit_timing,
     )
     opportunity_radar = build_opportunity_radar_inputs(opportunity_inputs)
+    research_artifacts = build_research_artifacts(
+        data_dir, opportunity_inputs, stock_state, history, reference
+    )
     reference_metadata = {
         "schema_version": DATA_REFERENCE_SCHEMA_VERSION,
         "source_snapshot_sha256": source_hash,
         "readiness": readiness,
         "stock_state_rows": int(len(stock_state)),
+        "feature_input_sha256": feature_input_hash,
         "opportunity_inputs_schema_version": opportunity_inputs["schema_version"],
         "opportunity_radar_schema_version": OPPORTUNITY_RADAR_SCHEMA_VERSION,
     }
@@ -1426,10 +1586,12 @@ def build_data_reference_outputs(
         reference_metadata,
         manifest_updates={
             "schema_version": 3,
+            "feature_input_sha256": feature_input_hash,
             **pit_timing,
             "collected_at_utc": pit_timing["collection_completed_at"],
         },
         publish_latest=publish_latest,
+        research_artifacts=research_artifacts,
     )
     reference_path = (
         latest / "data_reference_latest.json"
@@ -1444,6 +1606,12 @@ def build_data_reference_outputs(
         "source_snapshot_sha256": source_hash,
         "manifest_artifact_count": len(final_manifest.get("artifacts") or {}),
         "data_reference_path": str(reference_path.resolve()),
+        "research_inputs_path": str(
+            (reference_path.parent / "research_inputs_latest.json").resolve()
+        ),
+        "research_modules": research_artifacts["research_inputs_latest.json"][
+            "modules"
+        ],
         "opportunity_inputs_path": str(
             (
                 latest / "opportunity_inputs_latest.json"
