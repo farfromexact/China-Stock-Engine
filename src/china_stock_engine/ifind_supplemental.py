@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 from typing import Any
 from zoneinfo import ZoneInfo
+from urllib.parse import urlparse, parse_qsl
 
 import pandas as pd
 
@@ -118,6 +119,26 @@ def _envelope(module, codes, start, end, started, completed, rows):
     })
 
 
+def _document_link(value):
+    """Never serialize signed/authenticated links, even their query values."""
+    url = str(value)
+    parsed = urlparse(url)
+    sensitive = any(re.search(r"token|secret|password|authorization|api.?key|signature|credential", key, re.I)
+                    for key, _ in parse_qsl(parsed.query))
+    if sensitive or parsed.username or parsed.password:
+        return {"source_url": DOC_URL, "source_url_kind": "provider_query_documentation",
+                "document_access": "authenticated_link_omitted"}
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return {"source_url": DOC_URL, "source_url_kind": "provider_query_documentation",
+                "document_access": "not_resolved"}
+    if url.startswith("http://"):
+        # Do not pretend an untested HTTPS conversion is a usable document URL.
+        return {"source_url": DOC_URL, "source_url_kind": "provider_query_documentation",
+                "document_access": "not_resolved"}
+    return {"source_url": url, "source_url_kind": "public_document",
+            "document_access": "public_link_not_downloaded"}
+
+
 def collect_financials(client, codes, report_period, as_of_date) -> dict:
     started = utc_now()
     frame = client.fetch_basic_indicators(codes, [
@@ -145,6 +166,7 @@ def collect_financials(client, codes, report_period, as_of_date) -> dict:
             "published_at": published, "first_seen_at": completed, "known_at": completed,
             "revision": f"ifind_pit_{as_of_date}_{json_sha256(values)[:16]}",
             "source_url": DOC_URL, "document_sha256": None,
+            "source_url_kind": "provider_query_documentation", "document_access": "not_resolved",
             "report_period": report_period, "period_start": report_period[:4] + "-01-01",
             "period_basis": "YTD", "accounting_scope": "consolidated",
             "currency": "CNY", "unit": "CNY", "values": values,
@@ -175,17 +197,15 @@ def collect_events(client, codes, start, end) -> dict:
             published_date = pd.Timestamp(published).tz_convert("Asia/Shanghai").date().isoformat()
             if not start <= published_date <= end or pd.Timestamp(published) > pd.Timestamp(completed):
                 continue
-            url = str(item["pdfURL"])
-            if url.startswith("http://"):
-                url = "https://" + url[len("http://"):]
+            link = _document_link(item["pdfURL"])
             if pd.isna(item["seq"]) or pd.isna(item["reportTitle"]):
                 raise ArtifactContractError("announcement identity/title missing")
-            fact = {"title": str(item["reportTitle"]), "url": url, "published": published}
+            fact = {"title": str(item["reportTitle"]), "url": link["source_url"], "published": published}
             rows.append({
                 "thscode": str(item["thscode"]).upper(), "published_at": published,
                 "first_seen_at": completed, "known_at": completed,
                 "revision": "ifind_" + json_sha256(fact)[:32],
-                "source_url": url, "document_sha256": None,
+                **link, "document_sha256": None,
                 "event_id": "ifind_" + str(item["seq"]), "event_type": "filing",
                 "event_date": pd.Timestamp(_timestamp(item["reportDate"])).tz_convert("Asia/Shanghai").date().isoformat(),
                 "status": "unknown", "title": fact["title"],

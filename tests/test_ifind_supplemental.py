@@ -8,6 +8,7 @@ import pandas as pd
 from china_stock_engine.ifind_supplemental import (
     BoundedClient, FINANCIAL_INDICATOR, PUBLICATION_INDICATOR,
     collect_financials, collect_events, run_collection, safe_failure,
+    _document_link,
 )
 from china_stock_engine.ifind_http import IFindHTTPError
 from china_stock_engine.storage import ArtifactContractError, atomic_write_parquet
@@ -129,6 +130,12 @@ class SupplementalTests(unittest.TestCase):
         with self.assertRaises(IFindHTTPError):
             client.renew_access_token_once()
         self.assertEqual(len(calls), 1)
+
+    def test_authenticated_announcement_link_never_persists_secret(self):
+        value = _document_link("https://example.org/filing?seq=42&access_token=synthetic-secret")
+        self.assertNotIn("synthetic-secret", str(value))
+        self.assertEqual(value["document_access"], "authenticated_link_omitted")
+        self.assertEqual(value["source_url_kind"], "provider_query_documentation")
 
 
 if __name__ == "__main__":

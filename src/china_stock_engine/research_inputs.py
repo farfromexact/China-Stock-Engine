@@ -57,6 +57,7 @@ COMMON_FIELDS = {
     "source_url",
     "document_sha256",
 }
+OPTIONAL_SOURCE_FIELDS = {"source_url_kind", "document_access"}
 ENVELOPE_FIELDS = {
     "schema_version",
     "module",
@@ -153,11 +154,20 @@ def normalize_research_batch(payload: dict) -> dict:
             if module == "financials"
             else {"event_id", "event_type", "event_date", "status", "title"}
         )
-        if not isinstance(source, dict) or set(source) != COMMON_FIELDS | specific:
+        if (not isinstance(source, dict)
+                or set(source) - OPTIONAL_SOURCE_FIELDS != COMMON_FIELDS | specific):
             raise ArtifactContractError(
                 "research record must contain only the documented normalized fields"
             )
         row = dict(source)
+        if "source_url_kind" in row and row["source_url_kind"] not in {
+            "public_document", "provider_query_documentation"
+        }:
+            raise ArtifactContractError("unknown source URL kind")
+        if "document_access" in row and row["document_access"] not in {
+            "public_link_not_downloaded", "authenticated_link_omitted", "not_resolved"
+        }:
+            raise ArtifactContractError("unknown document access state")
         if row["thscode"] not in codes:
             raise ArtifactContractError("research record is outside declared coverage")
         published, seen, known = (
