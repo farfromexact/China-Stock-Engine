@@ -1,0 +1,61 @@
+name: Supplemental iFinD Facts
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Bounded live scope; canary is three securities"
+        type: choice
+        options: [canary, radar]
+        default: canary
+      modules:
+        description: "Comma separated: financials,events,adjustment"
+        type: string
+        default: financials,events,adjustment
+
+permissions:
+  contents: write
+concurrency:
+  group: daily-china-stock-data
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Verify publication access and install
+        run: |
+          git push --dry-run origin HEAD:main
+          python -m pip install -r requirements.txt
+          python -m pip install --no-deps -e .
+      - name: Test before spending quota
+        run: python -m unittest discover -s tests -v
+      - name: Collect bounded supplemental facts
+        id: collect
+        continue-on-error: true
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+          SCOPE: ${{ inputs.scope }}
+          MODULES: ${{ inputs.modules }}
+        run: >-
+          python -m china_stock_engine.ifind_supplemental
+          --scope "$SCOPE" --modules "$MODULES" --max-requests 12
+      - name: Retain successful normalized checkpoints even if another module failed
+        if: always() && steps.collect.outcome != 'skipped'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all data/facts
+          if [[ -f data/supplemental_last_attempt.json ]]; then git add data/supplemental_last_attempt.json; fi
+          if [[ -f data/latest/supplemental_manifest.json ]]; then git add data/latest/supplemental_manifest.json; fi
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "data: checkpoint bounded iFinD supplemental collection"
+          git push origin HEAD:main
+      - name: Surface failed module
+        if: steps.collect.outcome == 'failure'
+        run: exit 1

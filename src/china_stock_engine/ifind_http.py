@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import json
 import os
 import time
@@ -567,34 +568,48 @@ class IFindHTTPClient:
         start_date: str,
         end_date: str,
         *,
-        known_at: str,
+        known_at: str | None = None,
+        raw_prices: pd.DataFrame | None = None,
         batch_size: int = 100,
         request_interval_seconds: float = 0.15,
         progress: ProgressCallback | None = None,
     ) -> pd.DataFrame:
-        """Derive point-in-time forward-adjustment factors from iFinD CPS output."""
+        """Collect a dividend-reinvested price vintage, not historical knowledge.
 
-        raw = self.fetch_daily_history(
+        HTTP daily CPS=2 is dividend reinvestment; forward1 is a high-frequency
+        setting. Cached unadjusted closes avoid a second quota-consuming query.
+        The actual completion bounds known_at even when an older hint is supplied.
+        """
+
+        raw = (raw_prices.copy() if raw_prices is not None else self.fetch_daily_history(
             codes,
             start_date,
             end_date,
             indicators=("close",),
-            cps="no",
+            cps="1",
             batch_size=batch_size,
             request_interval_seconds=request_interval_seconds,
             progress=progress,
-        ).rename(columns={"close": "raw_close"})
+        )).rename(columns={"close": "raw_close"})
+        raw = raw.loc[
+            raw["thscode"].isin(codes)
+            & raw["trade_date"].between(start_date, end_date)
+        ]
+        if raw.empty or raw.duplicated(["trade_date", "thscode"]).any():
+            raise IFindHTTPError("cached raw prices are empty or have duplicate keys")
         adjusted = self.fetch_daily_history(
             codes,
             start_date,
             end_date,
             indicators=("close",),
-            cps="forward1",
+            cps="2",
             base_date=end_date,
             batch_size=batch_size,
             request_interval_seconds=request_interval_seconds,
             progress=progress,
         ).rename(columns={"close": "forward_adj_close"})
+        if adjusted.empty:
+            raise IFindHTTPError("adjusted price response is empty")
         merged = raw.loc[:, ["trade_date", "thscode", "raw_close"]].merge(
             adjusted.loc[:, ["trade_date", "thscode", "forward_adj_close"]],
             how="inner",
@@ -606,8 +621,13 @@ class IFindHTTPClient:
         merged["adj_factor"] = merged["forward_adj_close"] / merged["raw_close"]
         merged["effective_at"] = merged["trade_date"]
         merged["published_at"] = pd.NA
-        merged["known_at"] = str(known_at)
-        merged["adjustment_method"] = "ifind_forward1_dividend_plan"
+        completed = datetime.now(timezone.utc).isoformat()
+        if known_at is not None and pd.Timestamp(known_at) > pd.Timestamp(completed):
+            raise ValueError("adjustment known_at cannot be in the future")
+        merged["known_at"] = completed
+        merged["collection_completed_at"] = completed
+        merged["base_date"] = end_date
+        merged["adjustment_method"] = "ifind_daily_cps2_dividend_reinvestment"
         merged["source_provider"] = "ifind_http"
         merged["source_endpoint"] = "cmd_history_quotation"
         return merged.sort_values(["trade_date", "thscode"]).reset_index(drop=True)
