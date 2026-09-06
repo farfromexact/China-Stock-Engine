@@ -3,19 +3,50 @@
   "as_of_date": "2026-09-06",
   "market_trade_date": "2026-09-04",
   "modules": {
-    "financials": {
-      "api_error_code": -1303,
-      "error_type": "IFindHTTPError",
+    "adjustment": {
+      "codes": 3,
+      "completed_at": "2026-09-06T12:16:04.761170+00:00",
+      "path": "facts/adjustment/as_of_date=2026-09-06/vintage=90b51143320fae11debb3774d630a6d1b2ec1b4a65ee836ac2fa61a335c4ed3e/adjustment_factors.parquet",
+      "raw_prices_reused": true,
+      "reused": false,
+      "rows": 63,
+      "sha256": "767cd2b3c1491b9cf5c9b9e4a6d99986abbda33c374047dd12add90c50e9b415",
+      "source_end": "2026-09-04",
+      "source_start": "2026-08-07",
+      "state": "success"
+    },
+    "events": {
+      "api_error_code": null,
+      "error_type": "ArtifactContractError",
+      "reason": "source_url must not persist authentication parameters",
       "state": "failed"
+    },
+    "financials": {
+      "completed_at": "2026-09-06T12:16:02.745811+00:00",
+      "path": "facts/research/financials/1fc6f7b5c97e15dcce103c43af9e03dc6c8e12515b83a1adba82163f9d598a2b.json",
+      "reused": false,
+      "rows": 3,
+      "sha256": "4e08e3950d5d2985186d84db60cf799110e66f3aa489cf90244d83963fedf980",
+      "state": "success"
     }
   },
   "ok": false,
   "raw_payload_persisted": false,
   "requests": [
     {
-      "data_volume": null,
+      "data_volume": 6,
       "endpoint": "basic_data_service",
-      "success": false
+      "success": true
+    },
+    {
+      "data_volume": 1,
+      "endpoint": "report_query",
+      "success": true
+    },
+    {
+      "data_volume": 63,
+      "endpoint": "cmd_history_quotation",
+      "success": true
     }
   ],
   "schema_version": 1,
