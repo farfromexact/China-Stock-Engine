@@ -12,6 +12,14 @@ on:
         description: "Comma separated: financials,events,adjustment"
         type: string
         default: financials,events,adjustment
+      auth_only:
+        description: "Only obtain an access token; do not request data"
+        type: boolean
+        default: false
+      renew_access_token:
+        description: "Explicitly authorize ONE renewal (old access tokens become invalid)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -42,9 +50,14 @@ jobs:
           IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
           SCOPE: ${{ inputs.scope }}
           MODULES: ${{ inputs.modules }}
-        run: >-
-          python -m china_stock_engine.ifind_supplemental
-          --scope "$SCOPE" --modules "$MODULES" --max-requests 12
+          AUTH_ONLY: ${{ inputs.auth_only }}
+          RENEW_ACCESS_TOKEN: ${{ inputs.renew_access_token }}
+        run: |
+          EXTRA_ARGS=()
+          if [[ "$AUTH_ONLY" == "true" ]]; then EXTRA_ARGS+=(--auth-only); fi
+          if [[ "$RENEW_ACCESS_TOKEN" == "true" ]]; then EXTRA_ARGS+=(--renew-access-token); fi
+          python -m china_stock_engine.ifind_supplemental \
+            --scope "$SCOPE" --modules "$MODULES" --max-requests 12 "${EXTRA_ARGS[@]}"
       - name: Retain successful normalized checkpoints even if another module failed
         if: always() && steps.collect.outcome != 'skipped'
         run: |
@@ -52,6 +65,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add --all data/facts
           if [[ -f data/supplemental_last_attempt.json ]]; then git add data/supplemental_last_attempt.json; fi
+          if [[ -f data/supplemental_auth_status.json ]]; then git add data/supplemental_auth_status.json; fi
           if [[ -f data/latest/supplemental_manifest.json ]]; then git add data/latest/supplemental_manifest.json; fi
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "data: checkpoint bounded iFinD supplemental collection"

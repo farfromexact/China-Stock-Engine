@@ -11,6 +11,7 @@ from china_stock_engine.ifind_supplemental import (
 )
 from china_stock_engine.ifind_http import IFindHTTPError
 from china_stock_engine.storage import ArtifactContractError, atomic_write_parquet
+from china_stock_engine.data_reference import feature_pit_timing, apply_adjustments, load_adjustment_snapshot
 
 
 class SupplementalTests(unittest.TestCase):
@@ -87,6 +88,47 @@ class SupplementalTests(unittest.TestCase):
             self.assertEqual(target.read_text(), "last valid sentinel")
             self.assertEqual(len(list((data_dir / "facts/research/financials").glob("*.json"))), 1)
         self.assertNotIn("private-secret", str(safe_failure(IFindHTTPError("private-secret code -4318"))))
+
+    def test_feature_completion_includes_same_day_late_factor_not_future_day(self):
+        timing = {"collection_started_at": "2026-09-04T10:00:00Z",
+                  "collection_completed_at": "2026-09-04T10:30:00Z",
+                  "effective_pit_cutoff": "2026-09-04T10:30:00Z",
+                  "configured_decision_cutoff": "2026-09-04T12:15:00Z"}
+        factors = pd.DataFrame({"trade_date": ["2026-09-04"] * 2,
+                                "thscode": ["600000.SH"] * 2, "adj_factor": [1., 2.],
+                                "effective_at": ["2026-09-04"] * 2, "published_at": [None] * 2,
+                                "known_at": ["2026-09-04T11:00:00Z", "2026-09-06T11:00:00Z"],
+                                "collection_completed_at": ["2026-09-04T11:00:00Z", "2026-09-06T11:00:00Z"]})
+        adjusted_timing = feature_pit_timing(timing, factors)
+        self.assertEqual(timing["collection_completed_at"], "2026-09-04T10:30:00Z")
+        self.assertEqual(adjusted_timing["effective_pit_cutoff"], "2026-09-04T11:00:00+00:00")
+        raw = pd.DataFrame({"trade_date": ["2026-09-04"], "thscode": ["600000.SH"], "close": [10.]})
+        result = apply_adjustments(raw, factors, adjusted_timing["effective_pit_cutoff"])
+        self.assertEqual(result.iloc[0]["adjusted_close"], 10.)
+        self.assertEqual(feature_pit_timing(timing, factors.iloc[1:]), timing)
+
+    def test_adjustment_vintage_date_not_backdated_to_price_date(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data_dir = Path(directory)
+            facts = pd.DataFrame({"trade_date": ["2026-09-04"], "thscode": ["600000.SH"], "adj_factor": [1.]})
+            atomic_write_parquet(data_dir / "facts/adjustment/as_of_date=2026-09-06/vintage=synthetic/adjustment_factors.parquet", facts)
+            self.assertTrue(load_adjustment_snapshot(data_dir, "2026-09-04").empty)
+            self.assertEqual(len(load_adjustment_snapshot(data_dir, "2026-09-07")), 1)
+
+    def test_authorized_access_renewal_is_once_and_refresh_never_changes(self):
+        calls = []
+        def transport(url, headers, payload, timeout):
+            calls.append(url)
+            self.assertTrue(url.endswith("/update_access_token"))
+            self.assertEqual(headers, {"refresh_token": "synthetic-refresh"})
+            return {"errorcode": 0, "data": {"access_token": "synthetic-new-access"}}
+        client = BoundedClient(refresh_token="synthetic-refresh", transport=transport)
+        client.renew_access_token_once()
+        self.assertEqual(client.refresh_token, "synthetic-refresh")
+        self.assertEqual(client.get_access_token(), "synthetic-new-access")
+        with self.assertRaises(IFindHTTPError):
+            client.renew_access_token_once()
+        self.assertEqual(len(calls), 1)
 
 
 if __name__ == "__main__":

@@ -465,7 +465,7 @@ def _run(args: argparse.Namespace) -> int:
                 client,
                 args.data_dir,
                 args.adjustment_start
-                or (pd.Timestamp(args.date) - pd.Timedelta(days=400))
+                or (pd.Timestamp(args.date) - pd.Timedelta(days=40))
                 .date()
                 .isoformat(),
                 args.date,
@@ -516,39 +516,14 @@ def _refresh_adjustments(
         raise FileNotFoundError("latest universe is required before adjustment refresh")
     universe = pd.read_parquet(universe_path)
     codes = universe["thscode"].dropna().astype(str).tolist()
-    calendar_days = max((pd.Timestamp(end_date) - pd.Timestamp(start_date)).days + 1, 1)
-    safe_batch_size = max(1, min(requested_batch_size, 45_000 // calendar_days))
+    from .ifind_supplemental import collect_adjustments
 
-    def progress(done: int, total: int) -> None:
-        print(f"iFinD adjustment batches: {done}/{total}", flush=True)
-
-    known_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    factors = client.fetch_adjustment_factors(
-        codes,
-        start_date,
-        end_date,
-        known_at=known_at,
-        batch_size=safe_batch_size,
-        request_interval_seconds=0.15,
-        progress=progress,
-    )
-    output = (
-        data_dir
-        / "facts"
-        / "adjustment"
-        / f"as_of_date={end_date}"
-        / "adjustment_factors.parquet"
-    )
-    atomic_write_parquet(output, factors)
+    metadata = collect_adjustments(client, data_dir, codes, end_date,
+                                   start_date=start_date, batch_size=requested_batch_size)
     data_reference = build_data_reference_outputs(data_dir, end_date)
     return {
         "ok": True,
-        "rows": int(len(factors)),
-        "source_start": start_date,
-        "source_end": end_date,
-        "known_at": known_at,
-        "batch_size": safe_batch_size,
-        "output": str(output.resolve()),
+        **metadata,
         "data_reference": data_reference,
     }
 

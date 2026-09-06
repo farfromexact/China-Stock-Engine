@@ -463,10 +463,37 @@ def _latest_partition_frame(
 
 def load_adjustment_snapshot(data_dir: Path, as_of_date: str) -> pd.DataFrame:
     """Load the newest adjustment snapshot that existed by ``as_of_date``."""
-
-    return _latest_partition_frame(
+    legacy = _latest_partition_frame(
         data_dir, "adjustment", "adjustment_factors.parquet", as_of_date
     )
+    frames = [legacy] if not legacy.empty else []
+    for path in sorted((data_dir / "facts" / "adjustment").glob(
+        "as_of_date=*/vintage=*/adjustment_factors.parquet"
+    )):
+        if path.parent.parent.name.removeprefix("as_of_date=") <= as_of_date:
+            frames.append(pd.read_parquet(path))
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+def feature_pit_timing(market_timing: dict[str, str], adjustments: pd.DataFrame) -> dict[str, str]:
+    """Late optional facts may advance feature knowledge, never backdate it.
+
+    The immutable market collection times remain on the market manifest. Only
+    facts actually completed by the configured close-time boundary are eligible.
+    A factor first collected on Sunday cannot alter Friday's decision features.
+    """
+    timing = dict(market_timing)
+    if adjustments.empty or "collection_completed_at" not in adjustments:
+        return timing
+    completed = pd.to_datetime(adjustments["collection_completed_at"], utc=True, errors="coerce")
+    known = pd.to_datetime(adjustments["known_at"], utc=True, errors="coerce")
+    configured = _as_utc_timestamp(timing["configured_decision_cutoff"])
+    eligible = completed.loc[known.le(completed) & completed.le(configured)]
+    if not eligible.empty:
+        completion = max(_as_utc_timestamp(timing["collection_completed_at"]), eligible.max())
+        timing["collection_completed_at"] = completion.isoformat()
+        timing["effective_pit_cutoff"] = min(completion, configured).isoformat()
+    return timing
 
 
 def load_module_status(data_dir: Path, as_of_date: str) -> dict[str, Any]:
@@ -520,6 +547,12 @@ def apply_adjustments(
     else:
         normalized = normalize_adjustments(adjustments)
         normalized = normalized.loc[_known_by(normalized, decision_time)].copy()
+        if "base_date" in normalized:
+            # Do not splice an older normalization base into a newer vintage.
+            vintage = normalized.groupby("thscode")["known_at"].transform("max")
+            normalized = normalized.loc[
+                normalized["base_date"].isna() | normalized["known_at"].eq(vintage)
+            ]
         normalized = normalized.sort_values("known_at").drop_duplicates(
             ["trade_date", "thscode"], keep="last"
         )
@@ -1463,9 +1496,9 @@ def build_data_reference_outputs(
     if not status_path.exists():
         status_path = latest / "daily_security_status.parquet"
     daily_status = pd.read_parquet(status_path)
-    adjustments = _latest_partition_frame(
-        data_dir, "adjustment", "adjustment_factors.parquet", selected_date
-    )
+    adjustments = load_adjustment_snapshot(data_dir, selected_date)
+    market_pit_timing = dict(pit_timing)
+    pit_timing = feature_pit_timing(market_pit_timing, adjustments)
     corporate_actions = _latest_partition_frame(
         data_dir, "adjustment", "corporate_actions.parquet", selected_date
     )
@@ -1496,6 +1529,7 @@ def build_data_reference_outputs(
             "source_snapshot_sha256": source_hash,
             "calendar": history.attrs,
             "min_adt20": min_adt20,
+            "feature_pit_timing": pit_timing,
             "normalized_frames": {
                 name: hashlib.sha256(
                     frame.to_json(
@@ -1548,7 +1582,7 @@ def build_data_reference_outputs(
         summary_path = latest / "market_summary.json"
     market_summary = _read_json(summary_path)
     data_reference = build_data_reference(
-        manifest, market_summary, stock_state, readiness, source_hash
+        {**manifest, **pit_timing}, market_summary, stock_state, readiness, source_hash
     )
     quote_path = snapshot_dir / "daily_quotes.parquet"
     if not quote_path.exists():
@@ -1587,8 +1621,9 @@ def build_data_reference_outputs(
         manifest_updates={
             "schema_version": 3,
             "feature_input_sha256": feature_input_hash,
-            **pit_timing,
-            "collected_at_utc": pit_timing["collection_completed_at"],
+            **market_pit_timing,
+            "feature_pit_timing": pit_timing,
+            "collected_at_utc": market_pit_timing["collection_completed_at"],
         },
         publish_latest=publish_latest,
         research_artifacts=research_artifacts,

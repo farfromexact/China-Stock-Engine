@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timedelta, timezone
 import json
+import os
 from pathlib import Path
 import re
 from typing import Any
@@ -16,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
-from .ifind_http import IFindHTTPClient, IFindHTTPError, _tables_frame
+from .ifind_http import IFindHTTPClient, IFindHTTPError, _tables_frame, _raise_api_error
 from .research_inputs import normalize_research_batch
 from .storage import (
     ArtifactContractError, atomic_write_json, atomic_write_parquet,
@@ -41,6 +42,16 @@ def safe_failure(exc: Exception) -> dict:
     result = {"state": "failed", "error_type": type(exc).__name__, "api_error_code": code}
     if isinstance(exc, ArtifactContractError):
         result["reason"] = str(exc)[:200]
+    else:
+        message = str(exc).lower()
+        for fragment, reason in (
+            ("device exceed limit", "device_ip_binding_limit"),
+            ("refresh_token is expired", "refresh_token_rejected"),
+            ("budget exhausted", "request_budget_exhausted"),
+        ):
+            if fragment in message:
+                result["reason"] = reason
+                break
     return result
 
 
@@ -51,6 +62,22 @@ class BoundedClient(IFindHTTPClient):
         super().__init__(max_transport_attempts=1, **kwargs)
         self.max_requests = max_requests
         self.audit: list[dict] = []
+        self.renewal_attempted = False
+
+    def renew_access_token_once(self):
+        """Explicitly authorized recovery; invalidates old access tokens, not refresh."""
+        if self.renewal_attempted:
+            raise IFindHTTPError("access token renewal was already attempted")
+        self.renewal_attempted = True
+        refresh = self.refresh_token or os.environ.get("IFIND_REFRESH_TOKEN")
+        if not refresh:
+            raise IFindHTTPError("refresh token is required for authorized renewal")
+        response = self._send(f"{self.base_url}/update_access_token", {"refresh_token": refresh}, None)
+        _raise_api_error("update_access_token", response)
+        token = (response.get("data") or {}).get("access_token")
+        if not token:
+            raise IFindHTTPError("renewal response contained no access token")
+        self.access_token = str(token)
 
     def request(self, endpoint: str, payload: dict[str, Any]) -> dict:
         if len(self.audit) >= self.max_requests:
@@ -187,11 +214,15 @@ def _cached_closes(data_dir, trade_date, codes):
     return frame.loc[frame["thscode"].isin(codes)].sort_values(["trade_date", "thscode"])
 
 
-def collect_adjustments(client, data_dir, codes, trade_date):
+def collect_adjustments(client, data_dir, codes, trade_date, *, start_date=None, batch_size=100):
     raw = _cached_closes(data_dir, trade_date, codes)
+    if start_date:
+        raw = raw.loc[raw["trade_date"].ge(start_date)]
+    if raw.empty:
+        raise ArtifactContractError("no cached raw prices in requested adjustment window")
     factors = client.fetch_adjustment_factors(
         codes, str(raw["trade_date"].min()), trade_date, raw_prices=raw,
-        batch_size=100, request_interval_seconds=0.5,
+        batch_size=batch_size, request_interval_seconds=0.5,
     )
     if len(factors) != len(raw) or factors["adj_factor"].isna().any():
         raise ArtifactContractError("adjustment coverage does not match cached raw observations")
@@ -276,6 +307,9 @@ def main(argv=None):
     parser.add_argument("--modules", default="financials,events,adjustment")
     parser.add_argument("--max-requests", type=int, default=12)
     parser.add_argument("--event-days", type=int, default=7)
+    parser.add_argument("--auth-only", action="store_true")
+    parser.add_argument("--renew-access-token", action="store_true",
+                        help="explicit authorization required; invalidates other old access tokens")
     args = parser.parse_args(argv)
     manifest = load_manifest(args.data_dir / "latest" / "manifest.json", missing_ok=False)
     codes = CANARY_CODES
@@ -286,6 +320,25 @@ def main(argv=None):
     if not modules or len(set(modules)) != len(modules) or set(modules) - {"financials", "events", "adjustment"}:
         raise ValueError("invalid modules")
     client = BoundedClient(max_requests=args.max_requests)
+    if args.renew_access_token:
+        try:
+            client.renew_access_token_once()
+            renewal = {"ok": True, "state": "access_token_renewed", "refresh_token_changed": False}
+        except Exception as exc:
+            renewal = {"ok": False, **safe_failure(exc), "retry_performed": False}
+        atomic_write_json(args.data_dir / "supplemental_auth_status.json", renewal)
+        print(json.dumps(renewal))
+        if not renewal["ok"]:
+            return 1
+    if args.auth_only:
+        try:
+            client.get_access_token()
+            result = {"ok": True, "state": "access_token_obtained", "data_requests": 0}
+        except Exception as exc:
+            result = {"ok": False, **safe_failure(exc), "data_requests": 0}
+        atomic_write_json(args.data_dir / "supplemental_auth_status.json", result)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["ok"] else 1
     result = run_collection(client, args.data_dir, modules=modules, codes=codes,
                             trade_date=manifest["trade_date"],
                             as_of_date=datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat(),
