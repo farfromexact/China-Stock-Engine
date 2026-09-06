@@ -165,6 +165,17 @@ jobs:
           python -m china_stock_engine.cli validate
           --data-dir "${{ steps.collect.outputs.data_dir }}"
 
+      - name: Collect bounded supplemental facts when enabled
+        id: supplemental
+        if: steps.validate.outcome == 'success' && vars.IFIND_SUPPLEMENTAL_SCOPE != ''
+        continue-on-error: true
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+          SUPPLEMENTAL_SCOPE: ${{ vars.IFIND_SUPPLEMENTAL_SCOPE }}
+        run: >-
+          python -m china_stock_engine.ifind_supplemental
+          --scope "$SUPPLEMENTAL_SCOPE" --max-requests 12
+
       - name: Refresh compact data reference
         id: reference_refresh
         if: steps.validate.outcome == 'success'
@@ -199,6 +210,14 @@ jobs:
           else
             [[ -f data/last_run_status.json ]] && git add data/last_run_status.json
             [[ -f data/latest/last_attempt_status.json ]] && git add data/latest/last_attempt_status.json
+          fi
+          # Successful normalized supplemental checkpoints remain reusable even
+          # when a different module or the derived publication gate failed.
+          if [[ -f data/supplemental_last_attempt.json ]]; then
+            git add data/supplemental_last_attempt.json
+            for FACT_DIR in data/facts/collection_receipts data/facts/research data/facts/adjustment; do
+              if [[ -d "$FACT_DIR" ]]; then git add --all "$FACT_DIR"; fi
+            done
           fi
           if git diff --cached --quiet; then
             echo "No data changes to publish."

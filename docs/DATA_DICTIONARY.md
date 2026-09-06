@@ -142,7 +142,7 @@ availability 对可交易性相关字段使用以下状态，不依赖 Python/JS
 - `confirmed_value`：明确观测到非布尔数值；
 - `confirmed_clear` / `confirmed_restricted`：明确观测到可交易性 clear/restricted。
 
-`generated_at` 必须等于行情源快照的 `collection_completed_at`，相同完整输入和规则版本的重复构建字节一致。`source_snapshot_sha256` 不含派生产物；`feature_input_sha256` 另绑定历史、日历、可选事实和特征参数，避免循环哈希。文件使用确定性多行JSON；220–250 KiB是软目标，300 KiB是硬上限。超限会fail closed，不提升latest，也不自动删除字段或减少候选。
+`generated_at` 必须等于接口 `pit_timing.collection_completed_at`（行情及合格补充因子的最大实际完成时间），相同完整输入和规则版本的重复构建字节一致。行情manifest保留原始行情完成时间，`feature_pit_timing` 单独记录派生层时间；后采集因子必须仍在当日配置截止时间以内，否则不能倒灌历史决策。`source_snapshot_sha256` 不含派生产物；`feature_input_sha256` 另绑定历史、日历、可选事实、特征时间和参数，避免循环哈希。文件使用确定性多行JSON；220–250 KiB是软目标，300 KiB是硬上限。超限会fail closed，不提升latest，也不自动删除字段或减少候选。
 
 ## 20日窗口和研究事实版本
 
@@ -151,3 +151,20 @@ availability 对可交易性相关字段使用以下状态，不依赖 Python/JS
 研究事实入口为schema1，详细字段、单位、时间及修订语义见 [RESEARCH_CONTRACT.md](RESEARCH_CONTRACT.md)。批次、研究索引与分片均不保留raw响应；财务或公告缺失不是 `not_entitled`，后者只传播截止时间前已记录的明确权限拒绝。
 
 总市值分桶为固定人民币边界：`<50 亿`、`50–200 亿`、`200–800 亿`、`800–3000 亿`、`>=3000 亿`。分桶只是汇总维度，不代表投资风格判断。
+
+## 真实补充采集
+
+`supplemental_manifest.json` 是独立的schema1采集指针：`market_trade_date` 是行情源日，
+`as_of_date` 是实际采集日，`scope_codes` 限定范围；逐模块给出规范化文件 `path/sha256/rows/completed_at`。
+它不证明全市场覆盖，也不替代行情manifest。失败只更新独立attempt，保留最后有效补充指针。
+
+财务当前映射 `ths_np_atoopc_pit_stock` 为人民币元、合并YTD归母净利润；
+`ths_regular_report_actual_dd_stock` 为实际披露日期，日期精度保守转北京时间日末。
+公告 `seq` 映射为事件身份；不从标题推断事件已经完成。可选
+`source_url_kind` 区分原文链接与供应商查询文档，`document_access` 明示
+`authenticated_link_omitted/public_link_not_downloaded/not_resolved`；鉴权链接的参数不落盘。
+没有下载文档时 `document_sha256=null`。
+
+复权新增 `base_date/collection_completed_at/adjustment_method`，使用日线CPS=2分红再投口径。
+`adj_factor=forward_adj_close/raw_close`，原价来自已有规范化行情；每次因子序列保留完整vintage，
+不同基点不可拼接。它不替代含分红/送转/配股明细的公司行为事实表。

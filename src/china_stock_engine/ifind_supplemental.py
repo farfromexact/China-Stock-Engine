@@ -176,6 +176,40 @@ def collect_financials(client, codes, report_period, as_of_date) -> dict:
     return _envelope("financials", codes, report_period, report_period, started, completed, rows)
 
 
+def collect_financials_incremental(client, data_dir, codes, report_period, as_of_date):
+    """Reuse issuer/period facts for up to seven days unless a newer filing exists."""
+    now = pd.Timestamp(utc_now())
+    cached = {}
+    for path in sorted((data_dir / "facts/research/financials").glob("*.json")):
+        batch = normalize_research_batch(load_json_object(path, missing_ok=False))
+        if json_sha256(batch) != path.stem:
+            raise ArtifactContractError("cached financial batch hash mismatch")
+        for row in batch["records"]:
+            if (row["thscode"] in codes and row["report_period"] == report_period
+                    and row["revision"].startswith("ifind_pit_")
+                    and now - pd.Timedelta(days=7) <= pd.Timestamp(row["known_at"]) <= now):
+                previous = cached.get(row["thscode"])
+                if previous is None or row["known_at"] > previous["known_at"]:
+                    cached[row["thscode"]] = row
+    for path in sorted((data_dir / "facts/research/events").glob("*.json")):
+        batch = normalize_research_batch(load_json_object(path, missing_ok=False))
+        if json_sha256(batch) != path.stem:
+            raise ArtifactContractError("cached announcement batch hash mismatch")
+        for row in batch["records"]:
+            previous = cached.get(row["thscode"])
+            # Only actual publication after the last observation invalidates it.
+            if previous and pd.Timestamp(previous["known_at"]) < pd.Timestamp(row["published_at"]) <= now:
+                cached.pop(row["thscode"])
+    missing = sorted(set(codes) - set(cached))
+    fresh = collect_financials(client, missing, report_period, as_of_date) if missing else None
+    rows = list(cached.values()) + (fresh["records"] if fresh else [])
+    if not rows:
+        raise ArtifactContractError("financial scope has no usable observation")
+    completed = fresh["collection_completed_at"] if fresh else max(row["known_at"] for row in rows)
+    started = fresh["collection_started_at"] if fresh else min(row["first_seen_at"] for row in rows)
+    return _envelope("financials", codes, report_period, report_period, started, completed, rows)
+
+
 def collect_events(client, codes, start, end) -> dict:
     started = utc_now()
     # No reportType filter: preserve all categories, not only earnings reports.
@@ -293,7 +327,7 @@ def run_collection(client, data_dir: Path, *, modules, codes, trade_date, as_of_
                 statuses[module] = {"state": "success", "reused": True, **receipt["artifact"]}
                 continue
             if module == "financials":
-                metadata = _save_batch(data_dir, collect_financials(client, codes, report_period, as_of_date))
+                metadata = _save_batch(data_dir, collect_financials_incremental(client, data_dir, codes, report_period, as_of_date))
             elif module == "events":
                 metadata = _save_batch(data_dir, collect_events(client, codes, start, trade_date))
             elif module == "adjustment":
@@ -305,7 +339,7 @@ def run_collection(client, data_dir: Path, *, modules, codes, trade_date, as_of_
         except Exception as exc:
             statuses[module] = safe_failure(exc)
             # Never retry authentication/quota failures for every module.
-            if statuses[module]["api_error_code"] in {-1301, -1303, -4318}:
+            if statuses[module]["api_error_code"] in {-1300, -1301, -1302, -1303, -1305, -4301, -4302, -4303, -4317, -4318}:
                 break
     ok = len(statuses) == len(modules) and all(row["state"] == "success" for row in statuses.values())
     status = {"schema_version": 1, "ok": ok, "adapter_version": ADAPTER_VERSION,
@@ -324,7 +358,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
     parser.add_argument("--scope", choices=["canary", "radar"], default="canary")
-    parser.add_argument("--modules", default="financials,events,adjustment")
+    parser.add_argument("--modules", default="events,financials,adjustment")
     parser.add_argument("--max-requests", type=int, default=12)
     parser.add_argument("--event-days", type=int, default=7)
     parser.add_argument("--auth-only", action="store_true")

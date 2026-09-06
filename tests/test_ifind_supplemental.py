@@ -9,6 +9,7 @@ from china_stock_engine.ifind_supplemental import (
     BoundedClient, FINANCIAL_INDICATOR, PUBLICATION_INDICATOR,
     collect_financials, collect_events, run_collection, safe_failure,
     _document_link,
+    collect_financials_incremental, _save_batch,
 )
 from china_stock_engine.ifind_http import IFindHTTPError
 from china_stock_engine.storage import ArtifactContractError, atomic_write_parquet
@@ -136,6 +137,22 @@ class SupplementalTests(unittest.TestCase):
         self.assertNotIn("synthetic-secret", str(value))
         self.assertEqual(value["document_access"], "authenticated_link_omitted")
         self.assertEqual(value["source_url_kind"], "provider_query_documentation")
+
+    def test_financial_scope_growth_queries_only_new_issuer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data_dir = Path(directory)
+            first = collect_financials(self.client(), ["600000.SH"], "2026-06-30", "2026-09-06")
+            _save_batch(data_dir, first)
+            client = self.client()
+            result = collect_financials_incremental(client, data_dir, ["600000.SH", "300033.SZ"], "2026-06-30", "2026-09-06")
+            self.assertEqual(client.audit[0]["data_volume"], 2)
+            old = next(row for row in result["records"] if row["thscode"] == "600000.SH")
+            self.assertEqual(old, first["records"][0])
+            _save_batch(data_dir, result)
+            cached_client = self.client()
+            again = collect_financials_incremental(cached_client, data_dir, ["600000.SH", "300033.SZ"], "2026-06-30", "2026-09-06")
+            self.assertEqual(cached_client.audit, [])
+            self.assertEqual(result["records"], again["records"])
 
 
 if __name__ == "__main__":

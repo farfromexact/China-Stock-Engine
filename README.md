@@ -39,6 +39,8 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - `data/latest/research_inputs_latest.json`：全股票池研究事实索引；按哈希前缀读取 `research_*.json` 分片，不限于行情 Top100；
 - `data/snapshots/YYYY-MM-DD/`：按交易日冻结的完整验证快照；
 - `data/last_run_status.json`：最近一次采集尝试的状态，失败不会覆盖 `latest`。
+- `data/latest/supplemental_manifest.json`：最后验证成功的真实财务/公告/复权补充采集，包含实际采集日期、有限证券范围、规范化文件路径与哈希；与历史收盘快照的时间边界分开。
+- `data/supplemental_last_attempt.json`：补充采集最近尝试、复用情况和接口报告的提取量。
 
 每次成功发布都会生成一个普通 Git commit，因此下游可固定某个 commit SHA 复现一次读取，也可始终读取 `main` 上的 `data/latest/` 获取最新有效数据。
 
@@ -62,6 +64,18 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 历史、复权、行业、指数成分和可交易性模块必须分别通过小范围权限 canary。没有权限时记录 `not_entitled`；字段未知时保持为空。登录成功不等于数据权限可用。
 
 完整字段定义见 [数据字典](docs/DATA_DICTIONARY.md)，存储和许可边界见 [DATA_POLICY.md](DATA_POLICY.md)。
+
+补充模块有独立的 `Supplemental iFinD Facts` 验证 workflow，默认只查3只证券。
+设置仓库变量 `IFIND_SUPPLEMENTAL_SCOPE=radar` 后，每次日常行情验证成功，
+会补充当前确定性并集最多100只证券的公告、财务和复权输入；不是全市场财务覆盖。
+财务目前仅启用经小样本验证的归母净利润及实际披露日期，其他财务字段仍为空。
+按证券/报告期复用最近7天的观测，较新公告会触发复核；公告查询最近7个日历日，
+重复事件使用供应商编号和内容修订号识别。复权只查最近21个已缓存交易日的
+复权收盘价，不再重拉未复权行情。具体边界见 [真实采集说明](docs/LIVE_SUPPLEMENTAL_COLLECTION.md)。
+
+周末新采到的历史财务和复权数据保留周末的 `known_at`，不改写此前的收盘决策知识；
+从下一份满足时间约束的研究快照开始消费。手工更新access token必须显式授权，
+默认不会重置账户绑定，也不会更改refresh token。
 
 ## 数据布局
 

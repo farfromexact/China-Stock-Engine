@@ -540,7 +540,7 @@ def build_research_artifacts(
                     else "ready"
                 )
             ),
-            "provider_adapter": "normalized_import_only; live_ifind_mapping_not_verified",
+            "provider_adapter": "source_attributed_normalized_batches; live_scope_in_supplemental_manifest",
             "queried_codes": len(queried & set(universe)),
             "observed_codes": len(observed & set(universe)),
             "universe_count": len(universe),
@@ -722,7 +722,7 @@ def build_research_artifacts(
         },
         "valuation_policy": "PE/PB use positive observed denominators only; no invented dividend yield or short-history valuation percentile",
         "unimplemented_modules": [
-            "live_ifind_financial_event_adapters",
+            "full_financial_statement_indicator_mapping",
             "consensus_revisions",
             "industry_operating_data",
             "historical_valuation_percentiles",
