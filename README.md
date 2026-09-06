@@ -147,7 +147,7 @@ data/
 
 ## 财务、估值与事件研究入口
 
-本次完成的是规范化事实接入、PIT加工与读取契约，不是已经抓到了全市场财务/公告。当前真实输出中的这些模块为 `missing`；iFinD HTTP指标映射、公告接口和权限尚未验证，不会用登录成功、空结果或自然语言猜测冒充数据可用。
+已完成规范化事实接入、PIT加工与读取契约，并在2026-09-06验证了有限范围的真实HTTP采集：100只证券的2026H1归母净利润与披露日期、251条公告记录、2,043条复权记录。不是全市场财务/公告齐备。新观测先从 `supplemental_manifest.json` 读取；此前2026-09-04收盘快照中的财务/公告仍为 `missing`，因为不能将9月6日才知道的数据倒灌到9月4日。
 
 - `research_inputs_latest.json` 是小索引，列出源哈希、行情/信息各自截止时间、覆盖范围、确定性发现路径计数和分片哈希。
 - 所有当日参考股票都可查询。对标准代码（如 `600000.SH`）计算 ASCII SHA256 的首个十六进制字符，从 `shards` 找到对应页；页内按代码升序。按240 KiB目标分片，每份JSON硬上限300 KiB，超限失败，不静默删记录。
@@ -164,9 +164,9 @@ python -m china_stock_engine.cli build-report
 python -m china_stock_engine.cli validate
 ```
 
-导入不访问API，按内容哈希追加到 `facts/research/{financials,events}/`；重复导入复用文件，不覆盖旧修订。批次格式见 [研究事实契约](docs/RESEARCH_CONTRACT.md)。未来供应商适配器必须先通过小范围canary再写这个契约。`canary --module financials --spec ...` 可复用单股指标探针；没有spec时直接返回 `not_configured`，不访问API。公告实时适配器、预期修正、行业经营数据仍未实施。
+导入不访问API，按内容哈希追加到 `facts/research/{financials,events}/`；重复导入复用文件，不覆盖旧修订。批次格式见 [研究事实契约](docs/RESEARCH_CONTRACT.md)。新字段仍须先做小范围canary。`canary --module financials --spec ...` 是自定义指标探针；没有spec时返回 `not_configured`。已验证的财务/公告采集使用 `python -m china_stock_engine.ifind_supplemental`。完整财报字段映射、预期修正、行业经营数据仍未实施。
 
-Actions现有 `build-report` 流程会自动生成并发布上述入口；没有新增全市场收费请求。历史日期不会批量重算；本轮只更新最新日期派生输出，旧版可按此前Git commit读取。
+Actions现有 `build-report` 流程会自动消费截止时间内的上述事实并发布入口；补充采集最多100只证券，没有新增全市场财务收费请求。历史日期不会批量重算，旧版可按此前Git commit读取。
 
 ## PIT 输入契约
 
