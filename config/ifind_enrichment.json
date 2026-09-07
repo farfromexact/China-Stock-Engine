@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "publication_permitted": true,
+  "financial_periods": 8,
+  "profiles": {
+    "financial_history": {
+      "endpoint": "basic_data_service",
+      "request": {
+        "codes": "{codes}",
+        "indipara": [
+          {"indicator": "ths_np_atoopc_pit_stock", "indiparams": ["{as_of_date}", "{compact_period}", "1"]},
+          {"indicator": "ths_total_assets_pit_stock", "indiparams": ["{as_of_date}", "{compact_period}", "1"]},
+          {"indicator": "ths_regular_report_actual_dd_stock", "indiparams": ["{compact_period}"]}
+        ]
+      },
+      "fields": {
+        "thscode": {"source": "thscode", "type": "text"},
+        "published_at": {"source": "ths_regular_report_actual_dd_stock", "type": "text"},
+        "net_profit_parent": {"source": "ths_np_atoopc_pit_stock", "type": "number", "scale": 1},
+        "total_assets": {"source": "ths_total_assets_pit_stock", "type": "number", "scale": 1}
+      },
+      "source_documentation": "https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+      "scope_codes": null,
+      "ttl_days": 7
+    },
+    "industry": null,
+    "tradability": null,
+    "structured_events": null,
+    "forecasts": null,
+    "index_prices": {
+      "endpoint": "cmd_history_quotation",
+      "request": {
+        "codes": "{codes}",
+        "indicators": "close",
+        "startdate": "{start}",
+        "enddate": "{end}",
+        "functionpara": {"Fill": "Omit", "CPS": "no"}
+      },
+      "fields": {"thscode": {"source": "thscode", "type": "text"}, "trade_date": {"source": "time", "type": "text"}, "close": {"source": "close", "type": "number"}},
+      "source_documentation": "https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/help-center/manual.html",
+      "scope_codes": ["000300.SH", "000852.SH"],
+      "ttl_days": 0
+    }
+  }
+}

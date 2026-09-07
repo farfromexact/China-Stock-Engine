@@ -1,5 +1,25 @@
 # China-Stock-Engine 数据字典
 
+## 研究增强 v2
+
+新规范化批次支持 v2，旧 v1 批次不改写。财务新增 `operating_costs`（YTD）、
+`accounts_receivable/inventory/total_assets/total_liabilities`（期末存量），统一人民币元。
+新增 `quality_facts` 为单季同比、毛利率、现金流/利润、负债率及营运资本变化；
+`valuation.ps_ttm` 以正 TTM 营收为分母。未知、零/负分母不伪造可比估值。
+
+`forecasts` v2 必须提供 `forecast_year/institution_id/estimate_basis/contributor_count`，
+`values` 支持 `revenue/net_profit_parent/eps`（EPS 为人民币元/股）。5D/20D 修正固定
+财政年度和机构身份，记录前后实际已知时间；新增机构、切年及未来记录不冒充上调。
+
+`events` v2 必须增加 `details/details_source/report_period`，details_source 仅接受
+`provider_structured_fields`。金额分别为 `announced_amount_cny/executed_amount_cny`；
+还支持 `share_count/float_share_ratio_pct/profit_lower_cny/profit_upper_cny/`
+`profit_yoy_lower_pct/profit_yoy_upper_pct/cash_dividend_per_share_cny`。
+计划不等于实际执行，空值不等于零。全部保留发布时间、首次观测、已知时间和修订。
+
+实际可用数据必须查看 `latest/enrichment_manifest.json`，探针和未配置状态见
+`enrichment_last_attempt.json`。详见 [研究增强说明](RESEARCH_ENRICHMENT.md)。
+
 本项目只发布可审计的数据、确定性派生字段与确定性 screens，不生成主观候选池、综合评分、市场观点或交易建议。真实 iFinD 数据的存储与分发必须符合账户合同和数据许可；仓库不保存原始 iFinD payload 或凭证。
 
 ## 分层与粒度

@@ -1,0 +1,71 @@
+name: Research Data Enrichment
+
+on:
+  workflow_dispatch:
+    inputs:
+      canary:
+        description: "Verify <=3 securities before enabling each mapped profile"
+        type: boolean
+        default: true
+      modules:
+        description: "Explicit modules or all six configured research modules"
+        type: string
+        default: financial_history,industry,tradability,index_prices,structured_events,forecasts
+      catalog_only:
+        description: "Inspect public indicator catalog routes only; zero iFinD data calls"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+concurrency:
+  group: daily-china-stock-data
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Inspect public catalog without credentials
+        if: inputs.catalog_only
+        run: python scripts/inspect_ifind_catalog.py
+      - name: Preflight publication, capacity and tests before quota
+        if: ${{ !inputs.catalog_only }}
+        run: |
+          git push --dry-run origin HEAD:main
+          test "$(du -sb . | cut -f1)" -lt 900000000
+          python -m pip install -r requirements.txt
+          python -m pip install --no-deps -e .
+          python -m unittest discover -s tests -q
+      - name: Collect verified research facts
+        if: ${{ !inputs.catalog_only }}
+        id: enrichment
+        continue-on-error: true
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+          CANARY: ${{ inputs.canary }}
+          MODULES: ${{ inputs.modules }}
+        run: |
+          EXTRA_ARGS=()
+          if [[ "$CANARY" == "true" ]]; then EXTRA_ARGS+=(--canary); fi
+          python -m china_stock_engine.ifind_enrichment --modules "$MODULES" --max-requests 24 "${EXTRA_ARGS[@]}"
+      - name: Publish normalized checkpoints and last valid research pointer
+        if: always() && steps.enrichment.outcome != 'skipped' && !inputs.catalog_only
+        run: |
+          test "$(du -sb . | cut -f1)" -lt 900000000
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all data/facts
+          if [[ -f data/enrichment_last_attempt.json ]]; then git add data/enrichment_last_attempt.json; fi
+          if [[ -f data/latest/enrichment_manifest.json ]]; then git add data/latest/enrichment_manifest.json; fi
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "data: checkpoint verified research enrichment"
+          git push origin HEAD:main
+      - name: Surface collection failure
+        if: steps.enrichment.outcome == 'failure'
+        run: exit 1

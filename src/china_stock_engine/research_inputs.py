@@ -16,6 +16,8 @@ from urllib.parse import parse_qsl, urlparse
 
 import pandas as pd
 
+from .research_metrics import financial_quality, forecast_features, peer_valuation_percentiles
+
 from .storage import (
     ArtifactContractError,
     atomic_write_json,
@@ -37,7 +39,20 @@ FINANCIAL_FIELDS = (
     "interest_bearing_debt",
     "capex",
 )
-FLOW_FIELDS = set(FINANCIAL_FIELDS) - {"equity_parent", "cash", "interest_bearing_debt"}
+FINANCIAL_V2_FIELDS = FINANCIAL_FIELDS + (
+    "operating_costs", "accounts_receivable", "inventory", "total_assets", "total_liabilities",
+)
+STOCK_FIELDS = {
+    "equity_parent", "cash", "interest_bearing_debt", "accounts_receivable",
+    "inventory", "total_assets", "total_liabilities",
+}
+FLOW_FIELDS = set(FINANCIAL_V2_FIELDS) - STOCK_FIELDS
+FORECAST_FIELDS = {"revenue", "net_profit_parent", "eps"}
+EVENT_DETAIL_FIELDS = {
+    "announced_amount_cny", "executed_amount_cny", "share_count",
+    "float_share_ratio_pct", "profit_lower_cny", "profit_upper_cny",
+    "profit_yoy_lower_pct", "profit_yoy_upper_pct", "cash_dividend_per_share_cny",
+}
 EVENT_TYPES = {
     "filing",
     "earnings_preview",
@@ -46,6 +61,7 @@ EVENT_TYPES = {
     "shareholder_reduction",
     "share_unlock",
     "control_transfer",
+    "earnings_flash", "shareholder_increase", "major_contract", "restructuring",
 }
 CODE_PATTERN = re.compile(r"^\d{6}\.(SH|SZ|BJ)$")
 COMMON_FIELDS = {
@@ -104,13 +120,14 @@ def _number(value: Any) -> float | None:
 
 
 def normalize_research_batch(payload: dict) -> dict:
-    if set(payload) - ENVELOPE_FIELDS or payload.get("schema_version") != 1:
+    version = payload.get("schema_version")
+    if set(payload) - ENVELOPE_FIELDS or type(version) is not int or version not in {1, 2}:
         raise ArtifactContractError(
             "unsupported research envelope schema or fields; raw payloads are forbidden"
         )
     module = payload.get("module")
-    if module not in {"financials", "events"}:
-        raise ArtifactContractError("research module must be financials or events")
+    if module not in {"financials", "events", "forecasts"} or (module == "forecasts" and version != 2):
+        raise ArtifactContractError("unsupported research module/version")
     started, completed = (
         _time(payload.get(key))
         for key in ("collection_started_at", "collection_completed_at")
@@ -152,8 +169,11 @@ def normalize_research_batch(payload: dict) -> dict:
                 "values",
             }
             if module == "financials"
-            else {"event_id", "event_type", "event_date", "status", "title"}
+            else ({"forecast_year", "institution_id", "estimate_basis", "contributor_count", "values", "unit"}
+                  if module == "forecasts" else {"event_id", "event_type", "event_date", "status", "title"})
         )
+        if module == "events" and version == 2:
+            specific |= {"details", "details_source", "report_period"}
         if (not isinstance(source, dict)
                 or set(source) - OPTIONAL_SOURCE_FIELDS != COMMON_FIELDS | specific):
             raise ArtifactContractError(
@@ -241,15 +261,29 @@ def normalize_research_batch(payload: dict) -> dict:
             if (
                 row["unit"] not in scales
                 or not isinstance(row["values"], dict)
-                or set(row["values"]) - set(FINANCIAL_FIELDS)
+                or set(row["values"]) - set(FINANCIAL_FIELDS if version == 1 else FINANCIAL_V2_FIELDS)
             ):
                 raise ArtifactContractError("unsupported financial unit or metric")
-            values = {key: _number(row["values"].get(key)) for key in FINANCIAL_FIELDS}
+            fields = FINANCIAL_FIELDS if version == 1 else FINANCIAL_V2_FIELDS
+            values = {key: _number(row["values"].get(key)) for key in fields}
             row["values"] = {
                 key: value * scales[row["unit"]] if value is not None else None
                 for key, value in values.items()
             }
             row["unit"] = "CNY"
+        elif module == "forecasts":
+            if (type(row["forecast_year"]) is not int or not 2000 <= row["forecast_year"] <= 2100
+                    or row["estimate_basis"] not in {"individual_institution", "provider_consensus"}
+                    or not isinstance(row["institution_id"], str) or not 1 <= len(row["institution_id"]) <= 100
+                    or row["unit"] != "CNY" or not isinstance(row["values"], dict)
+                    or set(row["values"]) - FORECAST_FIELDS):
+                raise ArtifactContractError("invalid forecast definition, fiscal year, identity or unit")
+            count = row["contributor_count"]
+            if count is not None and (type(count) is not int or count < 1):
+                raise ArtifactContractError("forecast contributor count must be positive or null")
+            if not coverage["period_start"] <= published.tz_convert("Asia/Shanghai").date().isoformat() <= coverage["period_end"]:
+                raise ArtifactContractError("forecast publication outside coverage")
+            row["values"] = {key: _number(row["values"].get(key)) for key in sorted(FORECAST_FIELDS)}
         else:
             _date(row["event_date"])
             if (
@@ -279,9 +313,22 @@ def normalize_research_batch(payload: dict) -> dict:
                 raise ArtifactContractError(
                     "event identity/title is missing or oversized"
                 )
+            if version == 2:
+                if (not isinstance(row["details"], dict) or set(row["details"]) - EVENT_DETAIL_FIELDS
+                        or row["details_source"] != "provider_structured_fields"):
+                    raise ArtifactContractError("event details require explicit structured provider fields")
+                row["details"] = {key: _number(value) for key, value in sorted(row["details"].items())}
+                if row["report_period"] is not None:
+                    _date(row["report_period"])
+                for field in ("announced_amount_cny", "executed_amount_cny", "share_count", "cash_dividend_per_share_cny"):
+                    if row["details"].get(field) is not None and row["details"][field] < 0:
+                        raise ArtifactContractError("event amount/share count cannot be negative")
+                lo, hi = row["details"].get("profit_lower_cny"), row["details"].get("profit_upper_cny")
+                if lo is not None and hi is not None and lo > hi:
+                    raise ArtifactContractError("earnings preview interval is reversed")
         normalized.append(row)
     result = {
-        "schema_version": 1,
+        "schema_version": version,
         "module": module,
         "collection_started_at": started.isoformat(),
         "collection_completed_at": completed.isoformat(),
@@ -320,9 +367,9 @@ def _latest_revisions(rows: list[dict], module: str) -> list[dict]:
     for row in sorted(
         rows, key=lambda row: (row["known_at"], row["published_at"], row["revision"])
     ):
-        key = (
-            row["thscode"],
-            row["report_period"] if module == "financials" else row["event_id"],
+        key = (row["thscode"], row["report_period"]) if module == "financials" else (
+            (row["thscode"], row["forecast_year"], row["institution_id"], row["estimate_basis"])
+            if module == "forecasts" else (row["thscode"], row["event_id"])
         )
         previous = identities.get(key)
         if previous and previous["known_at"] == row["known_at"] and previous != row:
@@ -393,6 +440,7 @@ def financial_features(rows: list[dict], market_cap: float | None) -> dict | Non
     return {
         "latest_statement": latest,
         "quarter_flows": quarter,
+        "quality_facts": financial_quality(by_period, quarter, ttm),
         "ttm_flows": ttm,
         "yoy_pct": yoy,
         "basis_statement_hashes": sorted(
@@ -411,6 +459,8 @@ def financial_features(rows: list[dict], market_cap: float | None) -> dict | Non
         "valuation": {
             "pe_ttm": ratio(ttm.get("net_profit_parent")),
             "pb": ratio(equity),
+            "ps_ttm": ratio(ttm.get("revenue")),
+            "ps_denominator": "consolidated_revenue_ttm_cny",
             "pe_denominator": "consolidated_parent_net_profit_ttm_cny",
             "pb_denominator": "consolidated_parent_equity_cny",
             "pe_state": (
@@ -471,7 +521,7 @@ def build_research_artifacts(
 ) -> dict[str, dict]:
     market_cutoff = _time(source["pit_timing"]["effective_pit_cutoff"])
     configured = _time(source["pit_timing"]["configured_decision_cutoff"])
-    batches: dict[str, list[dict]] = {"financials": [], "events": []}
+    batches: dict[str, list[dict]] = {"financials": [], "events": [], "forecasts": []}
     hashes = {module: [] for module in batches}
     for module in batches:
         for path in sorted((data_dir / "facts" / "research" / module).glob("*.json")):
@@ -492,10 +542,11 @@ def build_research_artifacts(
     sessions = history.attrs.get("session_dates") or sorted(
         history["trade_date"].unique()
     )
+    forecast_sessions = [day for day in sessions if day <= source["trade_date"]][-21:]
     sessions = [day for day in sessions if day <= source["trade_date"]][-20:]
     window_start = sessions[0] if sessions else source["trade_date"]
     records = {
-        module: _latest_revisions(
+        module: (_latest_revisions(
             [
                 row
                 for batch in group
@@ -503,7 +554,8 @@ def build_research_artifacts(
                 if _time(row["known_at"]) <= completion
             ],
             module,
-        )
+        ) if module != "forecasts" else [row for batch in group for row in batch["records"]
+                                         if _time(row["known_at"]) <= completion])
         for module, group in batches.items()
     }
     modules = {}
@@ -559,17 +611,20 @@ def build_research_artifacts(
     index: dict[str, list[dict]] = {}
     grouped_rows: dict[str, list[dict]] = {}
     route_counts: dict[str, int] = {}
-    field_counts = {field: 0 for field in FINANCIAL_FIELDS}
-    valuation_counts = {"pe_ttm": 0, "pb": 0}
+    field_counts = {field: 0 for field in FINANCIAL_V2_FIELDS}
+    valuation_counts = {"pe_ttm": 0, "pb": 0, "ps_ttm": 0}
     stock_by_code = state.set_index("thscode")
     names = reference.drop_duplicates("thscode").set_index("thscode")["security_name"]
     financial_by_code: dict[str, list[dict]] = {}
     event_by_code: dict[str, list[dict]] = {}
+    forecast_by_code: dict[str, list[dict]] = {}
     for row in records["financials"]:
         financial_by_code.setdefault(row["thscode"], []).append(row)
     for row in records["events"]:
         if row["published_at"] >= _time(f"{window_start}T00:00:00+08:00").isoformat():
             event_by_code.setdefault(row["thscode"], []).append(row)
+    for row in records["forecasts"]:
+        forecast_by_code.setdefault(row["thscode"], []).append(row)
     for code in universe:
         stock = (
             stock_by_code.loc[code]
@@ -636,6 +691,7 @@ def build_research_artifacts(
             },
             "financials": financial,
             "events": events,
+            "forecasts": forecast_features(forecast_by_code.get(code, []), completion.isoformat(), forecast_sessions),
             "availability": {
                 "financials": (
                     "observed"
@@ -651,11 +707,18 @@ def build_research_artifacts(
                         else "unknown" if batches["events"] else "not_ready"
                     )
                 ),
+                "forecasts": "observed" if forecast_by_code.get(code) else "unknown" if batches["forecasts"] else "not_ready",
             },
             "discovery_routes": routes,
         }
         prefix = hashlib.sha256(code.encode("ascii")).hexdigest()[0]
         grouped_rows.setdefault(prefix, []).append(row)
+    if "sw1_code" in state:
+        groups = {str(row["thscode"]): str(row["sw1_code"]) for row in state.to_dict("records")
+                  if pd.notna(row.get("sw1_code"))}
+        # A partial classification universe is not an all-industry peer sample.
+        if set(groups) >= set(universe):
+            peer_valuation_percentiles([row for group in grouped_rows.values() for row in group], groups)
     for prefix, rows in sorted(grouped_rows.items()):
         pages: list[list[dict]] = [[]]
         size = 0
@@ -719,11 +782,11 @@ def build_research_artifacts(
             "TAPE": "price/liquidity subfamilies are not independent evidence",
             "FINANCIAL": "reported statements; YoY is not an expectations beat",
             "EVENT": "published event facts; planned is not completed",
+            "EXPECTATIONS": "attributed forecasts, not realized financial results",
         },
         "valuation_policy": "PE/PB use positive observed denominators only; no invented dividend yield or short-history valuation percentile",
         "unimplemented_modules": [
             "full_financial_statement_indicator_mapping",
-            "consensus_revisions",
             "industry_operating_data",
             "historical_valuation_percentiles",
         ],

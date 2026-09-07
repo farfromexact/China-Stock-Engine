@@ -428,16 +428,20 @@ def load_index_history(
         for path in eligible
         if (_partition_value(path, "trade_date=") or "") in selected_dates
     ]
-    if not selected:
+    vintages = [path for path in (data_dir / "facts/index").glob("as_of_date=*/vintage=*/index_quotes.parquet")
+                if path.parent.parent.name.removeprefix("as_of_date=") <= end_date]
+    if not selected and not vintages:
         return pd.DataFrame()
-    output = pd.concat([pd.read_parquet(path) for path in selected], ignore_index=True)
+    output = pd.concat([pd.read_parquet(path) for path in selected + sorted(vintages)], ignore_index=True)
     _normalize_date_column(output, "trade_date")
     output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
     for column in ("open", "high", "low", "close"):
         if column in output.columns:
             output[column] = pd.to_numeric(output[column], errors="coerce")
+    # Keep dated vintages until the decision-time filter; a later observation
+    # must not destroy the older version available at a historical cutoff.
     return (
-        output.drop_duplicates(["trade_date", "thscode"], keep="last")
+        output.loc[output["trade_date"].le(end_date)].drop_duplicates()
         .sort_values(["thscode", "trade_date"])
         .reset_index(drop=True)
     )
@@ -455,27 +459,24 @@ def _latest_partition_frame(
         for path in paths
         if (_partition_value(path, "as_of_date=") or "") <= as_of_date
     ]
-    if eligible:
-        return pd.read_parquet(eligible[-1])
+    vintages = [path for path in (data_dir / "facts" / category).glob(f"as_of_date=*/vintage=*/{file_name}")
+                if path.parent.parent.name.removeprefix("as_of_date=") <= as_of_date]
+    if eligible or vintages:
+        frames = [pd.read_parquet(eligible[-1])] if eligible else []
+        frames.extend(pd.read_parquet(path) for path in sorted(vintages))
+        return pd.concat(frames, ignore_index=True).drop_duplicates()
     latest_path = data_dir / "latest" / file_name
     return pd.read_parquet(latest_path) if latest_path.exists() else pd.DataFrame()
 
 
 def load_adjustment_snapshot(data_dir: Path, as_of_date: str) -> pd.DataFrame:
     """Load the newest adjustment snapshot that existed by ``as_of_date``."""
-    legacy = _latest_partition_frame(
+    return _latest_partition_frame(
         data_dir, "adjustment", "adjustment_factors.parquet", as_of_date
     )
-    frames = [legacy] if not legacy.empty else []
-    for path in sorted((data_dir / "facts" / "adjustment").glob(
-        "as_of_date=*/vintage=*/adjustment_factors.parquet"
-    )):
-        if path.parent.parent.name.removeprefix("as_of_date=") <= as_of_date:
-            frames.append(pd.read_parquet(path))
-    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
-def feature_pit_timing(market_timing: dict[str, str], adjustments: pd.DataFrame) -> dict[str, str]:
+def feature_pit_timing(market_timing: dict[str, str], adjustments: pd.DataFrame, *optional_frames: pd.DataFrame) -> dict[str, str]:
     """Late optional facts may advance feature knowledge, never backdate it.
 
     The immutable market collection times remain on the market manifest. Only
@@ -483,6 +484,10 @@ def feature_pit_timing(market_timing: dict[str, str], adjustments: pd.DataFrame)
     A factor first collected on Sunday cannot alter Friday's decision features.
     """
     timing = dict(market_timing)
+    if optional_frames:
+        for frame in (adjustments, *optional_frames):
+            timing = feature_pit_timing(timing, frame)
+        return timing
     if adjustments.empty or "collection_completed_at" not in adjustments:
         return timing
     completed = pd.to_datetime(adjustments["collection_completed_at"], utc=True, errors="coerce")
@@ -970,10 +975,12 @@ def build_stock_state(
         index_scoped = index_history.loc[
             index_history["trade_date"].le(trade_date)
         ].copy()
+        if "known_at" in index_scoped:
+            index_scoped = index_scoped.loc[_known_by(index_scoped, decision_time)].sort_values("known_at")
         for code in benchmark_returns:
             values = (
                 index_scoped.loc[index_scoped["thscode"].eq(code)]
-                .drop_duplicates("trade_date")
+                .drop_duplicates("trade_date", keep="last")
                 .set_index("trade_date")["close"]
                 .reindex(slots)
             )
@@ -1512,6 +1519,7 @@ def build_data_reference_outputs(
     provider_tradability = _latest_partition_frame(
         data_dir, "tradability", "provider_tradability.parquet", selected_date
     )
+    pit_timing = feature_pit_timing(market_pit_timing, adjustments, industry, indexes, index_history, provider_tradability)
     frames_for_hash = {
         "history": history,
         "reference": reference,

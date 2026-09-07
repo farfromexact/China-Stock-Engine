@@ -176,6 +176,14 @@ jobs:
           python -m china_stock_engine.ifind_supplemental
           --scope "$SUPPLEMENTAL_SCOPE" --max-requests 12
 
+      - name: Collect canary-approved research enrichment when enabled
+        id: enrichment
+        if: steps.validate.outcome == 'success' && vars.IFIND_ENRICHMENT_ENABLED == 'true'
+        continue-on-error: true
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+        run: python -m china_stock_engine.ifind_enrichment --max-requests 24
+
       - name: Refresh compact data reference
         id: reference_refresh
         if: steps.validate.outcome == 'success'
@@ -218,6 +226,10 @@ jobs:
             for FACT_DIR in data/facts/collection_receipts data/facts/research data/facts/adjustment; do
               if [[ -d "$FACT_DIR" ]]; then git add --all "$FACT_DIR"; fi
             done
+          fi
+          if [[ -f data/enrichment_last_attempt.json ]]; then
+            git add data/enrichment_last_attempt.json
+            git add --all data/facts
           fi
           if git diff --cached --quiet; then
             echo "No data changes to publish."
