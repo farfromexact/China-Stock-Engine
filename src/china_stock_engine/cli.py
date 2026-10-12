@@ -141,6 +141,10 @@ def _parser() -> argparse.ArgumentParser:
     build_report.add_argument("--date")
     build_report.add_argument("--data-dir", type=Path, default=Path("data"))
     build_report.add_argument("--min-adt20", type=float, default=20_000_000.0)
+    for command in (build_state, build_report):
+        command.add_argument("--research-asof", help="explicit timezone-aware current research cutoff; preserves historical snapshot")
+        command.add_argument("--company-exposures", type=Path,
+                             help="validated company commodity exposure registry")
     research_import = subparsers.add_parser(
         "import-research",
         help="validate and append normalized PIT financial/event facts; no API calls",
@@ -997,6 +1001,8 @@ def _build_data_reference(args: argparse.Namespace) -> int:
         args.data_dir,
         args.date,
         min_adt20=args.min_adt20,
+        research_asof=args.research_asof,
+        exposure_path=args.company_exposures,
     )
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0

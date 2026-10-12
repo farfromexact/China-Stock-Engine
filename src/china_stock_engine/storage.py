@@ -301,11 +301,11 @@ def _validate_snapshot_artifacts(
 
 
 def promote_verified_snapshot_to_latest(
-    data_dir: Path, trade_date: str
+    data_dir: Path, trade_date: str, *, source_dir: Path | None = None
 ) -> dict[str, Any]:
     """Publish a fully verified snapshot, committing its manifest last."""
 
-    snapshot_dir = data_dir / "snapshots" / trade_date
+    snapshot_dir = source_dir or data_dir / "snapshots" / trade_date
     manifest_path = snapshot_dir / "manifest.json"
     manifest = load_manifest(manifest_path, missing_ok=False)
     if str(manifest.get("trade_date") or "") != trade_date:
@@ -356,8 +356,28 @@ def publish_data_reference_artifacts(
     manifest_updates: dict[str, Any] | None = None,
     publish_latest: bool = True,
     research_artifacts: dict[str, dict[str, Any]] | None = None,
+    current_research: bool = False,
 ) -> dict[str, Any]:
     """Atomically attach deterministic, opinion-free reference data."""
+
+    if current_research:
+        # Build and validate off to the side. Current research must not rewrite
+        # the snapshot or feature partition that represents a historical run.
+        for item in data_reference.get("data_catalog") or []:
+            if item.get("name") == "stock_state.parquet":
+                item["path"] = "latest/stock_state.parquet"
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix=".research-build-", dir=data_dir) as temporary:
+            staging = Path(temporary)
+            source = data_dir / "snapshots" / trade_date
+            target = staging / "snapshots" / trade_date
+            shutil.copytree(source, target)
+            result = publish_data_reference_artifacts(
+                staging, trade_date, stock_state, data_reference, opportunity_inputs,
+                opportunity_radar, reference_metadata, manifest_updates=manifest_updates,
+                publish_latest=False, research_artifacts=research_artifacts)
+            promote_verified_snapshot_to_latest(data_dir, trade_date, source_dir=target)
+            return result
 
     snapshot_dir = data_dir / "snapshots" / trade_date
     manifest_path = snapshot_dir / "manifest.json"

@@ -17,6 +17,8 @@ from urllib.parse import parse_qsl, urlparse
 import pandas as pd
 
 from .research_metrics import financial_quality, forecast_features, peer_valuation_percentiles
+from .research_context import availability, minimum_financial_evidence, timestamp
+from .company_exposures import load_exposures
 
 from .storage import (
     ArtifactContractError,
@@ -174,8 +176,9 @@ def normalize_research_batch(payload: dict) -> dict:
         )
         if module == "events" and version == 2:
             specific |= {"details", "details_source", "report_period"}
+        optional = OPTIONAL_SOURCE_FIELDS | ({"field_evidence"} if module == "financials" and version == 2 else set())
         if (not isinstance(source, dict)
-                or set(source) - OPTIONAL_SOURCE_FIELDS != COMMON_FIELDS | specific):
+                or set(source) - optional != COMMON_FIELDS | specific):
             raise ArtifactContractError(
                 "research record must contain only the documented normalized fields"
             )
@@ -185,9 +188,11 @@ def normalize_research_batch(payload: dict) -> dict:
         }:
             raise ArtifactContractError("unknown source URL kind")
         if "document_access" in row and row["document_access"] not in {
-            "public_link_not_downloaded", "authenticated_link_omitted", "not_resolved"
+            "public_link_not_downloaded", "authenticated_link_omitted", "not_resolved", "public_document_verified"
         }:
             raise ArtifactContractError("unknown document access state")
+        if row.get("document_access") == "public_document_verified" and (module != "financials" or version != 2):
+            raise ArtifactContractError("verified public document receipts require financial v2")
         if row["thscode"] not in codes:
             raise ArtifactContractError("research record is outside declared coverage")
         published, seen, known = (
@@ -271,6 +276,11 @@ def normalize_research_batch(payload: dict) -> dict:
                 for key, value in values.items()
             }
             row["unit"] = "CNY"
+            if "field_evidence" in row:
+                from .filing_evidence import validate_field_evidence
+                validate_field_evidence(row)
+            elif row.get("document_access") == "public_document_verified":
+                raise ArtifactContractError("verified financial filing requires field evidence")
         elif module == "forecasts":
             if (type(row["forecast_year"]) is not int or not 2000 <= row["forecast_year"] <= 2100
                     or row["estimate_basis"] not in {"individual_institution", "provider_consensus"}
@@ -518,9 +528,15 @@ def build_research_artifacts(
     state: pd.DataFrame,
     history: pd.DataFrame,
     reference: pd.DataFrame,
+    *,
+    research_asof: str | None = None,
+    exposure_path: Path | None = None,
 ) -> dict[str, dict]:
-    market_cutoff = _time(source["pit_timing"]["effective_pit_cutoff"])
+    market_cutoff = _time((source.get("market_pit_timing") or source["pit_timing"])["effective_pit_cutoff"])
+    feature_cutoff = _time(source["pit_timing"]["effective_pit_cutoff"])
     configured = _time(source["pit_timing"]["configured_decision_cutoff"])
+    cutoff = timestamp(research_asof) if research_asof else configured
+    exposures, exposure_hash = load_exposures(exposure_path, cutoff.isoformat())
     batches: dict[str, list[dict]] = {"financials": [], "events": [], "forecasts": []}
     hashes = {module: [] for module in batches}
     for module in batches:
@@ -528,11 +544,12 @@ def build_research_artifacts(
             batch = normalize_research_batch(load_json_object(path, missing_ok=False))
             if batch["module"] != module or json_sha256(batch) != path.stem:
                 raise ArtifactContractError("research batch identity/hash mismatch")
-            if _time(batch["collection_completed_at"]) <= configured:
+            if _time(batch["collection_completed_at"]) <= cutoff:
                 batches[module].append(batch)
                 hashes[module].append(path.stem)
     completion = max(
-        [market_cutoff]
+        [feature_cutoff]
+        + [timestamp(row["known_at"]) for row in exposures]
         + [
             _time(batch["collection_completed_at"])
             for group in batches.values()
@@ -613,6 +630,7 @@ def build_research_artifacts(
     route_counts: dict[str, int] = {}
     field_counts = {field: 0 for field in FINANCIAL_V2_FIELDS}
     valuation_counts = {"pe_ttm": 0, "pb": 0, "ps_ttm": 0}
+    capability_counts = {key: 0 for key in ("earnings_cashflow", "minimum_financial_bundle", "forecast_revisions", "company_events")}
     stock_by_code = state.set_index("thscode")
     names = reference.drop_duplicates("thscode").set_index("thscode")["security_name"]
     financial_by_code: dict[str, list[dict]] = {}
@@ -639,6 +657,17 @@ def build_research_artifacts(
         financial = financial_features(
             financial_by_code.get(code, []), observed("total_market_cap")
         )
+        minimum = minimum_financial_evidence(financial)
+        capability_counts["minimum_financial_bundle"] += minimum["state"] == "observed"
+        if financial:
+            statement = financial["latest_statement"]
+            statement["research_availability"] = availability(
+                published_at=statement["published_at"], first_observed_at=statement["first_seen_at"],
+                known_at=statement["known_at"], research_asof=cutoff.isoformat(),
+                historical_cutoff=configured.isoformat())
+            capability_counts["earnings_cashflow"] += all(
+                statement["values"].get(field) is not None
+                for field in ("revenue", "net_profit_parent", "operating_cash_flow"))
         if financial:
             for field in field_counts:
                 field_counts[field] += (
@@ -653,16 +682,32 @@ def build_research_artifacts(
                 key=lambda row: (row["published_at"], row["event_id"]),
             )
         ]
+        for event in events:
+            event["research_availability"] = availability(
+                published_at=event["published_at"], first_observed_at=event["first_seen_at"],
+                known_at=event["known_at"], research_asof=cutoff.isoformat(), historical_cutoff=configured.isoformat())
+        capability_counts["company_events"] += bool(events)
+        forecast = forecast_features(forecast_by_code.get(code, []), completion.isoformat(), forecast_sessions)
+        capability_counts["forecast_revisions"] += bool(forecast and any(
+            item["previous_known_at"] != item["current_known_at"]
+            for comparison in forecast["revisions"].values() for item in comparison.get("matched_estimates", [])
+            if any(values.get("change") is not None for values in item["values"].values())))
         event_complete = any(
             batch["coverage"]["complete"]
             and code in batch["coverage"]["thscodes"]
             and batch["coverage"]["period_start"] <= window_start
-            and batch["coverage"]["period_end"] >= source["trade_date"]
-            and _time(batch["collection_completed_at"]) >= completion
+            and batch["coverage"]["period_end"] >= (cutoff.tz_convert("Asia/Shanghai").date().isoformat() if research_asof else source["trade_date"])
+            and _time(batch["collection_completed_at"]) >= (cutoff if research_asof else completion)
             for batch in batches["events"]
         )
         routes = []
         if financial:
+            if minimum["state"] == "observed":
+                routes.append("minimum_financial_bundle_review")
+            growth = financial["yoy_pct"]
+            if (growth.get("revenue") is not None and growth.get("net_profit_parent") is not None
+                    and growth["revenue"] > 0 > growth["net_profit_parent"]):
+                routes.append("revenue_growth_profit_decline")
             if (
                 financial["yoy_pct"].get("net_profit_parent") is not None
                 and financial["yoy_pct"]["net_profit_parent"] > 0
@@ -671,6 +716,8 @@ def build_research_artifacts(
             if financial["profit_positive_cashflow_negative"] is True:
                 routes.append("positive_profit_negative_operating_cashflow")
         routes.extend(sorted({"event_" + row["event_type"] for row in events}))
+        if any(item["thscode"] == code for item in exposures):
+            routes.append("commodity_profit_transmission_review")
         for route in routes:
             route_counts[route] = route_counts.get(route, 0) + 1
         row = {
@@ -690,8 +737,19 @@ def build_research_artifacts(
                 )
             },
             "financials": financial,
+            "minimum_financial_evidence": minimum,
+            "security_status": {
+                "as_of_trade_date": source["trade_date"],
+                "state": str(stock.get("tradability_state") or "unknown"),
+                "reason_codes": list(stock.get("tradability_reason_codes", [])),
+                "execution_state": "not_verified_live",
+            },
+            "commodity_exposures": [{**item, "research_availability": availability(
+                published_at=item["source_published_at"], first_observed_at=item["first_observed_at"],
+                known_at=item["known_at"], research_asof=cutoff.isoformat(), historical_cutoff=configured.isoformat())}
+                for item in exposures if item["thscode"] == code],
             "events": events,
-            "forecasts": forecast_features(forecast_by_code.get(code, []), completion.isoformat(), forecast_sessions),
+            "forecasts": forecast,
             "availability": {
                 "financials": (
                     "observed"
@@ -737,6 +795,7 @@ def build_research_artifacts(
                 "trade_date": source["trade_date"],
                 "source_snapshot_sha256": source["source_snapshot_sha256"],
                 "research_effective_pit_cutoff": completion.isoformat(),
+                "research_asof": cutoff.isoformat(),
                 "securities": items,
             }
             encoded = _bounded(shard, name)
@@ -751,16 +810,34 @@ def build_research_artifacts(
                     "last_code": items[-1]["thscode"],
                 }
             )
+    # Discover company evidence independently of the tape candidate union. Alphabetical,
+    # bounded navigation only: completeness is not investment attractiveness.
+    directory = []
+    for prefix, rows in sorted(grouped_rows.items()):
+        for row in rows:
+            if row["minimum_financial_evidence"]["state"] == "observed" or row["commodity_exposures"]:
+                part = next(part for part in index[prefix]
+                            if part["first_code"] <= row["thscode"] <= part["last_code"])
+                directory.append({"thscode": row["thscode"], "security_name": row["security_name"],
+                    "part": part["path"], "sha256": part["sha256"],
+                    "routes": row["discovery_routes"],
+                    "minimum_financial_state": row["minimum_financial_evidence"]["state"],
+                    "exposure_count": len(row["commodity_exposures"])})
+    directory.sort(key=lambda row: row["thscode"])
     root = {
         "schema_version": 1,
         "document_type": "a_share_research_facts_index",
         "trade_date": source["trade_date"],
         "generated_at": completion.isoformat(),
-        "generated_at_semantics": "maximum_actual_source_completion_not_build_wall_clock",
+        "generated_at_semantics": "maximum_actual_source_completion_or_exposure_known_at_not_build_wall_clock",
         "source_snapshot_sha256": source["source_snapshot_sha256"],
         "feature_input_sha256": source.get("feature_input_sha256"),
         "market_effective_pit_cutoff": market_cutoff.isoformat(),
         "research_effective_pit_cutoff": completion.isoformat(),
+        "research_asof": cutoff.isoformat(),
+        "capability_counts": capability_counts,
+        "company_commodity_exposures_sha256": exposure_hash,
+        "readiness_semantics": "index_and_shards_built; not_all_research_capabilities_ready",
         "configured_decision_cutoff": configured.isoformat(),
         "modules": modules,
         "field_coverage": {
@@ -770,10 +847,13 @@ def build_research_artifacts(
         },
         "event_window": {
             "start": window_start,
-            "end": source["trade_date"],
+            "end": cutoff.tz_convert("Asia/Shanghai").date().isoformat(),
             "basis": "publication_date; last_20_market_sessions",
         },
         "discovery_routes": route_counts,
+        "company_evidence_directory": {"selection": "complete_minimum_bundle_or_attributed_commodity_exposure",
+            "order": "thscode; not_an_investment_ranking", "eligible_count": len(directory),
+            "truncated": len(directory) > 100, "companies": directory[:100]},
         "universe_count": len(universe),
         "lookup_policy": "sha256(ASCII thscode) first hex character; pages sorted by thscode, size bounded; all PIT reference securities, not only tape Top100",
         "shards": index,

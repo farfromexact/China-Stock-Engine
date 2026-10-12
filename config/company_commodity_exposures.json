@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "exposures": [
+    {
+      "exposure_id": "zijin-mined-gold",
+      "thscode": "601899.SH",
+      "business_segment": "矿产金",
+      "commodity": "gold",
+      "channel": "product_price",
+      "direction": "conditional",
+      "constraints": [
+        "需区分自产矿与外购原料冶炼业务；不能将加工原料套保当成全部矿产销售套保",
+        "实现售价取决于销售时点、定价条款、汇率与套保；净利润还受品位、回收率、单位成本、税费及少数股东权益影响",
+        "产量受停产检修与爬坡约束，价格上涨不能抵消所有销量下降；未估计利润敏感系数"
+      ],
+      "transmission_horizon": "unknown; realized sales, settlement and inventory lags require company-specific follow-up",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2026-08-22/1225550244.PDF",
+      "source_published_at": "2026-08-22T23:59:59+08:00",
+      "first_observed_at": "2026-10-12T01:28:40+00:00",
+      "known_at": "2026-10-12T01:35:27.601019+00:00",
+      "confidence": "verified",
+      "evidence_summary": "半年报披露矿产金生产业务和产量；另披露加工原料的部分商品套保。此处确认业务暴露，金价上升对矿产金售价的潜在正向影响是条件推断，不能等同集团利润或股价涨幅。",
+      "document_sha256": "b934ec8dde5757b3fbd757e6c8c6ae5bd13a09c65e5a7acbfa58430b538d75ad",
+      "source_pdf_pages": [
+        8,
+        213
+      ]
+    },
+    {
+      "exposure_id": "zijin-mined-copper",
+      "thscode": "601899.SH",
+      "business_segment": "矿产铜",
+      "commodity": "copper",
+      "channel": "product_price",
+      "direction": "conditional",
+      "constraints": [
+        "卡莫阿减产、矿山检修和扩产进度影响销量",
+        "需区分矿产铜与冶炼铜的经济暴露，并核对长协、加工费、汇率及套保范围",
+        "商品价格不直接等于实现售价；未建立合并利润敏感度或投资方向"
+      ],
+      "transmission_horizon": "unknown; realized sales, settlement and inventory lags require company-specific follow-up",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2026-08-22/1225550244.PDF",
+      "source_published_at": "2026-08-22T23:59:59+08:00",
+      "first_observed_at": "2026-10-12T01:28:40+00:00",
+      "known_at": "2026-10-12T01:35:27.601019+00:00",
+      "confidence": "verified",
+      "evidence_summary": "半年报披露矿产铜生产业务，并说明卡莫阿减产、检修等产量约束。铜价到矿产铜收入具有产品售价渠道，但集团同时经营加工业务，合并利润方向需核对产量、成本和套保。",
+      "document_sha256": "b934ec8dde5757b3fbd757e6c8c6ae5bd13a09c65e5a7acbfa58430b538d75ad",
+      "source_pdf_pages": [
+        8,
+        213
+      ]
+    },
+    {
+      "exposure_id": "baosteel-iron-ore-cost",
+      "thscode": "600019.SH",
+      "business_segment": "钢铁冶炼及钢材",
+      "commodity": "iron_ore",
+      "channel": "input_cost",
+      "direction": "conditional",
+      "constraints": [
+        "钢材售价与产品结构可能转嫁或抵消原料上涨",
+        "采购条款、库存成本结转、原料组合及套保覆盖尚待验证",
+        "产销规模、能耗、焦煤焦炭成本与降本措施共同决定利润；无量化敏感系数"
+      ],
+      "transmission_horizon": "unknown; realized sales, settlement and inventory lags require company-specific follow-up",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2026-08-22/1225489250.PDF",
+      "source_published_at": "2026-08-22T23:59:59+08:00",
+      "first_observed_at": "2026-10-12T01:28:40+00:00",
+      "known_at": "2026-10-12T01:35:27.601019+00:00",
+      "confidence": "verified",
+      "evidence_summary": "经营讨论披露原料价格上行、钢材价格改善有限及盈利空间承压。铁矿石是成本传导线索；对公司利润的负向影响以钢材售价、库存及效率不能完全抵消为条件。",
+      "document_sha256": "b30a0394b2b6fcf8dab4ee3630bfe75b12e9943fc7ebe8b8c90b563bf5bd5351",
+      "source_pdf_pages": [
+        9
+      ]
+    },
+    {
+      "exposure_id": "baosteel-steel-processing-spread",
+      "thscode": "600019.SH",
+      "business_segment": "钢铁冶炼及钢材",
+      "commodity": "steel_vs_iron_ore_and_coking_coal",
+      "channel": "processing_spread",
+      "direction": "conditional",
+      "constraints": [
+        "产品结构含差异化钢材，期货标的与实际售价存在基差",
+        "订单定价、采购和库存周期不同，收入与成本确认有时滞",
+        "需核对能源、折旧、产能利用率、出口与关税影响；不假定统一耗料系数"
+      ],
+      "transmission_horizon": "unknown; realized sales, settlement and inventory lags require company-specific follow-up",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2026-08-22/1225489250.PDF",
+      "source_published_at": "2026-08-22T23:59:59+08:00",
+      "first_observed_at": "2026-10-12T01:28:40+00:00",
+      "known_at": "2026-10-12T01:35:27.601019+00:00",
+      "confidence": "verified",
+      "evidence_summary": "经营讨论和合并利润表支持同时观察钢材售价与原料成本。钢材相对铁矿石、焦煤的加工价差用于后续研究，未把期货价差当作公司实际单位利润。",
+      "document_sha256": "b30a0394b2b6fcf8dab4ee3630bfe75b12e9943fc7ebe8b8c90b563bf5bd5351",
+      "source_pdf_pages": [
+        9,
+        60
+      ]
+    }
+  ]
+}

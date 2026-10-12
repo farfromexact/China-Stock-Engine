@@ -171,6 +171,8 @@ python -m china_stock_engine.cli validate
 
 Actions现有 `build-report` 流程会自动消费截止时间内的上述事实并发布入口；补充采集最多100只证券，没有新增全市场财务收费请求。历史日期不会批量重算，旧版可按此前Git commit读取。
 
+公司研究接口新增显式 `build-report --research-asof <带时区时间>`：允许使用截点前补齐的事实，只更新 latest，保留历史快照。`data_reference_latest.json.research_capabilities` 分能力说明可用性；紧凑候选通过 `research_context.part` 和 SHA256 定位明细。最小财务缺口与公司商品暴露随分片发布，不产生买卖评分。 第二阶段已导入两家公司半年报及同比数据、四条商品暴露，并提供独立于价量 Top100 的公司证据目录；范围和字段凭据见 [公开财报证据](docs/PUBLIC_FILING_EVIDENCE.md)。详见 [Stock 研究接口](docs/STOCK_RESEARCH_INTEGRATION.md) 和 [四个报告任务的增量契约](docs/AUTOMATION_STOCK_MODULE.md)。
+
 ## PIT 输入契约
 
 可选模块读取下列规范化文件；缺文件时模块保持 `missing`，缺必需列时直接报错：

@@ -426,15 +426,35 @@ def main(argv=None):
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
     parser.add_argument("--config", type=Path, default=Path("config/ifind_enrichment.json"))
     parser.add_argument("--canary", action="store_true")
+    parser.add_argument("--codes", help="comma-separated deep-research securities, at most 100; uses existing cache and canary gates")
     parser.add_argument("--modules", default=",".join(sorted(MODULES)))
     parser.add_argument("--max-requests", type=int, default=24)
     args = parser.parse_args(argv)
     config = load_config(args.config)
     market = load_manifest(args.data_dir / "latest/manifest.json", missing_ok=False)
-    radar = load_json_object(args.data_dir / "latest/opportunity_radar_latest.json", missing_ok=False)
-    if radar.get("source_snapshot_sha256") != market.get("source_snapshot_sha256") or radar.get("trade_date") != market["trade_date"]:
-        raise ArtifactContractError("radar and source market manifest do not match")
-    codes = CANARY_CODES if args.canary else [row["thscode"] for row in radar["candidate_union"]]
+    if market.get("verified") is not True or market.get("data_fresh") is not True:
+        raise ArtifactContractError("enrichment requires a verified fresh market snapshot")
+
+    def verified_path(name):
+        path = args.data_dir / "latest" / name
+        expected = ((market.get("artifacts") or {}).get(name) or {}).get("sha256")
+        if not expected or not path.is_file() or sha256_file(path) != expected:
+            raise ArtifactContractError(f"enrichment input hash mismatch: {name}")
+        return path
+
+    if args.canary and args.codes:
+        parser.error("--codes cannot override the canary sample")
+    if args.codes:
+        codes = sorted(set(code.strip().upper() for code in args.codes.split(",") if code.strip()))
+        universe = pd.read_parquet(verified_path("universe.parquet"))
+        if not set(codes) <= set(universe["thscode"]):
+            raise ArtifactContractError("deep-research codes must belong to the verified market universe")
+    else:
+        radar = load_json_object(verified_path("opportunity_radar_latest.json"), missing_ok=False)
+        source_hash = market.get("source_snapshot_sha256") or (market.get("data_reference") or {}).get("source_snapshot_sha256")
+        if not source_hash or radar.get("source_snapshot_sha256") != source_hash or radar.get("trade_date") != market["trade_date"]:
+            raise ArtifactContractError("radar and source market manifest do not match")
+        codes = CANARY_CODES if args.canary else [row["thscode"] for row in radar["candidate_union"]]
     result = run_enrichment(BoundedClient(max_requests=args.max_requests), args.data_dir, config, codes,
                             market["trade_date"], datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat(),
                             canary=args.canary, modules=args.modules.split(","))

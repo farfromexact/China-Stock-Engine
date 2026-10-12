@@ -47,6 +47,12 @@ class DailyWorkflowContractTests(unittest.TestCase):
                         self.workflow.index("Refresh compact data reference"))
         self.assertNotIn("--renew-access-token", self.workflow)
 
+    def test_current_research_cutoff_is_explicit_after_optional_collection(self):
+        refresh = self.workflow[self.workflow.index("Refresh compact data reference"):]
+        self.assertIn("--research-asof", refresh)
+        self.assertIn("--company-exposures config/company_commodity_exposures.json", refresh)
+        self.assertIn("vars.IFIND_ENRICHMENT_ENABLED == 'true'", self.workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

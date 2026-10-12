@@ -1,11 +1,11 @@
 {
   "as_of": {
-    "collection_completed_at": "2026-10-09T23:33:43+00:00",
+    "collection_completed_at": "2026-10-09T23:34:47.705744+00:00",
     "collection_started_at": "2026-10-09T23:33:07+00:00",
-    "configured_decision_cutoff": "2026-10-09T20:15:00+08:00",
-    "data_cutoff_time": "2026-10-09T12:15:00+00:00",
-    "effective_pit_cutoff": "2026-10-09T12:15:00+00:00",
-    "generated_at_utc": "2026-10-09T23:33:43+00:00",
+    "configured_decision_cutoff": "2026-10-12T01:38:56.694844+00:00",
+    "data_cutoff_time": "2026-10-09T23:34:47.705744+00:00",
+    "effective_pit_cutoff": "2026-10-09T23:34:47.705744+00:00",
+    "generated_at_utc": "2026-10-09T23:34:47.705744+00:00",
     "source_trade_date": "2026-10-09",
     "timezone": "Asia/Shanghai"
   },
@@ -84,27 +84,27 @@
         "row_count": 5559
       },
       {
-        "coverage_ratio": 0.0,
+        "coverage_ratio": 0.017989,
         "field": "adj_factor",
-        "non_null_count": 0,
+        "non_null_count": 100,
         "row_count": 5559
       },
       {
-        "coverage_ratio": 0.0,
+        "coverage_ratio": 0.017989,
         "field": "forward_adj_close",
-        "non_null_count": 0,
+        "non_null_count": 100,
         "row_count": 5559
       },
       {
-        "coverage_ratio": 0.0,
+        "coverage_ratio": 0.017989,
         "field": "adjusted_close",
-        "non_null_count": 0,
+        "non_null_count": 100,
         "row_count": 5559
       },
       {
-        "coverage_ratio": 0.0,
+        "coverage_ratio": 0.017989,
         "field": "total_return_index",
-        "non_null_count": 0,
+        "non_null_count": 100,
         "row_count": 5559
       },
       {
@@ -150,9 +150,9 @@
         "row_count": 5559
       },
       {
-        "coverage_ratio": 0.0,
+        "coverage_ratio": 0.017809,
         "field": "return_1d_pct",
-        "non_null_count": 0,
+        "non_null_count": 99,
         "row_count": 5559
       },
       {
@@ -481,9 +481,9 @@
       "description": "PIT per-security adjusted-price and market-state fields",
       "layer": "derived_feature",
       "name": "stock_state.parquet",
-      "path": "features/stock_state/trade_date=2026-10-09/stock_state.parquet",
+      "path": "latest/stock_state.parquet",
       "rows": 5559,
-      "sha256": "b18bf14fdcd7c4b424ca15f219cef9c6b40f1497c03e80f07436208965e5c8ae"
+      "sha256": "6e0ec2181fb3e8f749231d63e5680a67eca28d986fc15c8dc81c0a2285850d07"
     }
   ],
   "document_type": "a_share_data_reference",
@@ -491,7 +491,7 @@
     "market_facts": "facts/market/trade_date=2026-10-09/daily_quotes.parquet",
     "reference_facts": "facts/reference/as_of_date=2026-10-09/security_reference.parquet",
     "security_status": "facts/market/trade_date=2026-10-09/daily_security_status.parquet",
-    "stock_state": "features/stock_state/trade_date=2026-10-09/stock_state.parquet"
+    "stock_state": "latest/stock_state.parquet"
   },
   "engine": "China-Stock-Engine",
   "market_snapshot": {
@@ -750,7 +750,7 @@
   },
   "readiness": {
     "adjustment": {
-      "coverage": 0.0,
+      "coverage": 0.017989,
       "method": "point_in_time_factor_input",
       "state": "missing"
     },
@@ -762,10 +762,10 @@
       "calendar_basis": "cached_exchange_calendar_with_unknown_weekday_gaps",
       "horizons": {
         "1D": {
-          "adjusted_coverage": 0.0,
+          "adjusted_coverage": 0.017809,
           "adjusted_price_points_required": 2,
           "adjusted_return_field": "return_1d_pct",
-          "adjusted_state": "missing",
+          "adjusted_state": "partial",
           "coverage": 1.0,
           "raw_return_basis": "compounded_provider_daily_change_ratio",
           "raw_return_field": "raw_return_1d_pct",
@@ -868,6 +868,146 @@
     "missing_value_policy": "unknown values remain null",
     "pit_policy": "known_at <= effective_pit_cutoff"
   },
+  "research_capabilities": {
+    "company_events": {
+      "denominator": 5573,
+      "eligible_count": 406,
+      "limitation": "announcement_presence_is_not_catalyst_strength",
+      "state": "partial"
+    },
+    "daily_price_volume": {
+      "corporate_action_state": "missing",
+      "denominator": 5559,
+      "eligible_count": 5559,
+      "limitation": "raw_observation_only; corporate_action_checks_separate",
+      "state": "ready"
+    },
+    "earnings_cashflow": {
+      "denominator": 5573,
+      "eligible_count": 2,
+      "field_non_null_counts": {
+        "accounts_receivable": 2,
+        "capex": 2,
+        "cash": 2,
+        "equity_parent": 2,
+        "interest_bearing_debt": 2,
+        "inventory": 2,
+        "net_profit_ex_nonrecurring": 2,
+        "net_profit_parent": 949,
+        "operating_cash_flow": 2,
+        "operating_costs": 2,
+        "revenue": 2,
+        "total_assets": 2,
+        "total_liabilities": 2
+      },
+      "limitation": "same_statement_basis_required; industry_applicability_and_one_offs_require_review",
+      "minimum_bundle_count": 2,
+      "state": "partial"
+    },
+    "execution_checks": {
+      "eod_clear_count": 0,
+      "reason": "eod_only; live_quote_costs_and_next_trading_window_not_verified",
+      "state": "not_ready"
+    },
+    "forecast_revisions": {
+      "basis": "matched_fiscal_year_institution_and_estimate_basis_with_distinct_versions",
+      "denominator": 5573,
+      "eligible_count": 0,
+      "state": "missing"
+    },
+    "index_breadth": {
+      "membership_state": "missing",
+      "proxy_policy": "market_cap_groups_are_not_index_members; selected_securities_are_not_market_breadth",
+      "reason": "complete_point_in_time_constituent_denominator_not_certified",
+      "state": "missing"
+    },
+    "industry_relative_strength": {
+      "denominator": 5559,
+      "eligible_count": 0,
+      "mapping_state": "missing",
+      "state": "missing"
+    },
+    "multi_period_price": {
+      "unconfirmed_calendar_dates": [
+        "2026-09-25",
+        "2026-10-01",
+        "2026-10-02",
+        "2026-10-05",
+        "2026-10-06",
+        "2026-10-07"
+      ],
+      "windows": {
+        "1D": {
+          "adjusted": {
+            "basis": "point_in_time_adjustment_factors",
+            "denominator": 5559,
+            "eligible_count": 99,
+            "state": "partial"
+          },
+          "raw": {
+            "basis": "compounded_provider_daily_change_ratio",
+            "denominator": 5559,
+            "eligible_count": 5559,
+            "state": "ready"
+          }
+        },
+        "20D": {
+          "adjusted": {
+            "basis": "point_in_time_adjustment_factors",
+            "denominator": 5559,
+            "eligible_count": 0,
+            "state": "missing"
+          },
+          "raw": {
+            "basis": "compounded_provider_daily_change_ratio",
+            "denominator": 5559,
+            "eligible_count": 0,
+            "state": "missing"
+          }
+        },
+        "3D": {
+          "adjusted": {
+            "basis": "point_in_time_adjustment_factors",
+            "denominator": 5559,
+            "eligible_count": 0,
+            "state": "missing"
+          },
+          "raw": {
+            "basis": "compounded_provider_daily_change_ratio",
+            "denominator": 5559,
+            "eligible_count": 0,
+            "state": "missing"
+          }
+        },
+        "5D": {
+          "adjusted": {
+            "basis": "point_in_time_adjustment_factors",
+            "denominator": 5559,
+            "eligible_count": 0,
+            "state": "missing"
+          },
+          "raw": {
+            "basis": "compounded_provider_daily_change_ratio",
+            "denominator": 5559,
+            "eligible_count": 0,
+            "state": "missing"
+          }
+        }
+      }
+    }
+  },
+  "research_context": {
+    "availability_scope": "market_snapshot_only; inspect_each_fact_and_capability",
+    "first_observed_at": "2026-10-09T23:33:43+00:00",
+    "historical_decision_cutoff": "2026-10-09T20:15:00+08:00",
+    "known_at": "2026-10-09T23:33:43+00:00",
+    "mode": "current_research",
+    "research_asof": "2026-10-12T01:38:56.694844+00:00",
+    "source_published_at": null,
+    "trade_date": "2026-10-09",
+    "usable_for_current_research": true,
+    "usable_for_historical_replay": false
+  },
   "run": {
     "data_fresh": true,
     "provider": "ifind_http",
@@ -875,5 +1015,5 @@
     "source_snapshot_sha256": "7ee60a89da38370cbdb9108a580bde91a8655d479b43900c238b0b28b942cd10",
     "state": "ready"
   },
-  "schema_version": 4
+  "schema_version": 5
 }

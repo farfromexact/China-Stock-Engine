@@ -21,14 +21,15 @@ from .storage import (
 )
 from .opportunity_inputs import build_opportunity_inputs
 from .research_inputs import build_research_artifacts
+from .research_context import availability, attach_research_links, build_capabilities, timestamp
 from .opportunity_radar import (
     OPPORTUNITY_RADAR_SCHEMA_VERSION,
     build_opportunity_radar_inputs,
 )
 
 
-DATA_REFERENCE_SCHEMA_VERSION = 4
-STOCK_STATE_SCHEMA_VERSION = 4
+DATA_REFERENCE_SCHEMA_VERSION = 5
+STOCK_STATE_SCHEMA_VERSION = 5
 MAX_DATA_REFERENCE_BYTES = 2 * 1024 * 1024
 TARGET_HISTORY_SESSIONS = 20
 HORIZON_SESSIONS = (1, 3, 5, 20)
@@ -221,7 +222,11 @@ def _known_by(frame: pd.DataFrame, decision_time: str) -> pd.Series:
     if "known_at" not in frame.columns:
         return pd.Series(False, index=frame.index, dtype=bool)
     values = pd.to_datetime(frame["known_at"], errors="coerce", utc=True)
-    return values.notna() & values.le(_as_utc_timestamp(decision_time))
+    mask = values.notna() & values.le(_as_utc_timestamp(decision_time))
+    if "collection_completed_at" in frame:
+        completed = pd.to_datetime(frame["collection_completed_at"], errors="coerce", utc=True)
+        mask &= values.le(completed) & completed.le(_as_utc_timestamp(decision_time))
+    return mask
 
 
 def _normalize_date_column(frame: pd.DataFrame, column: str) -> None:
@@ -319,7 +324,8 @@ def _partition_value(path: Path, prefix: str) -> str | None:
 
 
 def load_market_history(
-    data_dir: Path, end_date: str, *, limit: int = TARGET_HISTORY_SESSIONS + 1
+    data_dir: Path, end_date: str, *, limit: int = TARGET_HISTORY_SESSIONS + 1,
+    research_asof: str | None = None,
 ) -> pd.DataFrame:
     paths = sorted(
         (data_dir / "facts" / "market").glob("trade_date=*/daily_quotes.parquet")
@@ -345,7 +351,23 @@ def load_market_history(
     ]
     if not selected:
         return pd.DataFrame()
-    frames = [pd.read_parquet(path) for path in selected]
+    frames = []
+    for path in selected:
+        frame = pd.read_parquet(path)
+        day = _partition_value(path, "trade_date=") or path.parent.name
+        observed_manifest = load_manifest(data_dir / "snapshots" / day / "manifest.json")
+        completed = observed_manifest.get("collection_completed_at") or observed_manifest.get("collected_at_utc")
+        frame["first_observed_at"] = completed
+        if research_asof:
+            metadata = (observed_manifest.get("artifacts") or {}).get("daily_quotes.parquet") or {}
+            if (not completed or timestamp(completed) > timestamp(research_asof)
+                    or observed_manifest.get("verified") is not True):
+                continue
+            if metadata.get("sha256") != sha256_file(path):
+                raise ArtifactContractError(f"history quote hash mismatch: {day}")
+        frames.append(frame)
+    if not frames:
+        return pd.DataFrame()
     output = pd.concat(frames, ignore_index=True)
     _normalize_date_column(output, "trade_date")
     output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
@@ -1392,6 +1414,7 @@ def build_data_reference(
             "quality_thresholds": manifest.get("quality_thresholds") or {},
         },
         "readiness": _json_value(factual_readiness),
+        "research_capabilities": build_capabilities(stock_state, readiness),
         "market_snapshot": {
             "breadth": {
                 "advancers": market_summary.get("advancers"),
@@ -1450,6 +1473,8 @@ def build_data_reference_outputs(
     trade_date: str | None = None,
     *,
     min_adt20: float = DEFAULT_MIN_ADT20,
+    research_asof: str | None = None,
+    exposure_path: Path | None = None,
 ) -> dict[str, Any]:
     latest = data_dir / "latest"
     latest_manifest = load_manifest(latest / "manifest.json")
@@ -1472,6 +1497,12 @@ def build_data_reference_outputs(
     if manifest.get("verified") is not True or manifest.get("data_fresh") is not True:
         raise ValueError("selected snapshot is not verified and fresh")
     pit_timing = manifest_pit_timing(manifest, selected_date)
+    if research_asof:
+        research_asof = timestamp(research_asof).isoformat()
+        if timestamp(research_asof) < timestamp(pit_timing["collection_completed_at"]):
+            raise ArtifactContractError("selected market snapshot was not observed by research_asof")
+        if not publish_latest:
+            raise ArtifactContractError("current research view must use the latest trade date; historical snapshots are preserved")
     manifest = {
         **manifest,
         "schema_version": 3,
@@ -1496,30 +1527,47 @@ def build_data_reference_outputs(
             raise ArtifactContractError(
                 f"source snapshot artifact hash mismatch: {name}"
             )
-    history = load_market_history(data_dir, selected_date)
-    reference = _current_reference(data_dir, selected_date)
+    history = load_market_history(data_dir, selected_date, research_asof=research_asof)
+    # Bind identity and share counts to the same verified market snapshot.
+    reference = pd.read_parquet(snapshot_dir / "security_reference.parquet")
     snapshot_dir = data_dir / "snapshots" / selected_date
     status_path = snapshot_dir / "daily_security_status.parquet"
     if not status_path.exists():
         status_path = latest / "daily_security_status.parquet"
     daily_status = pd.read_parquet(status_path)
-    adjustments = load_adjustment_snapshot(data_dir, selected_date)
+    observation_date = timestamp(research_asof).tz_convert("Asia/Shanghai").date().isoformat() if research_asof else selected_date
+    adjustments = load_adjustment_snapshot(data_dir, observation_date)
     market_pit_timing = dict(pit_timing)
     pit_timing = feature_pit_timing(market_pit_timing, adjustments)
     corporate_actions = _latest_partition_frame(
-        data_dir, "adjustment", "corporate_actions.parquet", selected_date
+        data_dir, "adjustment", "corporate_actions.parquet", observation_date
     )
     industry = _latest_partition_frame(
-        data_dir, "classification", "industry_membership.parquet", selected_date
+        data_dir, "classification", "industry_membership.parquet", observation_date
     )
     indexes = _latest_partition_frame(
-        data_dir, "classification", "index_membership.parquet", selected_date
+        data_dir, "classification", "index_membership.parquet", observation_date
     )
-    index_history = load_index_history(data_dir, selected_date)
+    index_history = load_index_history(data_dir, observation_date)
+    if not index_history.empty:
+        index_history = index_history.loc[index_history["trade_date"].le(selected_date)].copy()
     provider_tradability = _latest_partition_frame(
-        data_dir, "tradability", "provider_tradability.parquet", selected_date
+        data_dir, "tradability", "provider_tradability.parquet", observation_date
     )
     pit_timing = feature_pit_timing(market_pit_timing, adjustments, industry, indexes, index_history, provider_tradability)
+    if research_asof:
+        # This cutoff belongs to a current research view, never to the old market manifest.
+        completed = timestamp(market_pit_timing["collection_completed_at"])
+        for frame in (history, adjustments, corporate_actions, industry, indexes, index_history, provider_tradability):
+            for field in ("collection_completed_at", "known_at", "first_observed_at"):
+                if field in frame:
+                    stamps = pd.to_datetime(frame[field], errors="coerce", utc=True)
+                    eligible = stamps.loc[stamps.le(timestamp(research_asof))]
+                    if not eligible.empty:
+                        completed = max(completed, eligible.max())
+        pit_timing = {**pit_timing, "configured_decision_cutoff": research_asof,
+                      "effective_pit_cutoff": completed.isoformat(),
+                      "collection_completed_at": completed.isoformat()}
     frames_for_hash = {
         "history": history,
         "reference": reference,
@@ -1607,8 +1655,31 @@ def build_data_reference_outputs(
     )
     opportunity_radar = build_opportunity_radar_inputs(opportunity_inputs)
     research_artifacts = build_research_artifacts(
-        data_dir, opportunity_inputs, stock_state, history, reference
+        data_dir, {**opportunity_inputs, "market_pit_timing": market_pit_timing, "pit_timing": {**pit_timing,
+            "configured_decision_cutoff": market_pit_timing["configured_decision_cutoff"]}},
+        stock_state, history, reference, research_asof=research_asof, exposure_path=exposure_path,
     )
+    research_index = research_artifacts["research_inputs_latest.json"]
+    context = {
+        "trade_date": selected_date,
+        "research_asof": research_index["research_asof"],
+        "mode": "current_research" if research_asof else "historical_cutoff",
+        "historical_decision_cutoff": market_pit_timing["configured_decision_cutoff"],
+        **availability(published_at=None,
+            first_observed_at=market_pit_timing["collection_completed_at"],
+            known_at=market_pit_timing["collection_completed_at"],
+            research_asof=research_index["research_asof"],
+            historical_cutoff=market_pit_timing["configured_decision_cutoff"]),
+        "availability_scope": "market_snapshot_only; inspect_each_fact_and_capability",
+    }
+    data_reference["research_context"] = context
+    data_reference["research_capabilities"] = build_capabilities(stock_state, readiness, research_index)
+    opportunity_inputs["research_context"] = context
+    opportunity_radar["research_context"] = context
+    attach_research_links(opportunity_radar, research_artifacts)
+    if research_asof:
+        for document in (data_reference, opportunity_inputs, opportunity_radar):
+            document.setdefault("drilldown", {})["stock_state"] = "latest/stock_state.parquet"
     reference_metadata = {
         "schema_version": DATA_REFERENCE_SCHEMA_VERSION,
         "source_snapshot_sha256": source_hash,
@@ -1631,10 +1702,12 @@ def build_data_reference_outputs(
             "feature_input_sha256": feature_input_hash,
             **market_pit_timing,
             "feature_pit_timing": pit_timing,
+            "research_context": context,
             "collected_at_utc": market_pit_timing["collection_completed_at"],
         },
         publish_latest=publish_latest,
         research_artifacts=research_artifacts,
+        current_research=bool(research_asof),
     )
     reference_path = (
         latest / "data_reference_latest.json"
