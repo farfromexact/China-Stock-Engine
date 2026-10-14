@@ -467,7 +467,8 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
     summary = build_market_summary(current, day, daily_status)
     configured = data_cutoff_time_for_date(day)
     effective = min(pd.Timestamp(configured), pd.Timestamp(completed)).isoformat()
-    manifest = {"schema_version": 3, "trade_date": day, "verified": True, "data_fresh": True,
+    source_relative = Path("facts/akshare/snapshots") / f"vintage={vintage}" / f"trade_date={day}"
+    manifest = {"source_snapshot_path": source_relative.as_posix(), "schema_version": 3, "trade_date": day, "verified": True, "data_fresh": True,
         "provider": "akshare_tencent", "collected_at_utc": completed,
         "collection_started_at": meta["collection_completed_at"], "collection_completed_at": completed,
         "configured_decision_cutoff": configured, "effective_pit_cutoff": effective,
@@ -484,20 +485,30 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
         "raw_payload_persisted": False}
     # Keep the previous latest until derived outputs have also passed their
     # contract. Historical source snapshots remain separately versioned.
-    persisted_manifest = promote_snapshot(data_dir, day, universe, reference, current, calendar, daily_status,
-                                          summary, manifest, promote_latest=False)
-    # Arrow can canonicalize extension/object dtypes. The schema contract must
-    # describe the persisted artifact, not a transient pandas representation.
-    for name, filename, keys in (
-        ("universe", "universe.parquet", ["thscode"]),
-        ("security_reference", "security_reference.parquet", ["thscode"]),
-        ("quotes", "daily_quotes.parquet", ["trade_date", "thscode"]),
-        ("trading_calendar", "trading_calendar.parquet", ["calendar", "trade_date"]),
-        ("daily_status", "daily_security_status.parquet", ["trade_date", "thscode"])):
-        stored = pd.read_parquet(data_dir / "snapshots" / day / filename)
-        persisted_manifest["provenance"][name + "_schema_signature"] = schema_signature(stored)
-        persisted_manifest["provenance"][name + "_frame_sha256"] = frame_hash(stored, keys)
-    atomic_write_json(data_dir / "snapshots" / day / "manifest.json", persisted_manifest)
+    import shutil
+    import tempfile
+    source_store = data_dir / source_relative
+    # Preserve the original iFinD snapshot and canonical facts for this date.
+    # Generate AKShare's market snapshot in isolation and retain its own source
+    # directory, selected by an explicit manifest reference.
+    with tempfile.TemporaryDirectory(prefix=".akshare-source-", dir=cache) as seed_dir:
+        seed = Path(seed_dir)
+        persisted_manifest = promote_snapshot(seed, day, universe, reference, current, calendar, daily_status,
+                                              summary, manifest, promote_latest=False)
+        seed_snapshot = seed / "snapshots" / day
+        for name, filename, keys in (
+            ("universe", "universe.parquet", ["thscode"]),
+            ("security_reference", "security_reference.parquet", ["thscode"]),
+            ("quotes", "daily_quotes.parquet", ["trade_date", "thscode"]),
+            ("trading_calendar", "trading_calendar.parquet", ["calendar", "trade_date"]),
+            ("daily_status", "daily_security_status.parquet", ["trade_date", "thscode"])):
+            stored = pd.read_parquet(seed_snapshot / filename)
+            persisted_manifest["provenance"][name + "_schema_signature"] = schema_signature(stored)
+            persisted_manifest["provenance"][name + "_frame_sha256"] = frame_hash(stored, keys)
+        atomic_write_json(seed_snapshot / "manifest.json", persisted_manifest)
+        shutil.copytree(seed_snapshot, source_store, dirs_exist_ok=True)
+    atomic_write_parquet(data_dir / "facts/akshare/reference" / f"as_of_date={day}" /
+                         f"vintage={vintage}" / "trading_calendar.parquet", calendar)
     # Release the assembly panels before the feature builder loads its own
     # 300-session panel and normalization vintages.
     del panel, raw, factors, coverage_frame
@@ -510,7 +521,7 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
     research_cutoff = now()
     with tempfile.TemporaryDirectory(prefix=".akshare-publish-", dir=data_dir) as temporary:
         staging = Path(temporary)
-        shutil.copytree(data_dir / "snapshots" / day, staging / "snapshots" / day)
+        shutil.copytree(source_store, staging / "snapshots" / day)
         (staging / "facts").symlink_to((data_dir / "facts").resolve(), target_is_directory=True)
         previous_signals = data_dir / "features/technical_signals"
         if previous_signals.exists():

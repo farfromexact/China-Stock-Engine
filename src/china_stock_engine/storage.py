@@ -385,6 +385,7 @@ def publish_data_reference_artifacts(
     research_artifacts: dict[str, dict[str, Any]] | None = None,
     current_research: bool = False,
     technical_artifacts: dict[str, Any] | None = None,
+    source_snapshot_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Atomically attach deterministic, opinion-free reference data."""
 
@@ -397,7 +398,7 @@ def publish_data_reference_artifacts(
         import tempfile
         with tempfile.TemporaryDirectory(prefix=".research-build-", dir=data_dir) as temporary:
             staging = Path(temporary)
-            source = data_dir / "snapshots" / trade_date
+            source = source_snapshot_dir or data_dir / "snapshots" / trade_date
             target = staging / "snapshots" / trade_date
             shutil.copytree(source, target)
             result = publish_data_reference_artifacts(
@@ -410,7 +411,7 @@ def publish_data_reference_artifacts(
                                          current_research=True)
             return result
 
-    snapshot_dir = data_dir / "snapshots" / trade_date
+    snapshot_dir = source_snapshot_dir or data_dir / "snapshots" / trade_date
     manifest_path = snapshot_dir / "manifest.json"
     if not manifest_path.exists():
         raise FileNotFoundError(f"snapshot manifest does not exist: {manifest_path}")

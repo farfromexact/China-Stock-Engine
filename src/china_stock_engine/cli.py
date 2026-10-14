@@ -1047,7 +1047,7 @@ def _inspect_series(args: argparse.Namespace) -> int:
         manifest = load_json_object(receipt) if receipt.exists() else load_manifest(args.data_dir / "snapshots" / day / "manifest.json", missing_ok=False)
     if not 1 <= args.sessions <= 300:
         raise ValueError("series sessions must be between 1 and 300")
-    cutoff = args.research_asof or manifest_pit_timing(manifest, day)["effective_pit_cutoff"]
+    cutoff = args.research_asof or (manifest.get("research_context") or {}).get("research_asof") or manifest_pit_timing(manifest, day)["effective_pit_cutoff"]
     history = load_market_history(args.data_dir, day, limit=args.sessions, research_asof=cutoff)
     code = args.code.strip().upper()
     if history.empty or code not in set(history["thscode"]):
@@ -1056,13 +1056,13 @@ def _inspect_series(args: argparse.Namespace) -> int:
     factor_date = pd.Timestamp(cutoff).tz_convert("Asia/Shanghai").date().isoformat()
     adjusted = apply_adjustments(scoped, load_adjustment_snapshot(args.data_dir, factor_date), cutoff)
     fields = ("open", "high", "low", "close", "volume", "amount", "adj_factor",
-              "adjusted_open", "adjusted_high", "adjusted_low", "adjusted_close")
+              "adjusted_open", "adjusted_high", "adjusted_low", "adjusted_close", "adj_multiplier", "adj_offset")
     rows = [{"trade_date": row["trade_date"], "first_observed_at": row.get("first_observed_at"),
              **{key: number(row.get(key)) for key in fields}} for row in adjusted.to_dict("records")]
     print(json.dumps({"thscode": code, "trade_date": day, "research_asof": cutoff,
         "sessions_requested": args.sessions, "rows": rows,
         "missing_session_dates": sorted(set(history.attrs.get("session_dates") or history["trade_date"]) - set(scoped["trade_date"])),
-        "price_basis": "raw prices and OHLC times PIT factor; missing adjustments remain null"}, ensure_ascii=False, allow_nan=False, indent=2))
+        "price_basis": "raw prices and native PIT-adjusted OHLC or factor; affine inverse mapping; missing adjustments remain null"}, ensure_ascii=False, allow_nan=False, indent=2))
     return 0
 
 

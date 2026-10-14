@@ -353,7 +353,7 @@ def load_market_history(
     for path in eligible:
         day = _partition_value(path, "trade_date=") or path.parent.name
         receipt = path.parent / "market_receipt.json"
-        metadata = load_manifest(receipt if receipt.exists() else data_dir / "snapshots" / day / "manifest.json")
+        metadata = load_manifest(receipt if receipt.exists() else (path.parent / "manifest.json" if path.parent.name == day else (data_dir / "facts").resolve().parent / "snapshots" / day / "manifest.json"))
         completed = metadata.get("collection_completed_at") or metadata.get("collected_at_utc")
         if research_asof and (not completed or timestamp(completed) > timestamp(research_asof) or metadata.get("verified") is not True):
             continue
@@ -376,7 +376,7 @@ def load_market_history(
         frame = pd.read_parquet(path)
         day = _partition_value(path, "trade_date=") or path.parent.name
         receipt = path.parent / "market_receipt.json"
-        observed_manifest = load_manifest(receipt if receipt.exists() else data_dir / "snapshots" / day / "manifest.json")
+        observed_manifest = load_manifest(receipt if receipt.exists() else (path.parent / "manifest.json" if path.parent.name == day else (data_dir / "facts").resolve().parent / "snapshots" / day / "manifest.json"))
         completed = observed_manifest.get("collection_completed_at") or observed_manifest.get("collected_at_utc")
         frame["first_observed_at"] = completed
         metadata = (observed_manifest.get("artifacts") or {}).get("daily_quotes.parquet") or {}
@@ -419,13 +419,11 @@ def load_market_history(
     )
     # Retain independently observed calendar dates even when a quote partition
     # is absent. Single-day calendar caches cannot certify intervening holidays.
+    calendar_paths = sorted((data_dir / "facts/reference").glob("as_of_date=*/trading_calendar.parquet"))
+    calendar_paths += sorted((data_dir / "facts/akshare/reference").glob("as_of_date=*/vintage=*/trading_calendar.parquet"))
     calendars = [
         pd.read_parquet(path)
-        for path in sorted(
-            (data_dir / "facts" / "reference").glob(
-                "as_of_date=*/trading_calendar.parquet"
-            )
-        )
+        for path in calendar_paths
         if (_partition_value(path, "as_of_date=") or "") <= end_date
     ]
     if calendars:
@@ -1423,7 +1421,7 @@ def _data_catalog(
             {
                 "name": name,
                 "layer": "snapshot",
-                "path": f"snapshots/{trade_date}/{name}",
+                "path": f"{manifest.get('source_snapshot_path') or f'snapshots/{trade_date}'}/{name}",
                 "rows": (metadata or {}).get("rows"),
                 "sha256": (metadata or {}).get("sha256"),
                 "description": descriptions.get(name, "verified snapshot artifact"),
@@ -1515,12 +1513,12 @@ def build_data_reference(
         "data_catalog": _data_catalog(manifest, trade_date, int(len(stock_state))),
         "drilldown": {
             "stock_state": f"features/stock_state/trade_date={trade_date}/stock_state.parquet",
-            "market_facts": f"facts/market/trade_date={trade_date}/daily_quotes.parquet",
+            "market_facts": (f"{manifest['source_snapshot_path']}/daily_quotes.parquet" if manifest.get("source_snapshot_path") else f"facts/market/trade_date={trade_date}/daily_quotes.parquet"),
             "security_status": (
-                f"facts/market/trade_date={trade_date}/daily_security_status.parquet"
+                f"{manifest['source_snapshot_path']}/daily_security_status.parquet" if manifest.get("source_snapshot_path") else f"facts/market/trade_date={trade_date}/daily_security_status.parquet"
             ),
             "reference_facts": (
-                f"facts/reference/as_of_date={trade_date}/security_reference.parquet"
+                f"{manifest['source_snapshot_path']}/security_reference.parquet" if manifest.get("source_snapshot_path") else f"facts/reference/as_of_date={trade_date}/security_reference.parquet"
             ),
         },
         "reference_contract": {
@@ -1574,6 +1572,10 @@ def build_data_reference_outputs(
         manifest = snapshot_manifest
     if manifest.get("verified") is not True or manifest.get("data_fresh") is not True:
         raise ValueError("selected snapshot is not verified and fresh")
+    if manifest.get("source_snapshot_path") and not research_asof:
+        research_asof = (manifest.get("research_context") or {}).get("research_asof")
+        if not research_asof:
+            raise ArtifactContractError("late-observed AKShare history requires an explicit research_asof")
     pit_timing = manifest_pit_timing(manifest, selected_date)
     if research_asof:
         research_asof = timestamp(research_asof).isoformat()
@@ -1588,7 +1590,10 @@ def build_data_reference_outputs(
         "collected_at_utc": pit_timing["collection_completed_at"],
     }
     source_hash = _source_snapshot_hash(manifest)
-    snapshot_dir = data_dir / "snapshots" / selected_date
+    source_relative = Path(manifest.get("source_snapshot_path") or f"snapshots/{selected_date}")
+    if source_relative.is_absolute() or ".." in source_relative.parts:
+        raise ArtifactContractError("unsafe source snapshot path")
+    snapshot_dir = data_dir / source_relative
     for name in (
         "universe.parquet",
         "security_reference.parquet",
@@ -1608,7 +1613,6 @@ def build_data_reference_outputs(
     history = load_market_history(data_dir, selected_date, limit=technical_config.history_sessions, research_asof=research_asof)
     # Bind identity and share counts to the same verified market snapshot.
     reference = pd.read_parquet(snapshot_dir / "security_reference.parquet")
-    snapshot_dir = data_dir / "snapshots" / selected_date
     status_path = snapshot_dir / "daily_security_status.parquet"
     if not status_path.exists():
         status_path = latest / "daily_security_status.parquet"
@@ -1755,6 +1759,11 @@ def build_data_reference_outputs(
         pit_timing,
     )
     opportunity_inputs["technical_signals"] = technical_document
+    if manifest.get("source_snapshot_path"):
+        opportunity_inputs["drilldown"].update({
+            "market_facts": f"{manifest['source_snapshot_path']}/daily_quotes.parquet",
+            "reference_facts": f"{manifest['source_snapshot_path']}/security_reference.parquet",
+        })
     # The old bounded rankings remain reference context. The primary union is
     # now every fixed-rule match from the full PIT universe.
     opportunity_inputs["legacy_rankings"] = {
@@ -1825,6 +1834,7 @@ def build_data_reference_outputs(
         current_research=bool(research_asof),
         technical_artifacts={"technical_scan.parquet": technical_scan,
                              "technical_signals_latest.json": technical_document},
+        source_snapshot_dir=snapshot_dir,
     )
     reference_path = (
         latest / "data_reference_latest.json"

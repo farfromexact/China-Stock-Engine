@@ -47,9 +47,11 @@ facts/akshare/market_history/vintage=HASH/trade_date=DATE/market_receipt.json
 facts/akshare/market_history/vintage=HASH/history_coverage.parquet
 facts/akshare/market_history/vintage=HASH/history_manifest.json
 facts/adjustment/as_of_date=OBSERVED_DATE/vintage=HASH-PREFIX/adjustment_factors.parquet
+facts/akshare/snapshots/vintage=HASH/trade_date=DATE/
+facts/akshare/reference/as_of_date=DATE/vintage=HASH/trading_calendar.parquet
 ```
 
-按日期分行情、按代码前缀分复权，避免单文件过大。历史读取选择研究截点之前真正已观测的最新验证版本；新补采不改写旧 iFinD 价格文件，也不冒充过去已掌握的资料。
+按日期分行情、按代码前缀分复权，避免单文件过大。历史读取选择研究截点之前真正已观测的最新验证版本；新补采不改写旧 iFinD 价格文件和同日快照，也不冒充过去已掌握的资料。latest manifest 的 source_snapshot_path 明确指向 AKShare 的独立市场快照。
 
 新上市股票自然没有全部 300 日；没有供应商日线的开市日列为未独立核实的停牌/源缺口，不填零或跨缺口凑连续窗口。覆盖报告区分上市前日期、实际观察数、上市后的未核实缺口和请求失败。
 

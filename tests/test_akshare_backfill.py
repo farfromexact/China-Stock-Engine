@@ -151,10 +151,19 @@ class AKShareBackfillTests(unittest.TestCase):
                 path=cache/'securities'/f'{code}.parquet'
                 atomic_write_parquet(path,panel)
                 atomic_write_json(path.with_suffix('.json'),{'bootstrap_sha256':json_sha256(meta),'sha256':sha256_file(path)})
+            original_fact=data/'facts/market'/f'trade_date={dates[-1]}'/'daily_quotes.parquet'
+            atomic_write_parquet(original_fact,raw.tail(1).assign(thscode='600000.SH'))
+            original_manifest=data/'snapshots'/dates[-1]/'manifest.json'
+            atomic_write_json(original_manifest,{'schema_version':3,'trade_date':dates[-1], 'verified':True,
+                'collection_completed_at':dates[-1]+'T19:00:00+08:00',
+                'artifacts':{'daily_quotes.parquet':{'sha256':sha256_file(original_fact)}}})
+            old_manifest_bytes, old_fact_bytes=original_manifest.read_bytes(),original_fact.read_bytes()
             with patch('china_stock_engine.quality.validate_data',side_effect=small_universe), patch(
                     'china_stock_engine.pipeline.validate_data',side_effect=small_universe):
                 result=publish(data,cache,{'bootstrap':meta,'securities':3,'failures':[]})
             self.assertTrue(result['ok'],result['validation'])
+            self.assertEqual(original_manifest.read_bytes(),old_manifest_bytes)
+            self.assertEqual(original_fact.read_bytes(),old_fact_bytes)
             manifest=load_manifest(data/'latest/manifest.json')
             for name in ['universe','security_reference','quotes','trading_calendar','daily_status']:
                 self.assertIn(name+'_schema_signature',manifest['provenance'])
