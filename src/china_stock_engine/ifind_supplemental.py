@@ -258,9 +258,10 @@ def _save_batch(data_dir, batch):
             "rows": len(batch["records"]), "completed_at": batch["collection_completed_at"]}
 
 
-def _cached_closes(data_dir, trade_date, codes):
+def _cached_closes(data_dir, trade_date, codes, *, start_date=None):
     paths = sorted((data_dir / "facts" / "market").glob("trade_date=*/daily_quotes.parquet"))
-    paths = [path for path in paths if path.parent.name[11:] <= trade_date][-21:]
+    paths = [path for path in paths if path.parent.name[11:] <= trade_date]
+    paths = [path for path in paths if path.parent.name[11:] >= start_date] if start_date else paths[-300:]
     if not paths:
         raise ArtifactContractError("no cached market history; refusing redundant download")
     frames = [pd.read_parquet(path, columns=["trade_date", "thscode", "close"]) for path in paths]
@@ -269,9 +270,7 @@ def _cached_closes(data_dir, trade_date, codes):
 
 
 def collect_adjustments(client, data_dir, codes, trade_date, *, start_date=None, batch_size=100):
-    raw = _cached_closes(data_dir, trade_date, codes)
-    if start_date:
-        raw = raw.loc[raw["trade_date"].ge(start_date)]
+    raw = _cached_closes(data_dir, trade_date, codes, start_date=start_date)
     if raw.empty:
         raise ArtifactContractError("no cached raw prices in requested adjustment window")
     factors = client.fetch_adjustment_factors(

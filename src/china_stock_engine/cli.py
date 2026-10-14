@@ -119,6 +119,16 @@ def _parser() -> argparse.ArgumentParser:
     backfill.add_argument("--with-adjustment-snapshot", action="store_true")
     backfill.add_argument("--adjustment-batch-size", type=int, default=100)
 
+    ak_backfill = subparsers.add_parser("backfill-akshare", help="resume full-market raw/adjusted AKShare history and publish verified technical signals")
+    ak_backfill.add_argument("--end", default=default_trade_date())
+    ak_backfill.add_argument("--sessions", type=int, default=300)
+    ak_backfill.add_argument("--workers", type=int, default=4)
+    ak_backfill.add_argument("--data-dir", type=Path, default=Path("data"))
+    ak_backfill.add_argument("--cache-dir", type=Path, default=Path(".private-stock-data/akshare-backfill"))
+    ak_backfill.add_argument("--collect-only", action="store_true")
+    ak_backfill.add_argument("--publish-only", action="store_true")
+    ak_backfill.add_argument("--limit", type=int, help="canary only; requires --collect-only")
+
     validate = subparsers.add_parser("validate", help="validate the latest snapshot")
     validate.add_argument("--data-dir", type=Path, default=Path("data"))
 
@@ -142,6 +152,7 @@ def _parser() -> argparse.ArgumentParser:
     build_report.add_argument("--data-dir", type=Path, default=Path("data"))
     build_report.add_argument("--min-adt20", type=float, default=20_000_000.0)
     for command in (build_state, build_report):
+        command.add_argument("--technical-config", type=Path, help="price/volume strategy parameters; defaults to config/technical_signals.json")
         command.add_argument("--research-asof", help="explicit timezone-aware current research cutoff; preserves historical snapshot")
         command.add_argument("--company-exposures", type=Path,
                              help="validated company commodity exposure registry")
@@ -151,6 +162,20 @@ def _parser() -> argparse.ArgumentParser:
     )
     research_import.add_argument("--input", type=Path, required=True)
     research_import.add_argument("--data-dir", type=Path, default=Path("data"))
+    series = subparsers.add_parser("inspect-series", help="read one security's verified raw/adjusted K-lines; no API calls")
+    series.add_argument("--code", required=True)
+    series.add_argument("--date")
+    series.add_argument("--sessions", type=int, default=120)
+    series.add_argument("--research-asof")
+    series.add_argument("--data-dir", type=Path, default=Path("data"))
+    review = subparsers.add_parser("record-technical-review", help="append a research decision without deleting technical signals")
+    review.add_argument("--code", required=True)
+    review.add_argument("--date", required=True)
+    review.add_argument("--decision", choices=("keep", "exclude", "wait"), required=True)
+    review.add_argument("--reason", required=True)
+    review.add_argument("--sources", nargs="*", default=[])
+    review.add_argument("--research-view", help="16-character research view hash, or latest; default is historical EOD ledger")
+    review.add_argument("--data-dir", type=Path, default=Path("data"))
     return parser
 
 
@@ -469,7 +494,7 @@ def _run(args: argparse.Namespace) -> int:
                 client,
                 args.data_dir,
                 args.adjustment_start
-                or (pd.Timestamp(args.date) - pd.Timedelta(days=40))
+                or (pd.Timestamp(args.date) - pd.Timedelta(days=600))
                 .date()
                 .isoformat(),
                 args.date,
@@ -566,6 +591,8 @@ class _PreparedBackfillClient:
                 self.trading_calendar["trade_date"].le(trade_date)
             ].copy()
             calendar["as_of_date"] = trade_date
+            if "calendar_window_end" in calendar:
+                calendar["calendar_window_end"] = calendar["calendar_window_end"].map(lambda day: min(str(day), trade_date))
             return calendar
         return pd.DataFrame(
             {
@@ -1003,8 +1030,81 @@ def _build_data_reference(args: argparse.Namespace) -> int:
         min_adt20=args.min_adt20,
         research_asof=args.research_asof,
         exposure_path=args.company_exposures,
+        technical_config_path=args.technical_config,
     )
     print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _inspect_series(args: argparse.Namespace) -> int:
+    from .data_reference import load_market_history, load_adjustment_snapshot, apply_adjustments, manifest_pit_timing
+    from .storage import load_json_object
+    from .technical_signals import number
+    manifest = load_manifest(args.data_dir / "latest/manifest.json", missing_ok=False)
+    day = args.date or manifest["trade_date"]
+    if day != manifest["trade_date"]:
+        receipt = args.data_dir / "facts/market" / f"trade_date={day}" / "market_receipt.json"
+        manifest = load_json_object(receipt) if receipt.exists() else load_manifest(args.data_dir / "snapshots" / day / "manifest.json", missing_ok=False)
+    if not 1 <= args.sessions <= 300:
+        raise ValueError("series sessions must be between 1 and 300")
+    cutoff = args.research_asof or manifest_pit_timing(manifest, day)["effective_pit_cutoff"]
+    history = load_market_history(args.data_dir, day, limit=args.sessions, research_asof=cutoff)
+    code = args.code.strip().upper()
+    if history.empty or code not in set(history["thscode"]):
+        raise ValueError(f"no verified history for {code}")
+    scoped = history.loc[history["thscode"].eq(code)].copy()
+    factor_date = pd.Timestamp(cutoff).tz_convert("Asia/Shanghai").date().isoformat()
+    adjusted = apply_adjustments(scoped, load_adjustment_snapshot(args.data_dir, factor_date), cutoff)
+    fields = ("open", "high", "low", "close", "volume", "amount", "adj_factor",
+              "adjusted_open", "adjusted_high", "adjusted_low", "adjusted_close")
+    rows = [{"trade_date": row["trade_date"], "first_observed_at": row.get("first_observed_at"),
+             **{key: number(row.get(key)) for key in fields}} for row in adjusted.to_dict("records")]
+    print(json.dumps({"thscode": code, "trade_date": day, "research_asof": cutoff,
+        "sessions_requested": args.sessions, "rows": rows,
+        "missing_session_dates": sorted(set(history.attrs.get("session_dates") or history["trade_date"]) - set(scoped["trade_date"])),
+        "price_basis": "raw prices and OHLC times PIT factor; missing adjustments remain null"}, ensure_ascii=False, allow_nan=False, indent=2))
+    return 0
+
+
+def _record_technical_review(args: argparse.Namespace) -> int:
+    from .storage import load_json_object, sha256_file, json_sha256, ArtifactContractError
+    root = args.data_dir / "features/technical_signals" / f"trade_date={args.date}"
+    if args.research_view:
+        import re
+        if args.research_view == "latest":
+            latest_manifest = load_manifest(args.data_dir / "latest/manifest.json", missing_ok=False)
+            if latest_manifest["trade_date"] != args.date:
+                raise ValueError("latest research view is for a different trade date")
+            matches = [path.parent for path in root.glob("research_view=*/signal_receipt.json")
+                       if load_json_object(path).get("feature_input_sha256") == latest_manifest.get("feature_input_sha256")]
+            if len(matches) != 1:
+                raise ValueError("no unique latest research view; specify its hash")
+            root = matches[0]
+        elif re.fullmatch(r"[a-f0-9]{16}", args.research_view):
+            root = root / f"research_view={args.research_view}"
+        else:
+            raise ValueError("research view must be latest or a 16-character hex hash")
+    receipt = load_json_object(root / "signal_receipt.json", missing_ok=False)
+    scan_path = root / "technical_scan.parquet"
+    if receipt["artifacts"][scan_path.name]["sha256"] != sha256_file(scan_path):
+        raise ArtifactContractError("technical scan hash mismatch")
+    scan = pd.read_parquet(scan_path)
+    code = args.code.strip().upper()
+    selected = scan.loc[scan["thscode"].eq(code)]
+    if selected.empty or selected.iloc[0]["signal"] not in ("BREAKOUT", "WATCH"):
+        raise ValueError("review must reference a stored technical candidate")
+    if not args.reason.strip():
+        raise ValueError("review reason is required")
+    payload = {"schema_version": 1, "trade_date": args.date, "thscode": code,
+        "signal": selected.iloc[0]["signal"], "signal_scan_sha256": receipt["artifacts"][scan_path.name]["sha256"],
+        "feature_input_sha256": receipt["feature_input_sha256"], "decision": args.decision,
+        "research_view": root.name if root.name.startswith("research_view=") else None,
+        "signal_effective_pit_cutoff": receipt["effective_pit_cutoff"],
+        "reason": args.reason.strip(), "sources": args.sources,
+        "reviewed_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+    path = args.data_dir / "facts/technical_reviews" / f"{json_sha256(payload)}.json"
+    atomic_write_json(path, payload)
+    print(json.dumps({"ok": True, "path": str(path.resolve())}, ensure_ascii=False))
     return 0
 
 
@@ -1037,6 +1137,23 @@ def _dashboard(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command == "backfill-akshare":
+        from .akshare_backfill import main as akshare_main
+        options = ["--end", args.end, "--sessions", str(args.sessions), "--workers", str(args.workers),
+                   "--data-dir", str(args.data_dir), "--cache-dir", str(args.cache_dir)]
+        if args.publish_only:
+            options.append("--publish-only")
+        elif not args.collect_only:
+            options.append("--publish")
+        if args.limit:
+            options.extend(["--limit", str(args.limit)])
+        return akshare_main(options)
+    if args.command in ("inspect-series", "record-technical-review"):
+        try:
+            return _inspect_series(args) if args.command == "inspect-series" else _record_technical_review(args)
+        except (ValueError, OSError, KeyError) as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
+            return 1
     if args.command == "import-research":
         try:
             result = import_research_batch(args.data_dir, args.input)

@@ -185,7 +185,32 @@ def _prune_snapshots(data_dir: Path, snapshot_limit: int) -> None:
                 f"refusing to prune unexpected snapshot path: {resolved}"
             )
         datetime.strptime(path.name, "%Y-%m-%d")
+        # Upgrade legacy snapshots before removing their only verification
+        # evidence. Already-pruned snapshots cannot be retroactively certified.
+        manifest = load_manifest(path / "manifest.json")
+        if manifest.get("verified") is True:
+            _retain_market_receipt(data_dir, path.name, manifest)
         shutil.rmtree(path)
+
+
+def _retain_market_receipt(data_dir: Path, trade_date: str, manifest: dict) -> None:
+    market_dir = data_dir / "facts/market" / f"trade_date={trade_date}"
+    names = ("daily_quotes.parquet", "daily_security_status.parquet")
+    if not all((market_dir / name).exists() for name in names):
+        return
+    metadata = {}
+    for name in names:
+        digest = sha256_file(market_dir / name)
+        if digest != ((manifest.get("artifacts") or {}).get(name) or {}).get("sha256"):
+            raise ArtifactContractError(f"cannot retain mismatched market receipt: {trade_date} {name}")
+        metadata[name] = {"sha256": digest}
+    atomic_write_json(market_dir / "market_receipt.json", {
+        **{key: manifest.get(key) for key in (
+            "schema_version", "trade_date", "verified", "data_fresh",
+            "collection_started_at", "collection_completed_at", "collected_at_utc",
+            "configured_decision_cutoff", "effective_pit_cutoff", "provider",
+        )}, "artifacts": metadata,
+    })
 
 
 def promote_snapshot(
@@ -240,6 +265,8 @@ def promote_snapshot(
         trading_calendar,
         daily_status,
     )
+    # This receipt survives snapshot pruning and validates durable history.
+    _retain_market_receipt(data_dir, trade_date, final_manifest)
 
     if promote_latest:
         for stale_name in (
@@ -357,6 +384,7 @@ def publish_data_reference_artifacts(
     publish_latest: bool = True,
     research_artifacts: dict[str, dict[str, Any]] | None = None,
     current_research: bool = False,
+    technical_artifacts: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Atomically attach deterministic, opinion-free reference data."""
 
@@ -375,8 +403,11 @@ def publish_data_reference_artifacts(
             result = publish_data_reference_artifacts(
                 staging, trade_date, stock_state, data_reference, opportunity_inputs,
                 opportunity_radar, reference_metadata, manifest_updates=manifest_updates,
-                publish_latest=False, research_artifacts=research_artifacts)
+                publish_latest=False, research_artifacts=research_artifacts,
+                technical_artifacts=technical_artifacts)
             promote_verified_snapshot_to_latest(data_dir, trade_date, source_dir=target)
+            _persist_technical_artifacts(data_dir, trade_date, technical_artifacts or {}, result,
+                                         current_research=True)
             return result
 
     snapshot_dir = data_dir / "snapshots" / trade_date
@@ -404,7 +435,11 @@ def publish_data_reference_artifacts(
             f"{MAX_OPPORTUNITY_RADAR_BYTES}"
         )
 
-    artifacts = {"stock_state.parquet": stock_state}
+    technical_artifacts = technical_artifacts or {}
+    if set(technical_artifacts) - {"technical_scan.parquet", "technical_signals_latest.json"}:
+        raise ArtifactContractError("unsupported technical artifact name")
+    artifacts = {"stock_state.parquet": stock_state,
+                 **{name: frame for name, frame in technical_artifacts.items() if name.endswith(".parquet")}}
     for name, frame in artifacts.items():
         atomic_write_parquet(snapshot_dir / name, frame)
     for item in data_reference.get("data_catalog") or []:
@@ -423,6 +458,9 @@ def publish_data_reference_artifacts(
     )
     for name, payload in sorted(research_artifacts.items()):
         atomic_write_json(snapshot_dir / name, payload, compact=True)
+    for name, payload in technical_artifacts.items():
+        if name.endswith(".json"):
+            atomic_write_json(snapshot_dir / name, payload, compact=True)
 
     atomic_write_parquet(
         data_dir
@@ -454,6 +492,9 @@ def publish_data_reference_artifacts(
     manifest_artifacts["data_reference_latest.json"] = {
         "sha256": sha256_file(snapshot_dir / "data_reference_latest.json")
     }
+    for name in technical_artifacts:
+        if name.endswith(".json"):
+            manifest_artifacts[name] = {"sha256": sha256_file(snapshot_dir / name)}
     manifest_artifacts["opportunity_inputs_latest.json"] = {
         "sha256": sha256_file(snapshot_dir / "opportunity_inputs_latest.json")
     }
@@ -468,10 +509,34 @@ def publish_data_reference_artifacts(
     manifest["artifacts"] = manifest_artifacts
     manifest["data_reference"] = reference_metadata
     atomic_write_json(manifest_path, manifest)
+    _persist_technical_artifacts(data_dir, trade_date, technical_artifacts, manifest)
 
     if publish_latest:
         promote_verified_snapshot_to_latest(data_dir, trade_date)
     return manifest
+
+
+def _persist_technical_artifacts(data_dir: Path, trade_date: str, artifacts: dict,
+                               manifest: dict, *, current_research: bool = False) -> None:
+    if not artifacts:
+        return
+    # Current research is a separate dated view; never overwrite the EOD ledger.
+    root = data_dir / "features/technical_signals" / f"trade_date={trade_date}"
+    if current_research:
+        key = json_sha256({"pit_timing": manifest.get("feature_pit_timing") or {},
+                           "feature_input_sha256": manifest.get("feature_input_sha256")})[:16]
+        root = root / f"research_view={key}"
+    for name, payload in artifacts.items():
+        if name.endswith(".parquet"):
+            atomic_write_parquet(root / name, payload)
+        else:
+            atomic_write_json(root / name, payload, compact=True)
+    atomic_write_json(root / "signal_receipt.json", {
+        "trade_date": trade_date,
+        "effective_pit_cutoff": (manifest.get("feature_pit_timing") or manifest).get("effective_pit_cutoff"),
+        "feature_input_sha256": manifest.get("feature_input_sha256"),
+        "artifacts": {name: {"sha256": sha256_file(root / name)} for name in artifacts},
+    })
 
 
 def verify_latest_artifacts(data_dir: Path) -> tuple[dict[str, Any], list[str]]:

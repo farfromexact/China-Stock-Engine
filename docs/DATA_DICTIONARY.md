@@ -67,9 +67,9 @@
 
 - `raw_return_1d_pct`、`raw_return_3d_pct`、`raw_return_5d_pct`、`raw_return_20d_pct`：由供应商逐日 `change_ratio` 复合得到的未复权周期变化；分别需要 1/3/5/20 个有效交易日观测。
 - `return_1d_pct`、`return_3d_pct`、`return_5d_pct`、`return_20d_pct`：有 PIT 调整因子时计算的复权收益率；调整因子不足时保持 `null`。
-- `return_60d_pct`：兼容保留字段，当前版本固定 `null`，readiness 标记 unavailable。
+- `return_60d_pct`：60 日复权收益，需要连续 61 个有效复权收盘点。
 - `rv20_pct`：复权日收益标准差年化后的 20 日历史波动率；历史或调整因子不足时为空。
-- `rv60_pct`：兼容保留字段，当前版本固定 `null`。
+- `rv60_pct`：连续 60 日复权收益的样本标准差 × sqrt(252)，单位 %。
 - `turnover_z20`、`amount_z20`、`volume_z20`：20 日滚动标准化值。
 - `gap_pct`、`intraday_range_pct`、`close_location`、`close_vs_avg_pct`：当日价格位置事实。
 - `turnover_change_pct`、`amount_change_pct`、`adt20`：成交变化及 20 日平均成交额。
@@ -78,7 +78,7 @@
 
 - `float_market_cap`、`total_market_cap`：以当日未复权收盘价计算的流通和总市值。
 - `distance_from_high_20_pct`：相对 20 日复权高点距离。
-- `distance_from_high_60_pct`、`drawdown_from_high_252_pct`：兼容保留字段，当前版本固定 `null`。
+- `distance_from_high_60_pct`、`drawdown_from_high_252_pct`：复权收盘价相对对应窗口复权最高价最大值的距离（%），展示位置窗口包含当日；策略突破位 prior_high60 则不包含当日。
 - `relative_return_industry_20d_pct`：证券20D复权收益减逐日PIT申万一级同业等权日收益的复合值；每一天只用当天15:00前已知且有效的成员关系，不把当前分类回填20日。任一天缺少必要成员/收益，结果为空。
 - `relative_return_csi300_20d_pct`、`relative_return_csi1000_20d_pct`：相对指数 20 日收益差。
 - `sw1_code/name`、`sw2_code/name`、`index_memberships`：截止时间有效的分类与成分事实。
@@ -166,7 +166,7 @@ availability 对可交易性相关字段使用以下状态，不依赖 Python/JS
 
 ## 20日窗口和研究事实版本
 
-逐股状态和data reference现为schema4。历史默认读取21个价格点，研究窗口仍为20日。每个horizon分别列出 `coverage`（供应商原始复合收益）、`adjusted_coverage`、`adjusted_state`、`adjusted_price_points_required`。`history_sessions` 是读取窗口内实际价格观测数（上限20），不意味着连续性；收益计算另检查连续窗口。`price_points_loaded` 计全市场已读价格日期，`unconfirmed_calendar_dates` 明示旧日历未认证的缺口。
+逐股状态和 data reference 现为 schema6。价量历史默认读取300个交易日，120日可配置；公司事件窗口仍为20日。每个horizon分别列出 `coverage`（供应商原始复合收益）、`adjusted_coverage`、`adjusted_state`、`adjusted_price_points_required`。`history_sessions` 是读取窗口内实际价格观测数（按配置窗口，上限默认300），不意味着连续性；收益计算另检查连续窗口。`price_points_loaded` 计全市场已读价格日期，`unconfirmed_calendar_dates` 明示旧日历未认证的缺口。
 
 研究事实入口为schema1，详细字段、单位、时间及修订语义见 [RESEARCH_CONTRACT.md](RESEARCH_CONTRACT.md)。批次、研究索引与分片均不保留raw响应；财务或公告缺失不是 `not_entitled`，后者只传播截止时间前已记录的明确权限拒绝。
 
@@ -188,3 +188,11 @@ availability 对可交易性相关字段使用以下状态，不依赖 Python/JS
 复权新增 `base_date/collection_completed_at/adjustment_method`，使用日线CPS=2分红再投口径。
 `adj_factor=forward_adj_close/raw_close`，原价来自已有规范化行情；每次因子序列保留完整vintage，
 不同基点不可拼接。它不替代含分红/送转/配股明细的公司行为事实表。
+
+
+## 固定技术规则字段
+
+详见 [PRICE_VOLUME_RADAR.md](PRICE_VOLUME_RADAR.md)。新增 adjusted_open/high/low，prior_high60（前60日高点）、prior_adt20（前20日成交额均值）、amount_ratio20、ma20/ma60、atr5/atr20/prior_atr20、atr5_to_atr20、amount5_to_amount20、breakout_distance_atr、watch_distance_atr、technical_close_location、technical_window_ready、valid_ohlc_sessions 和 current_bar_valid。成交额指标不要求复权因子；技术价格窗口独立要求统一复权和验证完整。全部排除/待核与 A0/A1/A2、entry_state、原始突破锚点和生命周期保存在 technical_scan.parquet。
+
+
+AKShare 原生复权 OHLC 与仿射逆映射另见 [AKSHARE_HISTORY.md](AKSHARE_HISTORY.md)。adj_multiplier/adj_offset 为复权和实际报价间的映射参数，adj_factor 是有效收盘比例；有现金偏移时不能当作所有 OHLC 的乘法因子。is_delisting 是可选已知证券状态，缺失时仍为未知。

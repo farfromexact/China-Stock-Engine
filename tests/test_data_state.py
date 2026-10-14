@@ -225,7 +225,7 @@ class DataStateTests(unittest.TestCase):
         state, readiness = self._build(self._with_anchor())
         self.assertTrue(state["return_20d_pct"].notna().all())
         self.assertTrue(state["rv20_pct"].notna().all())
-        self.assertEqual(readiness["history"]["sessions"], 20)
+        self.assertEqual(readiness["history"]["sessions"], 21)
         self.assertEqual(readiness["history"]["price_points_loaded"], 21)
         self.assertEqual(
             readiness["history"]["horizons"]["20D"]["adjusted_coverage"], 1.0
@@ -325,7 +325,8 @@ class DataStateTests(unittest.TestCase):
         self.assertEqual(alpha["index_memberships"], ["000300.SH"])
         self.assertEqual(alpha["tradability_state"], "clear")
         self.assertEqual(alpha["data_cutoff_time"], data_cutoff_time_for_date(date))
-        self.assertEqual(readiness["history"]["state"], "ready")
+        self.assertEqual(readiness["history"]["state"], "partial")
+        self.assertEqual(readiness["history"]["target_sessions"], 300)
         self.assertEqual(readiness["history"]["horizons"]["1D"]["state"], "ready")
         self.assertEqual(readiness["history"]["horizons"]["3D"]["state"], "ready")
         self.assertEqual(readiness["history"]["horizons"]["5D"]["state"], "ready")

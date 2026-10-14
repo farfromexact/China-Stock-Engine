@@ -5,12 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "china-stock-engine"
 version = "0.4.0"
-description = "Auditable iFinD-primary daily data engine for China's A-share market."
+description = "Auditable A-share price/volume engine with iFinD and AKShare data sources."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "pandas>=2.1,<4",
     "pyarrow>=15,<24",
+    "akshare>=1.19.1,<1.20",
 ]
 
 [project.scripts]

@@ -1,13 +1,17 @@
 # China Stock Engine
 
+AKShare 全市场历史补齐入口已加入，使用 `backfill-akshare --sessions 300`；数据源、复权口径、断点恢复和验收见 [AKShare 历史说明](docs/AKSHARE_HISTORY.md)。
+
+主用途已改为量价机会发现：默认 300 交易日日线、60 日放量收盘突破与临界收敛 WATCH。规则、数据缺口、台账和命令见 [价量雷达契约](docs/PRICE_VOLUME_RADAR.md)。基本面模块仅供少量候选核实催化与风险。
+
 新增的第一批/第二批研究数据采集、权限探针与实际覆盖边界见
 [研究数据增强说明](docs/RESEARCH_ENRICHMENT.md)。新增模块只有通过对应指标配置的真实小样本验证后才可进入每日采集；接口完成不代表数据齐备。
 
 > 一个每天自动更新、可被程序直接读取的中国 A 股日频数据仓。
 
-China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通过同花顺 iFinD Quant HTTP API 提取全 A 股日频数据，完成标准化和质量校验后，将结果直接提交到本仓库 `main` 分支的 [`data/`](data/) 目录。
+China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通过同花顺 iFinD Quant HTTP API 提取全 A 股日频数据，也支持 AKShare 全市场历史补齐，完成标准化和质量校验后，将结果直接提交到本仓库 `main` 分支的 [`data/`](data/) 目录。
 
-下游 automation、研究脚本或服务不需要等待 HTML 报告或临时 artifact；直接读取此仓库中的 Parquet 和 JSON 文件即可。换言之，这个仓库的目标是提供一份有版本、有日期、有质量状态的 A 股事实数据源，而不是提供选股、交易信号或市场观点。
+下游 automation、研究脚本或服务不需要等待 HTML 报告或临时 artifact；直接读取此仓库中的 Parquet 和 JSON 文件即可。换言之，这个仓库的目标是提供一份有版本、有日期、有质量状态的 A 股事实数据源，并计算可复算的 BREAKOUT/WATCH 技术候选；研究判断与真实执行由下游独立核验。
 
 ## 仓库用途
 
@@ -20,7 +24,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 
 项目只输出数据和参考信息：
 
-- 不生成主观候选池、综合评分或市场观点；只提供可复算的确定性排序筛选；
+- 不生成主观候选池、综合评分或市场观点；只提供可复算的固定规则技术筛选；
 - 不输出交易建议或收益评价；
 - 不以旧数据冒充当天数据，也不为缺失字段制造替代值；
 - 每个派生字段都能追溯到源日期、PIT 截止时间和快照哈希。
@@ -37,8 +41,10 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - `data/latest/security_reference.parquet`：证券名称、交易所、板块、上市日和股本等 PIT 参考数据；
 - `data/latest/stock_state.parquet`：逐证券 PIT 派生状态；
 - `data/latest/market_summary.json`：市场宽度和成交汇总；
-- `data/latest/opportunity_inputs_latest.json`：完整的确定性 screens 与候选并集，供本地程序和研究流水线读取；
-- `data/latest/opportunity_radar_latest.json`：面向 ChatGPT/Automation 的有界事实接口（Top 100 candidate union）；
+- `data/latest/opportunity_inputs_latest.json`：全量技术候选与扫描统计（旧榜单在 legacy_rankings），供本地程序和研究流水线读取；
+- `data/latest/opportunity_radar_latest.json`：面向 ChatGPT/Automation 的有界事实接口（全市场计算后展示最多 100 只技术候选）；
+- `data/latest/technical_scan.parquet`：全市场技术规则、排除/待核原因、关键价位与信号历史；
+- `data/latest/technical_signals_latest.json`：全部技术匹配和覆盖统计；
 - `data/latest/research_inputs_latest.json`：全股票池研究事实索引；按哈希前缀读取 `research_*.json` 分片，不限于行情 Top100；
 - `data/snapshots/YYYY-MM-DD/`：按交易日冻结的完整验证快照；
 - `data/last_run_status.json`：最近一次采集尝试的状态，失败不会覆盖 `latest`。
@@ -60,7 +66,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - 公司行为、行业、指数成分和可交易性参考的 PIT 输入契约；
 - 覆盖率、质量门、模块可用性、内容哈希与数据目录。
 
-默认研究窗口为20个交易日，读取21个价格点（额外一个价格锚点），供20D复权收益/RV20使用。`1D/3D/5D/20D` 分别报告原始与复权 readiness；历史不足时仍计算合法的短周期字段。按交易日对齐，缺行情不填零、不跨过缺口复合收益；旧缓存未覆盖的工作日日历缺口保守视为未确认，而不擅自认定为休市。60日和252日字段保持 `null`。
+默认价量历史窗口为 300 个交易日，支持 120 日配置，不再截断到 21 个价格点。`1D/3D/5D/20D` 分别报告原始与复权 readiness；历史不足时仍计算合法的短周期字段。按交易日对齐，缺行情不填零、不跨过缺口复合收益；旧缓存未覆盖的工作日日历缺口保守视为未确认，而不擅自认定为休市。60 日与 252 日字段在各自历史充分时计算，不足时为 `null`；年度字段缺失不阻止 60 日规则。
 
 默认提升门槛为证券池不少于 5,000 只，日行情和证券主数据覆盖率不低于 98%，扩展字段覆盖率不低于 95%，且沪深北交易所均有覆盖。质量门同时与上一交易日比较股票池、行情/参考覆盖率、交易所和板块数量、无行情观测、总成交额及前收连续性；异常会以 warning 或 error 明确记录。
 
@@ -73,7 +79,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 会补充当前确定性并集最多100只证券的公告、财务和复权输入；不是全市场财务覆盖。
 财务目前仅启用经小样本验证的归母净利润及实际披露日期，其他财务字段仍为空。
 按证券/报告期复用最近7天的观测，较新公告会触发复核；公告查询最近7个日历日，
-重复事件使用供应商编号和内容修订号识别。复权只查最近21个已缓存交易日的
+重复事件使用供应商编号和内容修订号识别。复权默认查最近300个已缓存交易日的
 复权收盘价，不再重拉未复权行情。具体边界见 [真实采集说明](docs/LIVE_SUPPLEMENTAL_COLLECTION.md)。
 
 周末新采到的历史财务和复权数据保留周末的 `known_at`，不改写此前的收盘决策知识；

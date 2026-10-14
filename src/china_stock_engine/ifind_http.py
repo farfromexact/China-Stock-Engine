@@ -426,12 +426,20 @@ class IFindHTTPClient:
                 "source_endpoint": "get_trade_dates",
             }
         )
-        return (
+        output = (
             output.dropna(subset=["trade_date"])
             .drop_duplicates("trade_date", keep="last")
             .sort_values("trade_date")
             .reset_index(drop=True)
         )
+        if not output.empty:
+            # get_trade_dates is a complete open-session sequence within this
+            # returned window. Keep the bounds so holiday gaps can be certified
+            # without treating a legacy single-date observation as a full range.
+            output["calendar_window_start"] = str(output["trade_date"].min())
+            output["calendar_window_end"] = str(output["trade_date"].max())
+            output["calendar_window_complete"] = True
+        return output
 
     def fetch_daily_quotes(
         self,

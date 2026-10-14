@@ -28,10 +28,10 @@ from .opportunity_radar import (
 )
 
 
-DATA_REFERENCE_SCHEMA_VERSION = 5
-STOCK_STATE_SCHEMA_VERSION = 5
+DATA_REFERENCE_SCHEMA_VERSION = 6
+STOCK_STATE_SCHEMA_VERSION = 6
 MAX_DATA_REFERENCE_BYTES = 2 * 1024 * 1024
-TARGET_HISTORY_SESSIONS = 20
+TARGET_HISTORY_SESSIONS = 300
 HORIZON_SESSIONS = (1, 3, 5, 20)
 MIN_HORIZON_COVERAGE = 0.95
 MIN_ADJUSTMENT_COVERAGE = 0.98
@@ -142,6 +142,7 @@ STOCK_STATE_COLUMNS = (
     "adt20",
     "is_st",
     "is_suspended",
+    "is_delisting",
     "limit_up",
     "limit_down",
     "one_word_limit",
@@ -304,6 +305,7 @@ def normalize_provider_tradability(frame: pd.DataFrame) -> pd.DataFrame:
     for column in (
         "is_st",
         "is_suspended",
+        "is_delisting",
         "stock_connect_eligible",
         "margin_eligible",
         "short_sell_eligible",
@@ -324,12 +326,15 @@ def _partition_value(path: Path, prefix: str) -> str | None:
 
 
 def load_market_history(
-    data_dir: Path, end_date: str, *, limit: int = TARGET_HISTORY_SESSIONS + 1,
+    data_dir: Path, end_date: str, *, limit: int = TARGET_HISTORY_SESSIONS,
     research_asof: str | None = None,
 ) -> pd.DataFrame:
+    if limit < 1:
+        raise ValueError("history limit must be positive")
     paths = sorted(
         (data_dir / "facts" / "market").glob("trade_date=*/daily_quotes.parquet")
     )
+    paths += sorted((data_dir / "facts/akshare/market_history").glob("vintage=*/trade_date=*/daily_quotes.parquet"))
     eligible = [
         path
         for path in paths
@@ -341,6 +346,21 @@ def load_market_history(
             for path in (data_dir / "snapshots").glob("*/daily_quotes.parquet")
             if path.parent.name <= end_date
         )
+    # Current AKShare history is a dated observation vintage, never a rewrite
+    # of an older iFinD market snapshot. Select the latest verified observation
+    # for each date that actually existed by the research cutoff.
+    by_date: dict[str, tuple[tuple, Path]] = {}
+    for path in eligible:
+        day = _partition_value(path, "trade_date=") or path.parent.name
+        receipt = path.parent / "market_receipt.json"
+        metadata = load_manifest(receipt if receipt.exists() else data_dir / "snapshots" / day / "manifest.json")
+        completed = metadata.get("collection_completed_at") or metadata.get("collected_at_utc")
+        if research_asof and (not completed or timestamp(completed) > timestamp(research_asof) or metadata.get("verified") is not True):
+            continue
+        priority = (metadata.get("verified") is True, timestamp(completed).value if completed else -1, str(path))
+        if day not in by_date or priority > by_date[day][0]:
+            by_date[day] = (priority, path)
+    eligible = [item[1] for item in by_date.values()]
     selected_dates = sorted(
         {_partition_value(path, "trade_date=") or path.parent.name for path in eligible}
     )[-limit:]
@@ -355,9 +375,14 @@ def load_market_history(
     for path in selected:
         frame = pd.read_parquet(path)
         day = _partition_value(path, "trade_date=") or path.parent.name
-        observed_manifest = load_manifest(data_dir / "snapshots" / day / "manifest.json")
+        receipt = path.parent / "market_receipt.json"
+        observed_manifest = load_manifest(receipt if receipt.exists() else data_dir / "snapshots" / day / "manifest.json")
         completed = observed_manifest.get("collection_completed_at") or observed_manifest.get("collected_at_utc")
         frame["first_observed_at"] = completed
+        metadata = (observed_manifest.get("artifacts") or {}).get("daily_quotes.parquet") or {}
+        if observed_manifest.get("verified") is True and metadata.get("sha256") != sha256_file(path):
+            raise ArtifactContractError(f"history quote hash mismatch: {day}")
+        frame["history_verified"] = observed_manifest.get("verified") is True and bool(completed)
         if research_asof:
             metadata = (observed_manifest.get("artifacts") or {}).get("daily_quotes.parquet") or {}
             if (not completed or timestamp(completed) > timestamp(research_asof)
@@ -405,6 +430,19 @@ def load_market_history(
     ]
     if calendars:
         calendar = pd.concat(calendars, ignore_index=True)
+        certified_dates: set[str] = set()
+        certified_open: set[str] = set()
+        bound_fields = {"calendar_window_start", "calendar_window_end", "calendar_window_complete"}
+        if bound_fields.issubset(calendar.columns):
+            full_windows = calendar.loc[calendar["calendar_window_complete"].eq(True)]
+            for (start, end), window in full_windows.groupby(["calendar_window_start", "calendar_window_end"]):
+                if start > end:
+                    raise ArtifactContractError("invalid trading-calendar window bounds")
+                certified_dates.update(pd.bdate_range(start, min(end, end_date)).strftime("%Y-%m-%d"))
+                certified_open.update(window.loc[window["is_open"].eq(True), "trade_date"].astype(str))
+        output.attrs["listing_session_dates"] = sorted(set(calendar.loc[
+            calendar["is_open"].eq(True) & calendar["trade_date"].le(end_date), "trade_date"
+        ].astype(str)))
         calendar = calendar.loc[
             calendar["trade_date"].between(output["trade_date"].min(), end_date)
         ]
@@ -415,6 +453,7 @@ def load_market_history(
             set(calendar.loc[calendar["is_open"].eq(False), "trade_date"].astype(str))
             - open_dates
         )
+        closed_dates |= certified_dates - certified_open - open_dates
         slots = set(
             pd.bdate_range(output["trade_date"].min(), end_date).strftime("%Y-%m-%d")
         )
@@ -568,6 +607,9 @@ def apply_adjustments(
     decision_time: str,
 ) -> pd.DataFrame:
     output = history.copy()
+    if "history_verified" in output and "first_observed_at" in output:
+        observed = pd.to_datetime(output["first_observed_at"], errors="coerce", utc=True)
+        output["history_verified"] = output["history_verified"].fillna(False) & observed.le(_as_utc_timestamp(decision_time))
     output["raw_close"] = pd.to_numeric(output["close"], errors="coerce")
     if adjustments.empty:
         output["adj_factor"] = float("nan")
@@ -584,7 +626,9 @@ def apply_adjustments(
             ["trade_date", "thscode"], keep="last"
         )
         output = output.merge(
-            normalized.loc[:, ["trade_date", "thscode", "adj_factor"]],
+            normalized.loc[:, ["trade_date", "thscode", "adj_factor", *(field for field in (
+                "provider_adj_open", "provider_adj_high", "provider_adj_low", "provider_adj_close",
+                "adj_multiplier", "adj_offset", "adjustment_method") if field in normalized)]],
             how="left",
             on=["trade_date", "thscode"],
             validate="one_to_one",
@@ -592,8 +636,16 @@ def apply_adjustments(
     output["adjusted_close"] = output["raw_close"] * pd.to_numeric(
         output["adj_factor"], errors="coerce"
     )
+    for field in ("open", "high", "low"):
+        output[f"adjusted_{field}"] = pd.to_numeric(output.get(field), errors="coerce") * output["adj_factor"]
+    for field in ("open", "high", "low", "close"):
+        source = f"provider_adj_{field}"
+        if source in output:
+            output[f"adjusted_{field}"] = output[source].combine_first(output[f"adjusted_{field}"])
+    output["adj_multiplier"] = pd.to_numeric(output.get("adj_multiplier", output["adj_factor"]), errors="coerce").fillna(output["adj_factor"])
+    output["adj_offset"] = pd.to_numeric(output.get("adj_offset", pd.Series(0., index=output.index)), errors="coerce").fillna(0.)
     output["forward_adj_close"] = output["adjusted_close"]
-    output["adjusted_ready"] = output["adjusted_close"].notna()
+    output["adjusted_ready"] = output[[f"adjusted_{field}" for field in ("open", "high", "low", "close")]].notna().all(axis=1)
 
     def total_return(series: pd.Series) -> pd.Series:
         first = series.dropna()
@@ -666,6 +718,7 @@ def build_tradability_state(
         "thscode",
         "is_st",
         "is_suspended",
+        "is_delisting",
         "daily_price_limit_pct",
         "lot_size",
         "stock_connect_eligible",
@@ -807,6 +860,7 @@ def build_stock_state(
     pit_timing: dict[str, str] | None = None,
     min_adt20: float = DEFAULT_MIN_ADT20,
     trading_sessions: list[str] | None = None,
+    history_sessions: int = TARGET_HISTORY_SESSIONS,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     if history.empty:
         return pd.DataFrame(columns=STOCK_STATE_COLUMNS), {
@@ -845,7 +899,9 @@ def build_stock_state(
         set(observed_dates)
         | set(pd.bdate_range(observed_dates[0], trade_date).strftime("%Y-%m-%d"))
     )
-    slots = [day for day in slots if observed_dates[0] <= day <= trade_date][-21:]
+    if history_sessions < 61:
+        raise ValueError("history_sessions must be at least 61")
+    slots = sorted(set(day for day in slots if observed_dates[0] <= day <= trade_date))[-history_sessions:]
     observed_codes_today = set(
         scoped.loc[scoped["trade_date"].eq(trade_date), "thscode"]
     )
@@ -857,7 +913,7 @@ def build_stock_state(
     adjusted = apply_adjustments(scoped, adjustments, decision_time)
     grouped = adjusted.groupby("thscode", group_keys=False)
     adjusted["history_sessions"] = grouped["close"].transform(
-        lambda values: values.notna().cumsum().clip(upper=20)
+        lambda values: values.notna().cumsum()
     )
     observed_start = (
         scoped.loc[scoped["close"].notna()].groupby("thscode")["trade_date"].min()
@@ -881,14 +937,18 @@ def build_stock_state(
                 values.rolling(p + 1, min_periods=p + 1).count().eq(p + 1)
             )
         )
-    adjusted["return_60d_pct"] = pd.NA
+    adjusted["return_60d_pct"] = grouped["adjusted_close"].transform(
+        lambda values: _pct_change(values, 60).where(values.rolling(61, min_periods=61).count().eq(61))
+    )
     adjusted["daily_adjusted_return_pct"] = grouped["adjusted_close"].transform(
         _pct_change
     )
     adjusted["rv20_pct"] = grouped["daily_adjusted_return_pct"].transform(
         lambda values: values.rolling(20, min_periods=20).std() * math.sqrt(252)
     )
-    adjusted["rv60_pct"] = pd.NA
+    adjusted["rv60_pct"] = grouped["daily_adjusted_return_pct"].transform(
+        lambda values: values.rolling(60, min_periods=60).std() * math.sqrt(252)
+    )
     for column in ("turnover_ratio", "amount", "volume"):
         adjusted[f"{column}_z20"] = grouped[column].transform(_rolling_z, window=20)
     adjusted["gap_pct"] = (
@@ -905,14 +965,17 @@ def build_stock_state(
     ) * 100
     adjusted["turnover_change_pct"] = grouped["turnover_ratio"].transform(_pct_change)
     adjusted["amount_change_pct"] = grouped["amount"].transform(_pct_change)
-    rolling_high = grouped["adjusted_close"].transform(
+    rolling_high = grouped["adjusted_high"].transform(
         lambda values: values.rolling(20, min_periods=20).max()
     )
     adjusted["distance_from_high_20_pct"] = (
         _safe_ratio(adjusted["adjusted_close"], rolling_high) - 1
     ) * 100
-    adjusted["distance_from_high_60_pct"] = pd.NA
-    adjusted["drawdown_from_high_252_pct"] = pd.NA
+    for window, field in ((60, "distance_from_high_60_pct"), (252, "drawdown_from_high_252_pct")):
+        high = grouped["adjusted_high"].transform(lambda values, w=window: values.rolling(w, min_periods=w).max())
+        adjusted[field] = (_safe_ratio(adjusted["adjusted_close"], high) - 1) * 100
+    from .technical_signals import add_technical_metrics, TECHNICAL_METRIC_COLUMNS
+    adjusted = add_technical_metrics(adjusted)
 
     current = adjusted.loc[
         adjusted["trade_date"].eq(trade_date)
@@ -1067,6 +1130,7 @@ def build_stock_state(
         "adt20",
         "is_st",
         "is_suspended",
+        "is_delisting",
         "limit_up",
         "limit_down",
         "one_word_limit",
@@ -1111,15 +1175,15 @@ def build_stock_state(
             current[column] = pd.NA
     current = current.rename(columns={"turnover_ratio_z20": "turnover_z20"})
     current = current.replace([float("inf"), float("-inf")], pd.NA)
-    state = current.reindex(columns=STOCK_STATE_COLUMNS).sort_values("thscode")
+    state = current.reindex(columns=list(dict.fromkeys((*STOCK_STATE_COLUMNS, *TECHNICAL_METRIC_COLUMNS)))).sort_values("thscode")
 
-    session_count = min(TARGET_HISTORY_SESSIONS, len(set(observed_dates) & set(slots)))
+    session_count = len(set(observed_dates) & set(slots))
     current_adjustment_coverage = float(state["adjusted_ready"].fillna(False).mean())
     sw1_coverage = float(state["sw1_code"].notna().mean()) if len(state) else 0.0
     index_count = int(indexes["index_code"].nunique()) if not indexes.empty else 0
     history_state = (
         "ready"
-        if session_count >= TARGET_HISTORY_SESSIONS
+        if session_count >= history_sessions
         else "partial" if session_count > 0 else "missing"
     )
     adjustment_state = (
@@ -1143,7 +1207,11 @@ def build_stock_state(
             "state": horizon_state,
             "sessions_required": periods,
             "raw_return_field": raw_field,
-            "raw_return_basis": "compounded_provider_daily_change_ratio",
+            "raw_return_basis": (
+                "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available"
+                if "source_provider" in history and history["source_provider"].astype(str).str.startswith("akshare_").any()
+                else "compounded_provider_daily_change_ratio"
+            ),
             "coverage": round(raw_coverage, 6),
             "adjusted_return_field": adjusted_field,
             "adjusted_coverage": round(adjusted_coverage, 6),
@@ -1174,20 +1242,20 @@ def build_stock_state(
                     else []
                 ),
             ),
-            "target_sessions": TARGET_HISTORY_SESSIONS,
+            "target_sessions": history_sessions,
             "scope_end": trade_date,
             "horizons": horizon_readiness,
-            "unavailable_fields": [
+            "unavailable_fields": [field for field in (
                 "return_60d_pct",
                 "rv60_pct",
                 "distance_from_high_60_pct",
                 "drawdown_from_high_252_pct",
-            ],
+            ) if state[field].isna().all()],
         },
         "adjustment": {
             "state": adjustment_state,
             "coverage": round(current_adjustment_coverage, 6),
-            "method": "point_in_time_factor_input",
+            "method": "point_in_time_native_adjusted_OHLC_or_factor_input",
         },
         "corporate_actions": {
             "state": "ready" if not corporate_actions.empty else "missing",
@@ -1293,6 +1361,8 @@ def _source_snapshot_hash(manifest: dict[str, Any]) -> str:
         "data_reference_latest.json",
         "opportunity_inputs_latest.json",
         "opportunity_radar_latest.json",
+        "technical_scan.parquet",
+        "technical_signals_latest.json",
     }
     artifacts = {
         key: value
@@ -1309,9 +1379,10 @@ def _source_snapshot_hash(manifest: dict[str, Any]) -> str:
 
 
 def _field_coverage(stock_state: pd.DataFrame) -> list[dict[str, Any]]:
+    from .technical_signals import TECHNICAL_METRIC_COLUMNS
     row_count = int(len(stock_state))
     output: list[dict[str, Any]] = []
-    for field in STOCK_STATE_COLUMNS:
+    for field in dict.fromkeys((*STOCK_STATE_COLUMNS, *TECHNICAL_METRIC_COLUMNS)):
         series = stock_state.get(field, pd.Series(dtype=object))
         non_null = int(series.notna().sum())
         output.append(
@@ -1342,6 +1413,8 @@ def _data_catalog(
         "data_reference_latest.json",
         "opportunity_inputs_latest.json",
         "opportunity_radar_latest.json",
+        "technical_scan.parquet",
+        "technical_signals_latest.json",
     }
     for name, metadata in sorted((manifest.get("artifacts") or {}).items()):
         if name in excluded or name.startswith("research_"):
@@ -1475,7 +1548,12 @@ def build_data_reference_outputs(
     min_adt20: float = DEFAULT_MIN_ADT20,
     research_asof: str | None = None,
     exposure_path: Path | None = None,
+    technical_config_path: Path | None = None,
 ) -> dict[str, Any]:
+    from .technical_signals import (load_technical_config, scan_technical_signals,
+        technical_candidates, attach_signal_history, STRATEGY_VERSION)
+    from dataclasses import asdict
+    technical_config = load_technical_config(technical_config_path)
     latest = data_dir / "latest"
     latest_manifest = load_manifest(latest / "manifest.json")
     latest_trade_date = str(latest_manifest.get("trade_date") or "")
@@ -1527,7 +1605,7 @@ def build_data_reference_outputs(
             raise ArtifactContractError(
                 f"source snapshot artifact hash mismatch: {name}"
             )
-    history = load_market_history(data_dir, selected_date, research_asof=research_asof)
+    history = load_market_history(data_dir, selected_date, limit=technical_config.history_sessions, research_asof=research_asof)
     # Bind identity and share counts to the same verified market snapshot.
     reference = pd.read_parquet(snapshot_dir / "security_reference.parquet")
     snapshot_dir = data_dir / "snapshots" / selected_date
@@ -1585,6 +1663,8 @@ def build_data_reference_outputs(
             "source_snapshot_sha256": source_hash,
             "calendar": history.attrs,
             "min_adt20": min_adt20,
+            "technical_config": asdict(technical_config),
+            "technical_strategy_version": STRATEGY_VERSION,
             "feature_pit_timing": pit_timing,
             "normalized_frames": {
                 name: hashlib.sha256(
@@ -1614,7 +1694,27 @@ def build_data_reference_outputs(
         source_hash,
         pit_timing=pit_timing,
         min_adt20=min_adt20,
+        history_sessions=technical_config.history_sessions,
     )
+    sessions = history.attrs.get("listing_session_dates") or history.attrs.get("session_dates") or sorted(history["trade_date"].unique())
+    technical_scan, technical_summary = scan_technical_signals(
+        stock_state, reference, sessions, selected_date, technical_config)
+    anchor_history = apply_adjustments(history, adjustments, pit_timing["effective_pit_cutoff"])
+    technical_scan = attach_signal_history(data_dir, technical_scan, anchor_history,
+        selected_date, pit_timing["effective_pit_cutoff"], technical_config)
+    if research_asof:
+        technical_summary["historical_results_path"] = technical_summary["all_results_path"]
+        technical_summary["all_results_path"] = "latest/technical_scan.parquet"
+    technical_document = {
+        "schema_version": 1, "document_type": "a_share_price_volume_signals",
+        "trade_date": selected_date, "generated_at": pit_timing["collection_completed_at"],
+        "source_snapshot_sha256": source_hash, "feature_input_sha256": feature_input_hash,
+        "summary": technical_summary, "candidates": technical_candidates(technical_scan),
+        "ordering_policy": "next_session_review, WATCH, pending_verification, extended_wait; thscode within group; no score",
+        "research_policy": "optional catalyst verification and risk checks; missing financials do not block technical publication",
+        "series_command": "china-stock-engine inspect-series --code CODE --sessions 120 --research-asof CUTOFF",
+        "review_log_path": "facts/technical_reviews/*.json",
+    }
     module_status = load_module_status(data_dir, selected_date)
     module_mapping = {
         "history": "history",
@@ -1640,6 +1740,7 @@ def build_data_reference_outputs(
     data_reference = build_data_reference(
         {**manifest, **pit_timing}, market_summary, stock_state, readiness, source_hash
     )
+    data_reference["drilldown"]["technical_scan"] = technical_summary["all_results_path"]
     quote_path = snapshot_dir / "daily_quotes.parquet"
     if not quote_path.exists():
         quote_path = latest / "daily_quotes.parquet"
@@ -1653,6 +1754,20 @@ def build_data_reference_outputs(
         source_hash,
         pit_timing,
     )
+    opportunity_inputs["technical_signals"] = technical_document
+    # The old bounded rankings remain reference context. The primary union is
+    # now every fixed-rule match from the full PIT universe.
+    opportunity_inputs["legacy_rankings"] = {
+        "deterministic_screens": opportunity_inputs.pop("deterministic_screens"),
+        "candidate_union": opportunity_inputs["candidate_union"],
+        "candidate_union_metadata": opportunity_inputs["candidate_union_metadata"],
+    }
+    opportunity_inputs["candidate_union"] = technical_document["candidates"]
+    opportunity_inputs["candidate_union_metadata"] = {
+        "scope": "full_PIT_reference_universe", "returned_count": len(technical_document["candidates"]),
+        "truncation_applied": False, "strategy_version": STRATEGY_VERSION,
+        "ordering_policy": technical_document["ordering_policy"],
+    }
     opportunity_radar = build_opportunity_radar_inputs(opportunity_inputs)
     research_artifacts = build_research_artifacts(
         data_dir, {**opportunity_inputs, "market_pit_timing": market_pit_timing, "pit_timing": {**pit_timing,
@@ -1708,6 +1823,8 @@ def build_data_reference_outputs(
         publish_latest=publish_latest,
         research_artifacts=research_artifacts,
         current_research=bool(research_asof),
+        technical_artifacts={"technical_scan.parquet": technical_scan,
+                             "technical_signals_latest.json": technical_document},
     )
     reference_path = (
         latest / "data_reference_latest.json"
@@ -1720,6 +1837,7 @@ def build_data_reference_outputs(
         "stock_state_rows": int(len(stock_state)),
         "readiness": readiness,
         "source_snapshot_sha256": source_hash,
+        "technical_signals": technical_summary,
         "manifest_artifact_count": len(final_manifest.get("artifacts") or {}),
         "data_reference_path": str(reference_path.resolve()),
         "research_inputs_path": str(

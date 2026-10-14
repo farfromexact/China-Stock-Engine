@@ -165,8 +165,14 @@ def normalize_trade_calendar(frame: pd.DataFrame) -> pd.DataFrame:
     output["trade_date"] = _normalized_date(output["trade_date"])
     output["market_code"] = output["market_code"].astype("string")
     output["is_open"] = output["is_open"].astype("boolean")
+    optional = ("calendar_window_start", "calendar_window_end", "calendar_window_complete")
+    for field in optional[:2]:
+        if field in output:
+            output[field] = _normalized_date(output[field])
+    if optional[2] in output:
+        output[optional[2]] = output[optional[2]].astype("boolean")
     return (
-        output.loc[:, CALENDAR_COLUMNS]
+        output.loc[:, [*CALENDAR_COLUMNS, *(field for field in optional if field in output)]]
         .dropna(subset=["trade_date"])
         .drop_duplicates(["calendar", "trade_date"], keep="last")
         .sort_values(["calendar", "trade_date"])

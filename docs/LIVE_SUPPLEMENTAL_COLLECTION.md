@@ -37,7 +37,7 @@ checkpoints fail closed. The supplemental pointer moves only on success.
   presented as working links after removing a signature. `source_url_kind` and
   `document_access` distinguish the provider query reference from a document.
 - Adjustments: daily `CPS=2` (dividend reinvestment), explicit base date; adjusted
-  closes are joined against cached raw closes over at most 21 stored sessions.
+  closes are joined against cached raw closes over up to 300 stored sessions by default (an explicit start date controls the requested window).
   Factors are derived as adjusted/raw close. Immutable vintages are partitioned
   by **actual collection date**, not the historical price date. These prices
   do not constitute a separately collected corporate-action ledger.

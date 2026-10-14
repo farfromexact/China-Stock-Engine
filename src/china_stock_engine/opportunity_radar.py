@@ -19,7 +19,7 @@ from .storage import (
 )
 
 
-OPPORTUNITY_RADAR_SCHEMA_VERSION = 2
+OPPORTUNITY_RADAR_SCHEMA_VERSION = 3
 DEFAULT_RADAR_CANDIDATE_LIMIT = 100
 RADAR_SOFT_TARGET_MIN_BYTES = 220 * 1024
 RADAR_SOFT_TARGET_MAX_BYTES = 250 * 1024
@@ -261,6 +261,8 @@ def build_opportunity_radar_inputs(
         raise ArtifactContractError(
             "opportunity radar source_snapshot_sha256 must be a 64-character hash"
         )
+    if "technical_signals" in source:
+        return _build_technical_radar(source, candidate_limit)
     source_candidates = source.get("candidate_union") or []
     if not isinstance(source_candidates, list):
         raise ArtifactContractError(
@@ -356,6 +358,50 @@ def build_opportunity_radar_inputs(
             "opportunity_radar_latest.json is "
             f"{len(encoded)} bytes; hard limit is {MAX_OPPORTUNITY_RADAR_BYTES}"
         )
+    return payload
+
+
+def _build_technical_radar(source: dict, candidate_limit: int) -> dict:
+    document = source["technical_signals"]
+    candidate_limit = min(candidate_limit, document["summary"]["config"]["candidate_limit"])
+    matches = document["candidates"]
+    candidates = []
+    for order, row in enumerate(matches[:candidate_limit], 1):
+        candidates.append({
+            "union_order": order, "thscode": row["thscode"], "security_name": row["security_name"],
+            "signal": row["signal"], "screen_count": 1, "best_screen_rank": order,
+            "evidence_families": ["price_volume_rule"],
+            "screen_evidence": [{"screen": row["signal"], "rank": order, "percentile": None}],
+            "facts": {"raw_close": row["raw_close"]}, "technical_evidence": row,
+            "availability": {"tradability": "pending_verification" if row["eligibility"] == "pending" else "strategy_pool_eligible_execution_unverified"},
+            "contradiction_flags": row["entry_reason_codes"] + row["pending_reasons"],
+        })
+    payload = {
+        "schema_version": OPPORTUNITY_RADAR_SCHEMA_VERSION,
+        "document_type": "a_share_opportunity_radar_inputs",
+        **{key: source.get(key) for key in ("trade_date", "generated_at", "source_snapshot_sha256", "feature_input_sha256", "pit_timing", "readiness", "market")},
+        "generated_at_semantics": "source_collection_completed_at",
+        "data_mode": {"primary": "price_volume_rules", "financials_optional": True},
+        "technical_signals": document["summary"],
+        "candidate_union": candidates,
+        "candidate_union_metadata": {
+            "source_candidate_count": len(matches), "returned_count": len(candidates),
+            "limit": candidate_limit, "truncation_applied": len(matches) > candidate_limit,
+            "ordering_policy": document["ordering_policy"], "screening_scope": "all_PIT_reference_securities",
+            "all_matches_path": "technical_signals_latest.json",
+        },
+        "screen_catalog": {
+            "BREAKOUT": {"definition": "C > prior_high60 AND amount/prior_adt20 >= configured_ratio AND close_location >= configured_threshold", "evidence_domain": "TAPE"},
+            "WATCH": {"definition": "C > MA20 > MA60 AND 0 <= (prior_high60-C)/ATR20 <= configured_distance AND ATR5/ATR20 <= configured_contraction", "evidence_domain": "TAPE", "buy_signal": False},
+        },
+        "drilldown": {**(source.get("drilldown") or {}), "technical_scan": document["summary"]["all_results_path"],
+                      "series_command": document["series_command"]},
+        "research_policy": document["research_policy"],
+        "full_inputs": {"path": "opportunity_inputs_latest.json", "schema_version": source.get("schema_version")},
+        "artifact_contract": {"hard_max_bytes": MAX_OPPORTUNITY_RADAR_BYTES},
+    }
+    if len(serialize_json(payload, compact=True).encode("utf-8")) > MAX_OPPORTUNITY_RADAR_BYTES:
+        raise ArtifactContractError("technical radar exceeds hard limit; full scan remains available")
     return payload
 
 
