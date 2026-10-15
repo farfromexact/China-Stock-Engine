@@ -1,8 +1,425 @@
 {
- "research_asof":"2026-10-14T23:36:02+00:00",
- "research_effective_pit_cutoff":"2026-10-14T23:35:59.651309+00:00",
+ "research_asof":"2026-10-15T00:11:47+00:00",
+ "research_effective_pit_cutoff":"2026-10-15T00:07:21+00:00",
  "schema_version":1,
  "securities":[
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"observed",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":{
+    "basis_statement_hashes":[
+     "b9b0fb1f5b461df9425c221caf1666444c35da6006b5d6d07db30b402ea023ac"
+    ],
+    "latest_statement":{
+     "accounting_scope":"consolidated",
+     "currency":"CNY",
+     "document_access":"not_resolved",
+     "document_sha256":null,
+     "first_seen_at":"2026-09-06T12:23:57.252562+00:00",
+     "known_at":"2026-09-06T12:23:57.252562+00:00",
+     "period_basis":"YTD",
+     "period_start":"2026-01-01",
+     "published_at":"2026-08-28T15:59:59+00:00",
+     "report_period":"2026-06-30",
+     "research_availability":{
+      "first_observed_at":"2026-09-06T12:23:57.252562+00:00",
+      "known_at":"2026-09-06T12:23:57.252562+00:00",
+      "source_published_at":"2026-08-28T15:59:59+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_pit_2026-09-06_e178246e06cb0a60",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "thscode":"002893.SZ",
+     "unit":"CNY",
+     "values":{
+      "capex":null,
+      "cash":null,
+      "equity_parent":null,
+      "interest_bearing_debt":null,
+      "net_profit_ex_nonrecurring":null,
+      "net_profit_parent":124519219.32,
+      "operating_cash_flow":null,
+      "revenue":null
+     }
+    },
+    "nonrecurring_profit_share":null,
+    "profit_positive_cashflow_negative":null,
+    "quality_facts":{
+     "accounts_receivable_yoy_pct":null,
+     "cash_definition":"reported_monetary_funds_not_confirmed_unrestricted_cash",
+     "cash_to_interest_bearing_debt":null,
+     "gross_margin_ytd_pct":null,
+     "industry_applicability":"industrial_statement_ratios_require_industry_validation; not a bank/insurer model",
+     "inventory_yoy_pct":null,
+     "liabilities_to_assets":null,
+     "operating_cashflow_to_parent_profit_ytd":null,
+     "quarter_yoy_pct":{
+      "capex":null,
+      "net_profit_ex_nonrecurring":null,
+      "net_profit_parent":null,
+      "operating_cash_flow":null,
+      "operating_costs":null,
+      "revenue":null
+     },
+     "statement_periods":[
+      "2026-06-30"
+     ],
+     "statement_periods_available":1
+    },
+    "quarter_flows":{
+     "capex":null,
+     "net_profit_ex_nonrecurring":null,
+     "net_profit_parent":null,
+     "operating_cash_flow":null,
+     "operating_costs":null,
+     "revenue":null
+    },
+    "ttm_flows":{
+     "capex":null,
+     "net_profit_ex_nonrecurring":null,
+     "net_profit_parent":null,
+     "operating_cash_flow":null,
+     "operating_costs":null,
+     "revenue":null
+    },
+    "valuation":{
+     "dividend_yield":null,
+     "historical_percentile":null,
+     "pb":null,
+     "pb_denominator":"consolidated_parent_equity_cny",
+     "pb_state":"unknown",
+     "pe_denominator":"consolidated_parent_net_profit_ttm_cny",
+     "pe_state":"unknown",
+     "pe_ttm":null,
+     "peer_percentile":null,
+     "ps_denominator":"consolidated_revenue_ttm_cny",
+     "ps_ttm":null,
+     "unavailable_reason":"dividend_basis_long_history_and_pit_peers_not_integrated"
+    },
+    "yoy_pct":{
+     "capex":null,
+     "net_profit_ex_nonrecurring":null,
+     "net_profit_parent":null,
+     "operating_cash_flow":null,
+     "operating_costs":null,
+     "revenue":null
+    }
+   },
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":"YTD",
+    "published_at":"2026-08-28T15:59:59+00:00",
+    "report_period":"2026-06-30",
+    "state":"partial"
+   },
+   "security_name":"京能热力",
+   "security_status":{
+    "as_of_trade_date":"2026-10-14",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":160152860.0,
+    "amount_z20":-0.340612,
+    "raw_close":10.63,
+    "raw_return_1d_pct":0.85389,
+    "raw_return_20d_pct":-0.374883,
+    "raw_return_3d_pct":-1.391466,
+    "raw_return_5d_pct":-0.746965,
+    "total_market_cap":2802493200.0
+   },
+   "thscode":"002893.SZ"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"华西证券",
+   "security_status":{
+    "as_of_trade_date":"2026-10-14",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":103686600.0,
+    "amount_z20":-0.285488,
+    "raw_close":8.33,
+    "raw_return_1d_pct":0.361446,
+    "raw_return_20d_pct":-1.88457,
+    "raw_return_3d_pct":0.361446,
+    "raw_return_5d_pct":2.208589,
+    "total_market_cap":21866250000.0
+   },
+   "thscode":"002926.SZ"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"恒铭达",
+   "security_status":{
+    "as_of_trade_date":"2026-10-14",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":383193080.0,
+    "amount_z20":-1.141621,
+    "raw_close":49.5,
+    "raw_return_1d_pct":-3.508772,
+    "raw_return_20d_pct":-23.291492,
+    "raw_return_3d_pct":-5.245023,
+    "raw_return_5d_pct":-11.575563,
+    "total_market_cap":12660562332.0
+   },
+   "thscode":"002947.SZ"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"青农商行",
+   "security_status":{
+    "as_of_trade_date":"2026-10-14",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":208155385.0,
+    "amount_z20":0.617284,
+    "raw_close":2.92,
+    "raw_return_1d_pct":0.343643,
+    "raw_return_20d_pct":-3.630363,
+    "raw_return_3d_pct":0.343643,
+    "raw_return_5d_pct":-0.680272,
+    "total_market_cap":16222660495.08
+   },
+   "thscode":"002958.SZ"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"锐明技术",
+   "security_status":{
+    "as_of_trade_date":"2026-10-14",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":153867005.0,
+    "amount_z20":-1.85407,
+    "raw_close":39.81,
+    "raw_return_1d_pct":-3.303376,
+    "raw_return_20d_pct":-19.249493,
+    "raw_return_3d_pct":-4.532374,
+    "raw_return_5d_pct":-4.532374,
+    "total_market_cap":7346252877.93
+   },
+   "thscode":"002970.SZ"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"雷赛智能",
+   "security_status":{
+    "as_of_trade_date":"2026-10-14",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":361054480.0,
+    "amount_z20":1.235365,
+    "raw_close":54.46,
+    "raw_return_1d_pct":-3.388327,
+    "raw_return_20d_pct":2.02323,
+    "raw_return_3d_pct":-2.015113,
+    "raw_return_5d_pct":3.792643,
+    "total_market_cap":17211434926.0
+   },
+   "thscode":"002979.SZ"
+  },
   {
    "availability":{
     "events":"observed",
@@ -17,6 +434,336 @@
     {
      "document_access":"authenticated_link_omitted",
      "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295880175",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:53:11+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:53:11+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_d4f7d3ac98a207da6aebc59188d3e996",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：瑞鹄汽车模具股份有限公司向不特定对象发行可转换公司债券信用评级报告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295880817",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:53:33+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:53:33+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_1028bec6f754196fd2dfab7a77c6a35f",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：瑞鹄汽车模具股份有限公司向不特定对象发行可转换公司债券募集说明书摘要"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295881306",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:53:57+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:53:57+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_6e870d7be53ed56e4f0ae8ad1afe408b",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：第四届董事会第十次会议决议的公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295881310",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:53:58+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:53:58+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_0084d95ec8bc76a3207aba70dce6aa20",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：北京市竞天公诚律师事务所关于瑞鹄汽车模具股份有限公司向不特定对象发行可转换公司债券并在深圳证券交易所上市的法律意见书"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295881312",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:53:59+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:53:59+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_34ffd18ecc052f01148c6befb606b447",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：瑞鹄汽车模具股份有限公司向不特定对象发行可转换公司债券募集说明书提示性公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295881314",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:53:59+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:53:59+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_69ff4bcee75ccb415a4e5830dc79c5a9",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：瑞鹄汽车模具股份有限公司向不特定对象发行可转换公司债券网上路演公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295881315",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:54:01+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:54:01+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_0de9f7519f4f58b31a20a88f2850b449",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：瑞鹄汽车模具股份有限公司向不特定对象发行可转换公司债券发行公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295881317",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:54:04+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:54:04+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_4caf216a6ca3381dc67f5ad32225c1a6",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：瑞鹄汽车模具股份有限公司向不特定对象发行可转换公司债券募集说明书"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5295881318",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":16,
+      "first_full_session":"2026-09-15",
+      "return_pct":-14.712878015630281,
+      "state":"observed"
+     },
+     "published_at":"2026-09-14T12:54:05+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-14T12:54:05+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_c094205222f969668317586c4e527020",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：国投证券股份有限公司关于瑞鹄汽车模具股份有限公司向不特定对象发行可转换公司债券之发行保荐书"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-17",
+     "event_id":"ifind_5298138952",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":14,
+      "first_full_session":"2026-09-17",
+      "return_pct":-13.864104323953319,
+      "state":"observed"
+     },
+     "published_at":"2026-09-16T08:17:02+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-16T08:17:02+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_02c3091ac6a0559a8b399b37ebbce893",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：向不特定对象发行可转换公司债券发行提示性公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-16",
+     "event_id":"ifind_5298357049",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":14,
+      "first_full_session":"2026-09-17",
+      "return_pct":-13.864104323953319,
+      "state":"observed"
+     },
+     "published_at":"2026-09-16T11:13:39+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-16T11:13:39+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_24924edff20b41caa1454121a28bd2db",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"002997.SZ",
+     "title":"瑞鹄模具：002997瑞鹄模具投资者关系管理信息20260916"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
      "event_date":"2026-09-17",
      "event_id":"ifind_5302441776",
      "event_type":"filing",
@@ -24,10 +771,10 @@
      "known_at":"2026-09-18T10:32:57.629566+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":19,
+      "elapsed_sessions":13,
       "first_full_session":"2026-09-18",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":-5.886764154480694,
+      "state":"observed"
      },
      "published_at":"2026-09-17T10:22:37+00:00",
      "research_availability":{
@@ -54,10 +801,10 @@
      "known_at":"2026-09-18T10:32:57.629566+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":19,
+      "elapsed_sessions":13,
       "first_full_session":"2026-09-18",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":-5.886764154480694,
+      "state":"observed"
      },
      "published_at":"2026-09-17T12:44:07+00:00",
      "research_availability":{
@@ -202,18 +949,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":95248165.0,
+    "amount_z20":-0.763497,
     "raw_close":25.1,
     "raw_return_1d_pct":-0.317712,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.145607,
     "raw_return_3d_pct":-2.901354,
     "raw_return_5d_pct":-4.888215,
     "total_market_cap":5253965257.5
@@ -257,18 +1002,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":38844830.0,
+    "amount_z20":-0.85303,
     "raw_close":10.71,
     "raw_return_1d_pct":-3.859964,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.721831,
     "raw_return_3d_pct":-4.032258,
     "raw_return_5d_pct":-4.203936,
     "total_market_cap":1892671200.0
@@ -312,18 +1055,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":38433535.0,
+    "amount_z20":-0.858533,
     "raw_close":4.6,
     "raw_return_1d_pct":-0.21692,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-4.365904,
     "raw_return_3d_pct":-2.542373,
     "raw_return_5d_pct":-2.953586,
     "total_market_cap":5322113326.799999
@@ -367,18 +1108,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":57744055.0,
+    "amount_z20":0.521108,
     "raw_close":24.53,
     "raw_return_1d_pct":-6.374046,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.73508,
     "raw_return_3d_pct":-9.114487,
     "raw_return_5d_pct":-3.349094,
     "total_market_cap":2584029448.0
@@ -422,18 +1161,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":30431730.0,
+    "amount_z20":-0.315485,
     "raw_close":22.86,
     "raw_return_1d_pct":-3.381234,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-2.515991,
     "raw_return_3d_pct":-1.038961,
     "raw_return_5d_pct":-2.640545,
     "total_market_cap":3294586629.0
@@ -576,18 +1313,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":38825840.0,
+    "amount_z20":4.184602,
     "raw_close":6.32,
     "raw_return_1d_pct":-2.015504,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":6.937394,
     "raw_return_3d_pct":8.404803,
     "raw_return_5d_pct":7.849829,
     "total_market_cap":3786151964.96
@@ -631,18 +1366,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":386685595.0,
+    "amount_z20":0.282208,
     "raw_close":31.55,
     "raw_return_1d_pct":-0.473186,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.595452,
     "raw_return_3d_pct":-4.01582,
     "raw_return_5d_pct":-8.49768,
     "total_market_cap":33295589345.15
@@ -686,18 +1419,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":242760615.0,
+    "amount_z20":-1.171905,
     "raw_close":26.74,
     "raw_return_1d_pct":-3.535354,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.72846,
     "raw_return_3d_pct":-7.023644,
     "raw_return_5d_pct":-11.192295,
     "total_market_cap":8755895852.06
@@ -838,18 +1569,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":1575525430.0,
+    "amount_z20":-0.970164,
     "raw_close":199.2,
     "raw_return_1d_pct":-1.05305,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.335907,
     "raw_return_3d_pct":-0.613681,
     "raw_return_5d_pct":1.085964,
     "total_market_cap":149925888000.0
@@ -893,18 +1622,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":181236125.0,
+    "amount_z20":-0.775487,
     "raw_close":9.93,
     "raw_return_1d_pct":-3.498542,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-8.310249,
     "raw_return_3d_pct":-8.815427,
     "raw_return_5d_pct":-5.876777,
     "total_market_cap":5555271939.21
@@ -948,18 +1675,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":96525115.0,
+    "amount_z20":-1.154117,
     "raw_close":21.56,
     "raw_return_1d_pct":-2.443439,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.204082,
     "raw_return_3d_pct":-4.728237,
     "raw_return_5d_pct":-8.991136,
     "total_market_cap":5099616358.759999
@@ -1003,18 +1728,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":97597060.0,
+    "amount_z20":-0.454359,
     "raw_close":3.38,
     "raw_return_1d_pct":-0.588235,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.05618,
     "raw_return_3d_pct":-1.744186,
     "raw_return_5d_pct":-1.169591,
     "total_market_cap":12249827646.94
@@ -1157,18 +1880,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
-     "adt20_below_minimum"
+     "st_security"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":96217770.0,
+    "amount_z20":-0.95659,
     "raw_close":3.88,
     "raw_return_1d_pct":-2.756892,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-22.4,
     "raw_return_3d_pct":-8.056872,
     "raw_return_5d_pct":-9.345794,
     "total_market_cap":3964716397.24
@@ -1212,18 +1934,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":873693055.0,
+    "amount_z20":-0.521125,
     "raw_close":13.44,
     "raw_return_1d_pct":-6.079665,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.27154,
     "raw_return_3d_pct":4.754482,
     "raw_return_5d_pct":-1.176471,
     "total_market_cap":15254661878.4
@@ -1267,18 +1987,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":63175090.0,
+    "amount_z20":-1.247061,
     "raw_close":7.98,
     "raw_return_1d_pct":-1.237624,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-8.381171,
     "raw_return_3d_pct":-1.724138,
     "raw_return_5d_pct":-2.325581,
     "total_market_cap":6124634087.88
@@ -1322,18 +2040,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":26110680.0,
+    "amount_z20":0.457059,
     "raw_close":4.13,
     "raw_return_1d_pct":-3.278689,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-4.176334,
     "raw_return_3d_pct":-1.900238,
     "raw_return_5d_pct":-0.241546,
     "total_market_cap":2416487998.89
@@ -1377,18 +2093,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":73477595.0,
+    "amount_z20":-0.779389,
     "raw_close":2.71,
     "raw_return_1d_pct":-3.214286,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.012987,
     "raw_return_3d_pct":-1.811594,
     "raw_return_5d_pct":-0.367647,
     "total_market_cap":8917040994.01
@@ -1432,18 +2146,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":70231205.0,
+    "amount_z20":-0.732695,
     "raw_close":4.91,
     "raw_return_1d_pct":-0.607287,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-1.603206,
     "raw_return_3d_pct":-0.40568,
     "raw_return_5d_pct":1.446281,
     "total_market_cap":7073486308.16
@@ -1487,18 +2199,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":45823895.0,
+    "amount_z20":-0.533849,
     "raw_close":5.89,
     "raw_return_1d_pct":-3.284072,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.803797,
     "raw_return_3d_pct":-2.965404,
     "raw_return_5d_pct":-6.060606,
     "total_market_cap":2495638682.84
@@ -1542,18 +2252,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":2225833105.0,
+    "amount_z20":-0.566423,
     "raw_close":18.84,
     "raw_return_1d_pct":-4.510897,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":9.79021,
     "raw_return_3d_pct":-8.809293,
     "raw_return_5d_pct":-14.363636,
     "total_market_cap":34806192482.64
@@ -1597,18 +2305,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
-     "adt20_below_minimum"
+     "st_security"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":78885280.0,
+    "amount_z20":-0.501142,
     "raw_close":7.57,
     "raw_return_1d_pct":0.397878,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.230392,
     "raw_return_3d_pct":-2.574003,
     "raw_return_5d_pct":-4.65995,
     "total_market_cap":5449585634.54
@@ -1652,18 +2359,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":116290955.0,
+    "amount_z20":-0.952766,
     "raw_close":13.0,
     "raw_return_1d_pct":-1.515152,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.728789,
     "raw_return_3d_pct":-5.660377,
     "raw_return_5d_pct":-4.411765,
     "total_market_cap":4990369631.0
@@ -1707,18 +2412,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":100981865.0,
+    "amount_z20":0.334859,
     "raw_close":13.84,
     "raw_return_1d_pct":1.169591,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.051713,
     "raw_return_3d_pct":-8.465608,
     "raw_return_5d_pct":-10.478655,
     "total_market_cap":3664306176.88
@@ -1762,18 +2465,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":78500020.0,
+    "amount_z20":-0.95924,
     "raw_close":14.59,
     "raw_return_1d_pct":-1.352265,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-8.755472,
     "raw_return_3d_pct":-1.882986,
     "raw_return_5d_pct":0.690131,
     "total_market_cap":3118604898.61
@@ -1817,18 +2518,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":42830190.0,
+    "amount_z20":0.005068,
     "raw_close":5.89,
     "raw_return_1d_pct":-1.996672,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-0.506757,
     "raw_return_3d_pct":-3.442623,
     "raw_return_5d_pct":-2.805281,
     "total_market_cap":3601555190.08
@@ -1872,18 +2571,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":3420862680.0,
+    "amount_z20":-1.407568,
     "raw_close":78.08,
     "raw_return_1d_pct":-2.290076,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-11.121229,
     "raw_return_3d_pct":-3.222608,
     "raw_return_5d_pct":-5.346103,
     "total_market_cap":161876347985.91998
@@ -1927,18 +2624,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":517764070.0,
+    "amount_z20":-1.719261,
     "raw_close":11.53,
     "raw_return_1d_pct":-2.205259,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.550815,
     "raw_return_3d_pct":-3.190596,
     "raw_return_5d_pct":-10.620155,
     "total_market_cap":5730158899.66
@@ -1982,18 +2677,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":60969180.0,
+    "amount_z20":-1.221612,
     "raw_close":18.03,
     "raw_return_1d_pct":-2.064096,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-9.031282,
     "raw_return_3d_pct":-3.84,
     "raw_return_5d_pct":-4.095745,
     "total_market_cap":4521647329.650001
@@ -2037,18 +2730,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":36534665.0,
+    "amount_z20":-0.640425,
     "raw_close":5.97,
     "raw_return_1d_pct":-2.610114,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":0.0,
     "raw_return_3d_pct":-2.45098,
     "raw_return_5d_pct":-1.485149,
     "total_market_cap":3247748577.39
@@ -2092,18 +2783,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":65995435.0,
+    "amount_z20":-1.006574,
     "raw_close":14.39,
     "raw_return_1d_pct":-0.208044,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-4.890945,
     "raw_return_3d_pct":-3.293011,
     "raw_return_5d_pct":-3.681392,
     "total_market_cap":7256139339.820001
@@ -2147,18 +2836,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":81819470.0,
+    "amount_z20":-0.258073,
     "raw_close":6.6,
     "raw_return_1d_pct":-1.492537,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.582781,
     "raw_return_3d_pct":-3.367496,
     "raw_return_5d_pct":-3.930131,
     "total_market_cap":5283654921.599999
@@ -2202,18 +2889,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":222054115.0,
+    "amount_z20":-1.262327,
     "raw_close":3.88,
     "raw_return_1d_pct":-2.020202,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.398568,
     "raw_return_3d_pct":-5.596107,
     "raw_return_5d_pct":-4.668305,
     "total_market_cap":3221131011.4
@@ -2257,18 +2942,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":1377651640.0,
+    "amount_z20":-1.050126,
     "raw_close":43.79,
     "raw_return_1d_pct":-3.715919,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-15.069822,
     "raw_return_3d_pct":-5.827957,
     "raw_return_5d_pct":-11.445905,
     "total_market_cap":30265760782.37
@@ -2312,18 +2995,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":144666335.0,
+    "amount_z20":-0.452268,
     "raw_close":14.8,
     "raw_return_1d_pct":-2.695595,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.681955,
     "raw_return_3d_pct":-8.415842,
     "raw_return_5d_pct":-11.164466,
     "total_market_cap":9100414638.800001
@@ -2344,6 +3025,66 @@
     {
      "document_access":"authenticated_link_omitted",
      "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5296766748",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-21T10:32:29.561119+00:00",
+     "known_at":"2026-09-21T10:32:29.561119+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":15,
+      "first_full_session":"2026-09-16",
+      "return_pct":-6.732976281560843,
+      "state":"observed"
+     },
+     "published_at":"2026-09-15T07:49:03+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-21T10:32:29.561119+00:00",
+      "known_at":"2026-09-21T10:32:29.561119+00:00",
+      "source_published_at":"2026-09-15T07:49:03+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_326edb79bcb9cff94c79523d482d8a18",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"300424.SZ",
+     "title":"航新科技：关于2026年度申请综合授信额度的进展公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-15",
+     "event_id":"ifind_5296875639",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-21T10:32:29.561119+00:00",
+     "known_at":"2026-09-21T10:32:29.561119+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":15,
+      "first_full_session":"2026-09-16",
+      "return_pct":-6.732976281560843,
+      "state":"observed"
+     },
+     "published_at":"2026-09-15T09:43:37+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-21T10:32:29.561119+00:00",
+      "known_at":"2026-09-21T10:32:29.561119+00:00",
+      "source_published_at":"2026-09-15T09:43:37+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_eda1982703d7167a7bea25f6d1d8c057",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"300424.SZ",
+     "title":"航新科技：2026年09月15日投资者关系活动记录表"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
      "event_date":"2026-09-19",
      "event_id":"ifind_5307863096",
      "event_type":"filing",
@@ -2351,10 +3092,10 @@
      "known_at":"2026-09-21T10:32:29.561119+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":18,
+      "elapsed_sessions":12,
       "first_full_session":"2026-09-21",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":-24.23865755127409,
+      "state":"observed"
      },
      "published_at":"2026-09-18T11:15:04+00:00",
      "research_availability":{
@@ -2381,10 +3122,10 @@
      "known_at":"2026-09-21T10:32:29.561119+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":18,
+      "elapsed_sessions":12,
       "first_full_session":"2026-09-21",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":-24.23865755127409,
+      "state":"observed"
      },
      "published_at":"2026-09-18T11:15:05+00:00",
      "research_availability":{
@@ -2529,18 +3270,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":190100185.0,
+    "amount_z20":-0.790822,
     "raw_close":12.19,
     "raw_return_1d_pct":-1.693548,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-15.347222,
     "raw_return_3d_pct":-3.253968,
     "raw_return_5d_pct":-4.616588,
     "total_market_cap":3128256714.27
@@ -2584,18 +3323,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":86253450.0,
+    "amount_z20":-1.137157,
     "raw_close":18.16,
     "raw_return_1d_pct":-1.465003,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.805501,
     "raw_return_3d_pct":-4.320337,
     "raw_return_5d_pct":-5.416667,
     "total_market_cap":12450161002.48
@@ -2639,18 +3376,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":64168965.0,
+    "amount_z20":-0.7909,
     "raw_close":10.47,
     "raw_return_1d_pct":-3.145236,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.604341,
     "raw_return_3d_pct":-5.077063,
     "raw_return_5d_pct":-1.690141,
     "total_market_cap":2567276425.59
@@ -2694,18 +3429,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":40971825.0,
+    "amount_z20":-0.740106,
     "raw_close":9.29,
     "raw_return_1d_pct":-1.484624,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-1.380042,
     "raw_return_3d_pct":-3.02714,
     "raw_return_5d_pct":-2.518363,
     "total_market_cap":5617352936.959999
@@ -2749,18 +3482,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":85038815.0,
+    "amount_z20":-0.177415,
     "raw_close":31.8,
     "raw_return_1d_pct":-1.395349,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.187835,
     "raw_return_3d_pct":-6.635349,
     "raw_return_5d_pct":-1.517498,
     "total_market_cap":6461915724.6
@@ -2804,18 +3535,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":364334765.0,
+    "amount_z20":-0.712442,
     "raw_close":35.8,
     "raw_return_1d_pct":-0.693481,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":34.738427,
     "raw_return_3d_pct":-0.13947,
     "raw_return_5d_pct":-2.585034,
     "total_market_cap":6181313311.4
@@ -2824,13 +3553,106 @@
   },
   {
    "availability":{
-    "events":"unknown",
+    "events":"observed",
     "financials":"observed",
     "forecasts":"not_ready"
    },
    "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
+   "discovery_routes":[
+    "event_filing"
+   ],
+   "events":[
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-09",
+     "event_id":"ifind_5290500227",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-14T10:34:06.896508+00:00",
+     "known_at":"2026-09-14T10:34:06.896508+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":19,
+      "first_full_session":"2026-09-10",
+      "return_pct":-20.250723240115732,
+      "state":"observed"
+     },
+     "published_at":"2026-09-09T10:49:35+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-14T10:34:06.896508+00:00",
+      "known_at":"2026-09-14T10:34:06.896508+00:00",
+      "source_published_at":"2026-09-09T10:49:35+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_37d1588f02de8d75cc929c3d43430b0e",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"300502.SZ",
+     "title":"新易盛：关于参加举办四川辖区2026年投资者网上集体接待日及半年度报告业绩说明会的公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-11",
+     "event_id":"ifind_5293124812",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-17T10:32:39.826754+00:00",
+     "known_at":"2026-09-17T10:32:39.826754+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":17,
+      "first_full_session":"2026-09-14",
+      "return_pct":-21.796690307328635,
+      "state":"observed"
+     },
+     "published_at":"2026-09-11T10:27:10+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-17T10:32:39.826754+00:00",
+      "known_at":"2026-09-17T10:32:39.826754+00:00",
+      "source_published_at":"2026-09-11T10:27:10+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_d33b7427c8c2a9d798eef60740fa798a",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"300502.SZ",
+     "title":"新易盛：关于2024年限制性股票激励计划预留授予第二期归属结果暨股份上市的公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
+     "event_date":"2026-09-12",
+     "event_id":"ifind_5294304335",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-18T10:32:57.629566+00:00",
+     "known_at":"2026-09-18T10:32:57.629566+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":17,
+      "first_full_session":"2026-09-14",
+      "return_pct":-21.796690307328635,
+      "state":"observed"
+     },
+     "published_at":"2026-09-12T08:13:38+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-18T10:32:57.629566+00:00",
+      "known_at":"2026-09-18T10:32:57.629566+00:00",
+      "source_published_at":"2026-09-12T08:13:38+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_fedacce3676d5921f6e2dcd085d56107",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"300502.SZ",
+     "title":"新易盛：300502新易盛投资者关系管理信息20260911"
+    }
+   ],
    "financials":{
     "basis_statement_hashes":[
      "361abb535f4ad5b9c6827d5b3de0e4b7d42d497d70ad755737764f74e0d2ee9a"
@@ -2958,18 +3780,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":13316665125.0,
+    "amount_z20":-1.154482,
     "raw_close":330.8,
     "raw_return_1d_pct":-5.835468,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-20.557157,
     "raw_return_3d_pct":-10.642896,
     "raw_return_5d_pct":-14.96144,
     "total_market_cap":461379090900.8
@@ -3013,18 +3833,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":140067855.0,
+    "amount_z20":-1.220385,
     "raw_close":15.84,
     "raw_return_1d_pct":-1.858736,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-8.38635,
     "raw_return_3d_pct":-2.222222,
     "raw_return_5d_pct":-5.206463,
     "total_market_cap":4293029347.2
@@ -3068,18 +3886,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":188747195.0,
+    "amount_z20":-1.177679,
     "raw_close":14.22,
     "raw_return_1d_pct":-4.242424,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-22.295082,
     "raw_return_3d_pct":-6.998038,
     "raw_return_5d_pct":-7.542263,
     "total_market_cap":3266954304.84
@@ -3123,18 +3939,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":50608860.0,
+    "amount_z20":-1.438859,
     "raw_close":14.82,
     "raw_return_1d_pct":-2.178218,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-9.52381,
     "raw_return_3d_pct":-1.528239,
     "raw_return_5d_pct":-2.5,
     "total_market_cap":2938357546.8
@@ -3178,18 +3992,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":70853025.0,
+    "amount_z20":-0.699265,
     "raw_close":9.76,
     "raw_return_1d_pct":-2.788845,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-2.008032,
     "raw_return_3d_pct":-1.711984,
     "raw_return_5d_pct":-0.408163,
     "total_market_cap":3396764133.12
@@ -3233,18 +4045,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":81768030.0,
+    "amount_z20":2.964303,
     "raw_close":13.01,
     "raw_return_1d_pct":0.540958,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":2.440945,
     "raw_return_3d_pct":3.830806,
     "raw_return_5d_pct":6.990132,
     "total_market_cap":2380647807.96
@@ -3288,18 +4098,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":113984370.0,
+    "amount_z20":-0.609699,
     "raw_close":17.18,
     "raw_return_1d_pct":-0.463499,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.78242,
     "raw_return_3d_pct":-1.32108,
     "raw_return_5d_pct":-2.386364,
     "total_market_cap":4319454424.32
@@ -3343,18 +4151,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":70110710.0,
+    "amount_z20":-0.268191,
     "raw_close":18.55,
     "raw_return_1d_pct":-0.589496,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.417375,
     "raw_return_3d_pct":-4.084798,
     "raw_return_5d_pct":-4.479918,
     "total_market_cap":7880735717.75
@@ -3398,18 +4204,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":62816215.0,
+    "amount_z20":-0.136776,
     "raw_close":6.0,
     "raw_return_1d_pct":-2.755267,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.02346,
     "raw_return_3d_pct":-3.536977,
     "raw_return_5d_pct":-4.0,
     "total_market_cap":1865960562.0
@@ -3453,18 +4257,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":47156125.0,
+    "amount_z20":-1.033364,
     "raw_close":12.98,
     "raw_return_1d_pct":0.077101,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.615658,
     "raw_return_3d_pct":-2.259036,
     "raw_return_5d_pct":-0.076982,
     "total_market_cap":6821571633.8
@@ -3508,18 +4310,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":28543270.0,
+    "amount_z20":-0.086332,
     "raw_close":9.43,
     "raw_return_1d_pct":-3.77551,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.416249,
     "raw_return_3d_pct":-3.083248,
     "raw_return_5d_pct":-4.166667,
     "total_market_cap":2636565073.61
@@ -3549,7 +4349,7 @@
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
       "elapsed_sessions":4,
       "first_full_session":"2026-10-09",
-      "return_pct":14.418604651163047,
+      "return_pct":14.418604651162825,
       "state":"observed"
      },
      "published_at":"2026-10-08T08:25:05+00:00",
@@ -3596,18 +4396,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":137896370.0,
+    "amount_z20":1.941117,
     "raw_close":14.76,
     "raw_return_1d_pct":-4.896907,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":3.506311,
     "raw_return_3d_pct":8.131868,
     "raw_return_5d_pct":10.977444,
     "total_market_cap":5580098146.8
@@ -3651,18 +4449,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":81338395.0,
+    "amount_z20":0.428739,
     "raw_close":13.45,
     "raw_return_1d_pct":0.373134,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":1.893939,
     "raw_return_3d_pct":6.746032,
     "raw_return_5d_pct":2.515244,
     "total_market_cap":5334301446.099999
@@ -3706,18 +4502,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":69246100.0,
+    "amount_z20":-0.862883,
     "raw_close":10.8,
     "raw_return_1d_pct":-2.96496,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-9.243697,
     "raw_return_3d_pct":-4.424779,
     "raw_return_5d_pct":-4.929577,
     "total_market_cap":4501422720.0
@@ -3860,18 +4654,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":128566830.0,
+    "amount_z20":-0.875605,
     "raw_close":8.01,
     "raw_return_1d_pct":-2.07824,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-13.592233,
     "raw_return_3d_pct":-0.373134,
     "raw_return_5d_pct":0.754717,
     "total_market_cap":3617642383.47
@@ -3915,18 +4707,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":47864675.0,
+    "amount_z20":-0.385244,
     "raw_close":38.07,
     "raw_return_1d_pct":-1.65332,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.622517,
     "raw_return_3d_pct":3.789531,
     "raw_return_5d_pct":2.036987,
     "total_market_cap":7374629278.71
@@ -3970,18 +4760,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":30667990.0,
+    "amount_z20":-0.066942,
     "raw_close":10.47,
     "raw_return_1d_pct":-3.3241,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.817717,
     "raw_return_3d_pct":-4.2086,
     "raw_return_5d_pct":-4.120879,
     "total_market_cap":4479983454.690001
@@ -4025,18 +4813,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":3299942220.0,
+    "amount_z20":-1.995528,
     "raw_close":219.72,
     "raw_return_1d_pct":-3.631579,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-17.41402,
     "raw_return_3d_pct":-5.569881,
     "raw_return_5d_pct":-12.517917,
     "total_market_cap":107522847148.8
@@ -4080,18 +4866,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":114259090.0,
+    "amount_z20":-1.248889,
     "raw_close":26.88,
     "raw_return_1d_pct":-0.111483,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.882111,
     "raw_return_3d_pct":-2.076503,
     "raw_return_5d_pct":-4.068522,
     "total_market_cap":10296176405.76
@@ -4135,18 +4919,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":135041255.0,
+    "amount_z20":-1.548028,
     "raw_close":64.3,
     "raw_return_1d_pct":-3.857656,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-23.178017,
     "raw_return_3d_pct":-11.040398,
     "raw_return_5d_pct":-15.003305,
     "total_market_cap":10552906740.8
@@ -4190,18 +4972,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":867290600.0,
+    "amount_z20":-1.178324,
     "raw_close":20.76,
     "raw_return_1d_pct":-1.704545,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-17.059529,
     "raw_return_3d_pct":-4.770642,
     "raw_return_5d_pct":-10.090948,
     "total_market_cap":14262236339.04
@@ -4245,18 +5025,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":25390805.0,
+    "amount_z20":-0.317964,
     "raw_close":13.04,
     "raw_return_1d_pct":-4.538799,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-8.362614,
     "raw_return_3d_pct":-4.258443,
     "raw_return_5d_pct":-5.984138,
     "total_market_cap":1816211200.0
@@ -4300,18 +5078,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":70796145.0,
+    "amount_z20":-1.567739,
     "raw_close":28.3,
     "raw_return_1d_pct":-1.393728,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-11.285266,
     "raw_return_3d_pct":-2.815934,
     "raw_return_5d_pct":-10.215736,
     "total_market_cap":4339522000.0
@@ -4355,18 +5131,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":174439580.0,
+    "amount_z20":0.881845,
     "raw_close":10.92,
     "raw_return_1d_pct":0.552486,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":1.581395,
     "raw_return_3d_pct":4.397706,
     "raw_return_5d_pct":9.528586,
     "total_market_cap":4371378648.0
@@ -4410,18 +5184,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":95540670.0,
+    "amount_z20":0.870579,
     "raw_close":45.96,
     "raw_return_1d_pct":-0.130378,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-20.34662,
     "raw_return_3d_pct":-5.060938,
     "raw_return_5d_pct":-7.151515,
     "total_market_cap":16752662025.36
@@ -4465,18 +5237,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":83672035.0,
+    "amount_z20":-0.370618,
     "raw_close":26.03,
     "raw_return_1d_pct":-1.476154,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.519079,
     "raw_return_3d_pct":-0.268199,
     "raw_return_5d_pct":-2.28979,
     "total_market_cap":6444486367.76
@@ -4520,18 +5290,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":118470430.0,
+    "amount_z20":-1.052091,
     "raw_close":15.85,
     "raw_return_1d_pct":0.189633,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.479293,
     "raw_return_3d_pct":-5.542312,
     "raw_return_5d_pct":-10.704225,
     "total_market_cap":4505534282.3
@@ -4575,18 +5343,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":35451285.0,
+    "amount_z20":-0.208449,
     "raw_close":17.52,
     "raw_return_1d_pct":-3.150912,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-3.947368,
     "raw_return_3d_pct":-3.577325,
     "raw_return_5d_pct":-6.360235,
     "total_market_cap":1828399884.48
@@ -4630,19 +5396,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":20895870.0,
+    "amount_z20":0.305002,
     "raw_close":13.51,
     "raw_return_1d_pct":-2.313811,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-0.0,
+    "raw_return_20d_pct":-1.959361,
+    "raw_return_3d_pct":0.0,
     "raw_return_5d_pct":1.198502,
     "total_market_cap":3078929000.0
    },
@@ -4685,18 +5449,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":119415560.0,
+    "amount_z20":-0.467096,
     "raw_close":51.77,
     "raw_return_1d_pct":-2.062051,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":23.350012,
     "raw_return_3d_pct":-1.577947,
     "raw_return_5d_pct":1.05407,
     "total_market_cap":5827037166.04
@@ -4740,18 +5502,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":40796260.0,
+    "amount_z20":-1.101936,
     "raw_close":21.81,
     "raw_return_1d_pct":-3.410097,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.874466,
     "raw_return_3d_pct":-3.324468,
     "raw_return_5d_pct":-5.788337,
     "total_market_cap":2963267994.0
@@ -4795,18 +5555,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":155077505.0,
+    "amount_z20":-1.200577,
     "raw_close":34.63,
     "raw_return_1d_pct":-3.564467,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-24.42165,
     "raw_return_3d_pct":-5.743059,
     "raw_return_5d_pct":-12.528416,
     "total_market_cap":5773406766.450001
@@ -4850,18 +5608,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":29516650.0,
+    "amount_z20":-0.109955,
     "raw_close":22.03,
     "raw_return_1d_pct":-4.175729,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-4.466609,
     "raw_return_3d_pct":-5.165734,
     "raw_return_5d_pct":-6.652542,
     "total_market_cap":1797648000.0
@@ -4905,18 +5661,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":630271540.0,
+    "amount_z20":-0.719379,
     "raw_close":196.2,
     "raw_return_1d_pct":-3.349754,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-25.757748,
     "raw_return_3d_pct":-7.622769,
     "raw_return_5d_pct":-12.718537,
     "total_market_cap":95943318784.2
@@ -4960,18 +5714,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":53783880.0,
+    "amount_z20":-1.473493,
     "raw_close":30.88,
     "raw_return_1d_pct":-1.089045,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-8.557892,
     "raw_return_3d_pct":-1.436323,
     "raw_return_5d_pct":-3.43965,
     "total_market_cap":4620236202.24
@@ -5015,18 +5767,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
      "adt20_below_minimum"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":19633770.0,
+    "amount_z20":-0.850971,
     "raw_close":11.23,
     "raw_return_1d_pct":-2.347826,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.419621,
     "raw_return_3d_pct":-2.854671,
     "raw_return_5d_pct":-3.934987,
     "total_market_cap":5430928890.320001
@@ -5070,18 +5821,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
      "adt20_below_minimum"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":17898850.0,
+    "amount_z20":0.816312,
     "raw_close":6.2,
     "raw_return_1d_pct":-2.362205,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.344411,
     "raw_return_3d_pct":-3.276131,
     "raw_return_5d_pct":-3.426791,
     "total_market_cap":2650757386.8
@@ -5125,18 +5875,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
      "adt20_below_minimum"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":19891845.0,
+    "amount_z20":3.632893,
     "raw_close":21.53,
     "raw_return_1d_pct":0.232775,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-0.324074,
     "raw_return_3d_pct":0.046468,
     "raw_return_5d_pct":1.748582,
     "total_market_cap":2912984994.05
@@ -5180,18 +5929,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":26057295.0,
+    "amount_z20":-0.851126,
     "raw_close":21.05,
     "raw_return_1d_pct":-2.320186,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.137449,
     "raw_return_3d_pct":-4.837251,
     "raw_return_5d_pct":-3.617216,
     "total_market_cap":2165874221.35
@@ -5235,18 +5982,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":63537650.0,
+    "amount_z20":0.733844,
     "raw_close":12.52,
     "raw_return_1d_pct":-2.340094,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":2.03749,
     "raw_return_3d_pct":-3.840246,
     "raw_return_5d_pct":8.774978,
     "total_market_cap":3040487483.76
@@ -5290,18 +6035,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":35068740.0,
+    "amount_z20":-1.990301,
     "raw_close":33.33,
     "raw_return_1d_pct":-3.194888,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-4.635193,
     "raw_return_3d_pct":-3.391304,
     "raw_return_5d_pct":-4.031097,
     "total_market_cap":2444200022.22
@@ -5345,18 +6088,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":28099535.0,
+    "amount_z20":2.239146,
     "raw_close":26.75,
     "raw_return_1d_pct":-6.041447,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.891751,
     "raw_return_3d_pct":-6.074438,
     "raw_return_5d_pct":-7.021203,
     "total_market_cap":2393590000.0
@@ -5400,18 +6141,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
      "adt20_below_minimum"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":19399300.0,
+    "amount_z20":-0.881314,
     "raw_close":35.14,
     "raw_return_1d_pct":-2.280311,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-9.43299,
     "raw_return_3d_pct":-3.088803,
     "raw_return_5d_pct":-2.954985,
     "total_market_cap":4533060000.0
@@ -5455,18 +6195,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":29148140.0,
+    "amount_z20":-0.308614,
     "raw_close":28.3,
     "raw_return_1d_pct":-4.745877,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.937541,
     "raw_return_3d_pct":-5.792277,
     "raw_return_5d_pct":-9.757653,
     "total_market_cap":2113069308.0
@@ -5510,18 +6248,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":63821450.0,
+    "amount_z20":-0.273907,
     "raw_close":22.63,
     "raw_return_1d_pct":-6.099585,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.371535,
     "raw_return_3d_pct":-8.00813,
     "raw_return_5d_pct":-8.823529,
     "total_market_cap":3291975124.45
@@ -5565,18 +6301,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
      "adt20_below_minimum"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":17521210.0,
+    "amount_z20":-0.23004,
     "raw_close":23.34,
     "raw_return_1d_pct":-3.831891,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.452906,
     "raw_return_3d_pct":-4.734694,
     "raw_return_5d_pct":-3.752577,
     "total_market_cap":2888558400.0
@@ -5620,18 +6355,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":73927590.0,
+    "amount_z20":1.121782,
     "raw_close":6.91,
     "raw_return_1d_pct":-2.949438,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":0.875912,
     "raw_return_3d_pct":0.0,
     "raw_return_5d_pct":2.674591,
     "total_market_cap":5462631558.93
@@ -5675,18 +6408,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":281659550.0,
+    "amount_z20":-1.375938,
     "raw_close":43.98,
     "raw_return_1d_pct":-3.127753,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-19.154412,
     "raw_return_3d_pct":-5.419355,
     "raw_return_5d_pct":-12.233087,
     "total_market_cap":6561391636.98
@@ -5730,18 +6461,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":266887030.0,
+    "amount_z20":-1.81704,
     "raw_close":228.02,
     "raw_return_1d_pct":-3.934951,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-21.442844,
     "raw_return_3d_pct":-1.952184,
     "raw_return_5d_pct":-14.3426,
     "total_market_cap":9514653017.48
@@ -5785,18 +6514,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":91348460.0,
+    "amount_z20":1.092367,
     "raw_close":40.56,
     "raw_return_1d_pct":-8.566276,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":1.832789,
     "raw_return_3d_pct":-6.586826,
     "raw_return_5d_pct":0.945744,
     "total_market_cap":2623993628.88
@@ -5840,18 +6567,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":307325505.0,
+    "amount_z20":-0.200374,
     "raw_close":51.5,
     "raw_return_1d_pct":0.194553,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":15.212528,
     "raw_return_3d_pct":3.62173,
     "raw_return_5d_pct":0.468201,
     "total_market_cap":12337106550.5
@@ -5895,18 +6620,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":499299240.0,
+    "amount_z20":0.78265,
     "raw_close":62.8,
     "raw_return_1d_pct":0.721732,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":0.948401,
     "raw_return_3d_pct":8.612937,
     "raw_return_5d_pct":8.725762,
     "total_market_cap":167807338412.8
@@ -5950,18 +6673,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":135753565.0,
+    "amount_z20":0.635786,
     "raw_close":9.12,
     "raw_return_1d_pct":1.333333,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-0.977199,
     "raw_return_3d_pct":3.167421,
     "raw_return_5d_pct":4.467354,
     "total_market_cap":79303786682.4
@@ -6005,18 +6726,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":69776405.0,
+    "amount_z20":-0.679632,
     "raw_close":8.81,
     "raw_return_1d_pct":-0.899888,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-9.641026,
     "raw_return_3d_pct":-1.454139,
     "raw_return_5d_pct":3.403756,
     "total_market_cap":9443533363.91
@@ -6060,18 +6779,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":155316600.0,
+    "amount_z20":-0.419231,
     "raw_close":8.21,
     "raw_return_1d_pct":0.489596,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-4.423749,
     "raw_return_3d_pct":0.121951,
     "raw_return_5d_pct":0.98401,
     "total_market_cap":30239588474.680004
@@ -6115,18 +6832,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":1149359385.0,
+    "amount_z20":-1.269043,
     "raw_close":51.33,
     "raw_return_1d_pct":-2.949518,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-11.285862,
     "raw_return_3d_pct":-6.092206,
     "raw_return_5d_pct":-6.723605,
     "total_market_cap":60697167299.549995
@@ -6269,18 +6984,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":1005946200.0,
+    "amount_z20":1.204243,
     "raw_close":5.86,
     "raw_return_1d_pct":9.943715,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":13.127413,
     "raw_return_3d_pct":5.96745,
     "raw_return_5d_pct":9.737828,
     "total_market_cap":7139894542.68
@@ -6324,18 +7037,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":26151105.0,
+    "amount_z20":-0.515589,
     "raw_close":8.45,
     "raw_return_1d_pct":-2.873563,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-4.411765,
     "raw_return_3d_pct":-2.873563,
     "raw_return_5d_pct":-2.424942,
     "total_market_cap":2126854015.0
@@ -6379,18 +7090,18 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
+     "st_security",
      "adt20_below_minimum"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":11656650.0,
+    "amount_z20":-0.68263,
     "raw_close":1.48,
     "raw_return_1d_pct":-1.333333,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-3.267974,
     "raw_return_3d_pct":0.0,
     "raw_return_5d_pct":-0.671141,
     "total_market_cap":3020422377.88
@@ -6434,18 +7145,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":60246055.0,
+    "amount_z20":-0.324068,
     "raw_close":6.99,
     "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.661823,
     "raw_return_3d_pct":-0.285307,
     "raw_return_5d_pct":-0.142857,
     "total_market_cap":5059641600.0
@@ -6489,18 +7198,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":175668980.0,
+    "amount_z20":-0.862813,
     "raw_close":9.02,
     "raw_return_1d_pct":0.222222,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":7.125891,
     "raw_return_3d_pct":0.110988,
     "raw_return_5d_pct":2.267574,
     "total_market_cap":26153837730.02
@@ -6544,18 +7251,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":59133590.0,
+    "amount_z20":-1.304042,
     "raw_close":3.26,
     "raw_return_1d_pct":-0.609756,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-2.39521,
     "raw_return_3d_pct":-3.550296,
     "raw_return_5d_pct":-2.686567,
     "total_market_cap":5267781106.5
@@ -6599,18 +7304,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":262940470.0,
+    "amount_z20":-1.133135,
     "raw_close":2.2,
     "raw_return_1d_pct":-0.452489,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.172414,
     "raw_return_3d_pct":-1.345291,
     "raw_return_5d_pct":-1.785714,
     "total_market_cap":19549067436.800003
@@ -6654,18 +7357,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":181088315.0,
+    "amount_z20":-1.270614,
     "raw_close":20.36,
     "raw_return_1d_pct":-1.737452,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-9.591474,
     "raw_return_3d_pct":-4.097975,
     "raw_return_5d_pct":-6.433824,
     "total_market_cap":14433678449.08
@@ -6709,18 +7410,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":44235020.0,
+    "amount_z20":-1.160213,
     "raw_close":6.7,
     "raw_return_1d_pct":0.600601,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.944444,
     "raw_return_3d_pct":-0.445765,
     "raw_return_5d_pct":-0.445765,
     "total_market_cap":6841693342.0
@@ -6764,18 +7463,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":455013015.0,
+    "amount_z20":-2.253829,
     "raw_close":4.8,
     "raw_return_1d_pct":-2.240326,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-18.088737,
     "raw_return_3d_pct":-4.761905,
     "raw_return_5d_pct":-6.796117,
     "total_market_cap":14277029875.199999
@@ -6819,18 +7516,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":58074155.0,
+    "amount_z20":-1.444254,
     "raw_close":14.13,
     "raw_return_1d_pct":-2.011096,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.739103,
     "raw_return_3d_pct":-3.877551,
     "raw_return_5d_pct":-2.68595,
     "total_market_cap":3362940000.0
@@ -6858,7 +7553,7 @@
      "known_at":"2026-09-23T10:35:42.696533+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":17,
+      "elapsed_sessions":11,
       "first_full_session":"2026-09-22",
       "return_pct":null,
       "state":"not_ready"
@@ -7034,6 +7729,36 @@
     {
      "document_access":"authenticated_link_omitted",
      "document_sha256":null,
+     "event_date":"2026-09-16",
+     "event_id":"ifind_5296784021",
+     "event_type":"filing",
+     "first_seen_at":"2026-09-21T10:32:29.561119+00:00",
+     "known_at":"2026-09-21T10:32:29.561119+00:00",
+     "price_response":{
+      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
+      "elapsed_sessions":15,
+      "first_full_session":"2026-09-16",
+      "return_pct":null,
+      "state":"not_ready"
+     },
+     "published_at":"2026-09-15T08:09:57+00:00",
+     "research_availability":{
+      "first_observed_at":"2026-09-21T10:32:29.561119+00:00",
+      "known_at":"2026-09-21T10:32:29.561119+00:00",
+      "source_published_at":"2026-09-15T08:09:57+00:00",
+      "usable_for_current_research":true,
+      "usable_for_historical_replay":true
+     },
+     "revision":"ifind_c4af88686e610237384e7be59dc57408",
+     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
+     "source_url_kind":"provider_query_documentation",
+     "status":"unknown",
+     "thscode":"600301.SH",
+     "title":"华锡有色：广西华锡有色金属股份有限公司关于筹划控制权变更进展暨继续停牌的公告"
+    },
+    {
+     "document_access":"authenticated_link_omitted",
+     "document_sha256":null,
      "event_date":"2026-09-19",
      "event_id":"ifind_5306778874",
      "event_type":"filing",
@@ -7041,10 +7766,10 @@
      "known_at":"2026-09-22T10:35:17.194423+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":18,
+      "elapsed_sessions":12,
       "first_full_session":"2026-09-21",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":4.688531807175922,
+      "state":"observed"
      },
      "published_at":"2026-09-18T08:14:59+00:00",
      "research_availability":{
@@ -7071,10 +7796,10 @@
      "known_at":"2026-09-22T10:35:17.194423+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":18,
+      "elapsed_sessions":12,
       "first_full_session":"2026-09-21",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":4.688531807175922,
+      "state":"observed"
      },
      "published_at":"2026-09-18T08:15:01+00:00",
      "research_availability":{
@@ -7101,10 +7826,10 @@
      "known_at":"2026-09-22T10:35:17.194423+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":18,
+      "elapsed_sessions":12,
       "first_full_session":"2026-09-21",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":4.688531807175922,
+      "state":"observed"
      },
      "published_at":"2026-09-18T08:15:02+00:00",
      "research_availability":{
@@ -7131,10 +7856,10 @@
      "known_at":"2026-09-22T10:35:17.194423+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":18,
+      "elapsed_sessions":12,
       "first_full_session":"2026-09-21",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":4.688531807175922,
+      "state":"observed"
      },
      "published_at":"2026-09-18T08:15:03+00:00",
      "research_availability":{
@@ -7161,10 +7886,10 @@
      "known_at":"2026-09-22T10:35:17.194423+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":18,
+      "elapsed_sessions":12,
       "first_full_session":"2026-09-21",
-      "return_pct":null,
-      "state":"not_ready"
+      "return_pct":4.688531807175922,
+      "state":"observed"
      },
      "published_at":"2026-09-18T08:15:07+00:00",
      "research_availability":{
@@ -7309,7 +8034,6 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
      "adt20_below_minimum"
     ],
@@ -7364,18 +8088,17 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
-     "adt20_below_minimum"
+     "st_security"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":103517840.0,
+    "amount_z20":-0.593818,
     "raw_close":1.25,
     "raw_return_1d_pct":-1.574803,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":15.740741,
     "raw_return_3d_pct":-5.30303,
     "raw_return_5d_pct":-3.846154,
     "total_market_cap":4866693827.5
@@ -7419,18 +8142,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":149251410.0,
+    "amount_z20":-0.639567,
     "raw_close":16.05,
     "raw_return_1d_pct":-1.230769,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-14.673046,
     "raw_return_3d_pct":-5.975395,
     "raw_return_5d_pct":-4.464286,
     "total_market_cap":22667315538.15
@@ -7474,18 +8195,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":138060805.0,
+    "amount_z20":-0.351875,
     "raw_close":4.34,
     "raw_return_1d_pct":-0.686499,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-8.823529,
     "raw_return_3d_pct":1.639344,
     "raw_return_5d_pct":1.165501,
     "total_market_cap":8558914000.0
@@ -7529,18 +8248,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":29615675.0,
+    "amount_z20":1.002206,
     "raw_close":14.04,
     "raw_return_1d_pct":-3.038674,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-3.372333,
     "raw_return_3d_pct":-2.83737,
     "raw_return_5d_pct":-3.239145,
     "total_market_cap":2055763925.28
@@ -7584,18 +8301,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":170591035.0,
+    "amount_z20":-0.701733,
     "raw_close":5.71,
     "raw_return_1d_pct":-4.674457,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.920437,
     "raw_return_3d_pct":-3.547297,
     "raw_return_5d_pct":-2.725724,
     "total_market_cap":6210968682.91
@@ -7639,18 +8354,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":31229875.0,
+    "amount_z20":-0.65304,
     "raw_close":4.95,
     "raw_return_1d_pct":-0.201613,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-6.603774,
     "raw_return_3d_pct":-1.394422,
     "raw_return_5d_pct":0.202429,
     "total_market_cap":4405672319.400001
@@ -7694,18 +8407,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":104842310.0,
+    "amount_z20":-1.034728,
     "raw_close":13.89,
     "raw_return_1d_pct":-0.071942,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-11.584978,
     "raw_return_3d_pct":-4.40468,
     "raw_return_5d_pct":-0.572656,
     "total_market_cap":13208728905.45
@@ -7749,18 +8460,18 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
      "market_rule_missing",
+     "st_security",
      "adt20_below_minimum"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":12762165.0,
+    "amount_z20":0.409848,
     "raw_close":8.9,
     "raw_return_1d_pct":-5.117271,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-12.228797,
     "raw_return_3d_pct":-10.191726,
     "raw_return_5d_pct":-10.282258,
     "total_market_cap":1433523000.0
@@ -7804,18 +8515,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":46659680.0,
+    "amount_z20":0.721524,
     "raw_close":2.08,
     "raw_return_1d_pct":-0.952381,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-2.803738,
     "raw_return_3d_pct":-1.421801,
     "raw_return_5d_pct":-0.478469,
     "total_market_cap":3301802739.04
@@ -7859,18 +8568,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":438710860.0,
+    "amount_z20":-1.357484,
     "raw_close":3.49,
     "raw_return_1d_pct":-3.59116,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-15.496368,
     "raw_return_3d_pct":-4.644809,
     "raw_return_5d_pct":-9.114583,
     "total_market_cap":6239813654.780001
@@ -7914,18 +8621,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":958187245.0,
+    "amount_z20":-1.374959,
     "raw_close":13.95,
     "raw_return_1d_pct":-3.526971,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-16.964286,
     "raw_return_3d_pct":-7.738095,
     "raw_return_5d_pct":-17.941176,
     "total_market_cap":13177266171.3
@@ -7969,18 +8674,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":27043420.0,
+    "amount_z20":0.00601,
     "raw_close":5.92,
     "raw_return_1d_pct":-2.631579,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-5.28,
     "raw_return_3d_pct":-2.310231,
     "raw_return_5d_pct":-1.66113,
     "total_market_cap":1684102656.0
@@ -8024,18 +8727,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":232114080.0,
+    "amount_z20":1.912084,
     "raw_close":28.75,
     "raw_return_1d_pct":3.046595,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-1.742994,
     "raw_return_3d_pct":8.572508,
     "raw_return_5d_pct":7.236106,
     "total_market_cap":35703412900.0
@@ -8079,18 +8780,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":46009160.0,
+    "amount_z20":-0.692103,
     "raw_close":1.8,
     "raw_return_1d_pct":-1.098901,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-4.255319,
     "raw_return_3d_pct":0.0,
     "raw_return_5d_pct":-1.098901,
     "total_market_cap":5170358494.8
@@ -8134,18 +8833,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":367725115.0,
+    "amount_z20":1.185624,
     "raw_close":17.54,
     "raw_return_1d_pct":1.799187,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-2.120536,
     "raw_return_3d_pct":0.862565,
     "raw_return_5d_pct":0.171331,
     "total_market_cap":92559633171.76
@@ -8189,18 +8886,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":213792405.0,
+    "amount_z20":-0.464138,
     "raw_close":12.26,
     "raw_return_1d_pct":-3.692066,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-10.576222,
     "raw_return_3d_pct":-9.919177,
     "raw_return_5d_pct":-5.181748,
     "total_market_cap":13159202417.56
@@ -8230,7 +8925,7 @@
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
       "elapsed_sessions":4,
       "first_full_session":"2026-10-09",
-      "return_pct":13.601823708206574,
+      "return_pct":13.601823708206705,
       "state":"observed"
      },
      "published_at":"2026-10-08T10:05:37+00:00",
@@ -8376,18 +9071,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":414841205.0,
+    "amount_z20":1.791721,
     "raw_close":14.95,
     "raw_return_1d_pct":1.150203,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":11.152416,
     "raw_return_3d_pct":3.245856,
     "raw_return_5d_pct":11.817502,
     "total_market_cap":15860444415.4
@@ -8431,18 +9124,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":419449170.0,
+    "amount_z20":0.543946,
     "raw_close":17.93,
     "raw_return_1d_pct":1.128032,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":2.165242,
     "raw_return_3d_pct":-0.499445,
     "raw_return_5d_pct":9.529627,
     "total_market_cap":20616001462.54
@@ -8486,18 +9177,16 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":114326540.0,
+    "amount_z20":0.242824,
     "raw_close":4.43,
     "raw_return_1d_pct":0.226244,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":-7.515658,
     "raw_return_3d_pct":-1.336303,
     "raw_return_5d_pct":-0.449438,
     "total_market_cap":13079285610.25
@@ -8541,1147 +9230,23 @@
     "as_of_trade_date":"2026-10-14",
     "execution_state":"not_verified_live",
     "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
+     "market_rule_missing"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":null,
-    "amount_z20":null,
+    "adt20":167030710.0,
+    "amount_z20":1.003326,
     "raw_close":9.23,
     "raw_return_1d_pct":0.654308,
-    "raw_return_20d_pct":null,
+    "raw_return_20d_pct":8.333333,
     "raw_return_3d_pct":1.651982,
     "raw_return_5d_pct":5.125285,
     "total_market_cap":45172352640.48
    },
    "thscode":"600642.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"observed",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":{
-    "basis_statement_hashes":[
-     "27f92b02dfddc014f4380159e64c8df634fad8feb069c4794bf27081708e6ab7"
-    ],
-    "latest_statement":{
-     "accounting_scope":"consolidated",
-     "currency":"CNY",
-     "document_access":"not_resolved",
-     "document_sha256":null,
-     "first_seen_at":"2026-09-15T10:35:07.100671+00:00",
-     "known_at":"2026-09-15T10:35:07.100671+00:00",
-     "period_basis":"YTD",
-     "period_start":"2026-01-01",
-     "published_at":"2026-08-25T15:59:59+00:00",
-     "report_period":"2026-06-30",
-     "research_availability":{
-      "first_observed_at":"2026-09-15T10:35:07.100671+00:00",
-      "known_at":"2026-09-15T10:35:07.100671+00:00",
-      "source_published_at":"2026-08-25T15:59:59+00:00",
-      "usable_for_current_research":true,
-      "usable_for_historical_replay":true
-     },
-     "revision":"ifind_pit_2026-09-15_25a0893c9db37766",
-     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
-     "source_url_kind":"provider_query_documentation",
-     "thscode":"600666.SH",
-     "unit":"CNY",
-     "values":{
-      "capex":null,
-      "cash":null,
-      "equity_parent":null,
-      "interest_bearing_debt":null,
-      "net_profit_ex_nonrecurring":null,
-      "net_profit_parent":-7969359.09,
-      "operating_cash_flow":null,
-      "revenue":null
-     }
-    },
-    "nonrecurring_profit_share":null,
-    "profit_positive_cashflow_negative":null,
-    "quality_facts":{
-     "accounts_receivable_yoy_pct":null,
-     "cash_definition":"reported_monetary_funds_not_confirmed_unrestricted_cash",
-     "cash_to_interest_bearing_debt":null,
-     "gross_margin_ytd_pct":null,
-     "industry_applicability":"industrial_statement_ratios_require_industry_validation; not a bank/insurer model",
-     "inventory_yoy_pct":null,
-     "liabilities_to_assets":null,
-     "operating_cashflow_to_parent_profit_ytd":null,
-     "quarter_yoy_pct":{
-      "capex":null,
-      "net_profit_ex_nonrecurring":null,
-      "net_profit_parent":null,
-      "operating_cash_flow":null,
-      "operating_costs":null,
-      "revenue":null
-     },
-     "statement_periods":[
-      "2026-06-30"
-     ],
-     "statement_periods_available":1
-    },
-    "quarter_flows":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    },
-    "ttm_flows":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    },
-    "valuation":{
-     "dividend_yield":null,
-     "historical_percentile":null,
-     "pb":null,
-     "pb_denominator":"consolidated_parent_equity_cny",
-     "pb_state":"unknown",
-     "pe_denominator":"consolidated_parent_net_profit_ttm_cny",
-     "pe_state":"unknown",
-     "pe_ttm":null,
-     "peer_percentile":null,
-     "ps_denominator":"consolidated_revenue_ttm_cny",
-     "ps_ttm":null,
-     "unavailable_reason":"dividend_basis_long_history_and_pit_peers_not_integrated"
-    },
-    "yoy_pct":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    }
-   },
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":"YTD",
-    "published_at":"2026-08-25T15:59:59+00:00",
-    "report_period":"2026-06-30",
-    "state":"partial"
-   },
-   "security_name":"奥瑞德",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":3.1,
-    "raw_return_1d_pct":-1.273885,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-2.821317,
-    "raw_return_5d_pct":-1.898734,
-    "total_market_cap":8529083921.400001
-   },
-   "thscode":"600666.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"observed",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":{
-    "basis_statement_hashes":[
-     "9208cfbdee804a07718a6235c75a14fc2b04f08ea115c7983bc689c4f84fb669"
-    ],
-    "latest_statement":{
-     "accounting_scope":"consolidated",
-     "currency":"CNY",
-     "document_access":"not_resolved",
-     "document_sha256":null,
-     "first_seen_at":"2026-09-10T15:00:06.674704+00:00",
-     "known_at":"2026-09-10T15:00:06.674704+00:00",
-     "period_basis":"YTD",
-     "period_start":"2026-01-01",
-     "published_at":"2026-08-27T15:59:59+00:00",
-     "report_period":"2026-06-30",
-     "research_availability":{
-      "first_observed_at":"2026-09-10T15:00:06.674704+00:00",
-      "known_at":"2026-09-10T15:00:06.674704+00:00",
-      "source_published_at":"2026-08-27T15:59:59+00:00",
-      "usable_for_current_research":true,
-      "usable_for_historical_replay":true
-     },
-     "revision":"ifind_pit_2026-09-10_99ad0690ddcbe11e",
-     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
-     "source_url_kind":"provider_query_documentation",
-     "thscode":"600667.SH",
-     "unit":"CNY",
-     "values":{
-      "capex":null,
-      "cash":null,
-      "equity_parent":null,
-      "interest_bearing_debt":null,
-      "net_profit_ex_nonrecurring":null,
-      "net_profit_parent":315535600.73,
-      "operating_cash_flow":null,
-      "revenue":null
-     }
-    },
-    "nonrecurring_profit_share":null,
-    "profit_positive_cashflow_negative":null,
-    "quality_facts":{
-     "accounts_receivable_yoy_pct":null,
-     "cash_definition":"reported_monetary_funds_not_confirmed_unrestricted_cash",
-     "cash_to_interest_bearing_debt":null,
-     "gross_margin_ytd_pct":null,
-     "industry_applicability":"industrial_statement_ratios_require_industry_validation; not a bank/insurer model",
-     "inventory_yoy_pct":null,
-     "liabilities_to_assets":null,
-     "operating_cashflow_to_parent_profit_ytd":null,
-     "quarter_yoy_pct":{
-      "capex":null,
-      "net_profit_ex_nonrecurring":null,
-      "net_profit_parent":null,
-      "operating_cash_flow":null,
-      "operating_costs":null,
-      "revenue":null
-     },
-     "statement_periods":[
-      "2026-06-30"
-     ],
-     "statement_periods_available":1
-    },
-    "quarter_flows":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    },
-    "ttm_flows":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    },
-    "valuation":{
-     "dividend_yield":null,
-     "historical_percentile":null,
-     "pb":null,
-     "pb_denominator":"consolidated_parent_equity_cny",
-     "pb_state":"unknown",
-     "pe_denominator":"consolidated_parent_net_profit_ttm_cny",
-     "pe_state":"unknown",
-     "pe_ttm":null,
-     "peer_percentile":null,
-     "ps_denominator":"consolidated_revenue_ttm_cny",
-     "ps_ttm":null,
-     "unavailable_reason":"dividend_basis_long_history_and_pit_peers_not_integrated"
-    },
-    "yoy_pct":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    }
-   },
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":"YTD",
-    "published_at":"2026-08-27T15:59:59+00:00",
-    "report_period":"2026-06-30",
-    "state":"partial"
-   },
-   "security_name":"太极实业",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":15.18,
-    "raw_return_1d_pct":-3.98482,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-6.985294,
-    "raw_return_5d_pct":-12.203586,
-    "total_market_cap":31749610262.04
-   },
-   "thscode":"600667.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"久事动娱",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":6.31,
-    "raw_return_1d_pct":-3.072197,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-5.397301,
-    "raw_return_5d_pct":-4.393939,
-    "total_market_cap":6489790476.639999
-   },
-   "thscode":"600676.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"文投控股",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":1.88,
-    "raw_return_1d_pct":6.214689,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":6.818182,
-    "raw_return_5d_pct":14.634146,
-    "total_market_cap":7632524580.0
-   },
-   "thscode":"600715.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"observed",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":{
-    "basis_statement_hashes":[
-     "42011367257b9d5da3bbe21fa5a018a688312e150afde402464151c928ea962b"
-    ],
-    "latest_statement":{
-     "accounting_scope":"consolidated",
-     "currency":"CNY",
-     "document_access":"not_resolved",
-     "document_sha256":null,
-     "first_seen_at":"2026-09-18T10:32:59.350289+00:00",
-     "known_at":"2026-09-18T10:32:59.350289+00:00",
-     "period_basis":"YTD",
-     "period_start":"2026-01-01",
-     "published_at":"2026-08-14T15:59:59+00:00",
-     "report_period":"2026-06-30",
-     "research_availability":{
-      "first_observed_at":"2026-09-18T10:32:59.350289+00:00",
-      "known_at":"2026-09-18T10:32:59.350289+00:00",
-      "source_published_at":"2026-08-14T15:59:59+00:00",
-      "usable_for_current_research":true,
-      "usable_for_historical_replay":true
-     },
-     "revision":"ifind_pit_2026-09-18_4e47915ea0103247",
-     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
-     "source_url_kind":"provider_query_documentation",
-     "thscode":"600719.SH",
-     "unit":"CNY",
-     "values":{
-      "capex":null,
-      "cash":null,
-      "equity_parent":null,
-      "interest_bearing_debt":null,
-      "net_profit_ex_nonrecurring":null,
-      "net_profit_parent":50134957.18,
-      "operating_cash_flow":null,
-      "revenue":null
-     }
-    },
-    "nonrecurring_profit_share":null,
-    "profit_positive_cashflow_negative":null,
-    "quality_facts":{
-     "accounts_receivable_yoy_pct":null,
-     "cash_definition":"reported_monetary_funds_not_confirmed_unrestricted_cash",
-     "cash_to_interest_bearing_debt":null,
-     "gross_margin_ytd_pct":null,
-     "industry_applicability":"industrial_statement_ratios_require_industry_validation; not a bank/insurer model",
-     "inventory_yoy_pct":null,
-     "liabilities_to_assets":null,
-     "operating_cashflow_to_parent_profit_ytd":null,
-     "quarter_yoy_pct":{
-      "capex":null,
-      "net_profit_ex_nonrecurring":null,
-      "net_profit_parent":null,
-      "operating_cash_flow":null,
-      "operating_costs":null,
-      "revenue":null
-     },
-     "statement_periods":[
-      "2026-06-30"
-     ],
-     "statement_periods_available":1
-    },
-    "quarter_flows":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    },
-    "ttm_flows":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    },
-    "valuation":{
-     "dividend_yield":null,
-     "historical_percentile":null,
-     "pb":null,
-     "pb_denominator":"consolidated_parent_equity_cny",
-     "pb_state":"unknown",
-     "pe_denominator":"consolidated_parent_net_profit_ttm_cny",
-     "pe_state":"unknown",
-     "pe_ttm":null,
-     "peer_percentile":null,
-     "ps_denominator":"consolidated_revenue_ttm_cny",
-     "ps_ttm":null,
-     "unavailable_reason":"dividend_basis_long_history_and_pit_peers_not_integrated"
-    },
-    "yoy_pct":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    }
-   },
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":"YTD",
-    "published_at":"2026-08-14T15:59:59+00:00",
-    "report_period":"2026-06-30",
-    "state":"partial"
-   },
-   "security_name":"大连热电",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":7.81,
-    "raw_return_1d_pct":-1.388889,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-6.801909,
-    "raw_return_5d_pct":-10.43578,
-    "total_market_cap":3159922876.0
-   },
-   "thscode":"600719.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"重百集团",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":18.67,
-    "raw_return_1d_pct":-0.213789,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-1.840168,
-    "raw_return_5d_pct":1.247289,
-    "total_market_cap":8223258947.590001
-   },
-   "thscode":"600729.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"湖南海利",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":5.87,
-    "raw_return_1d_pct":-0.170068,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-1.011804,
-    "raw_return_5d_pct":-1.344538,
-    "total_market_cap":3251113681.92
-   },
-   "thscode":"600731.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"爱旭股份",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":10.58,
-    "raw_return_1d_pct":-2.93578,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-3.378995,
-    "raw_return_5d_pct":-8.556612,
-    "total_market_cap":22378758899.74
-   },
-   "thscode":"600732.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"鲁信创投",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":13.9,
-    "raw_return_1d_pct":0.651702,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-1.558074,
-    "raw_return_5d_pct":-4.269972,
-    "total_market_cap":10346594186.6
-   },
-   "thscode":"600783.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"国电电力",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":5.41,
-    "raw_return_1d_pct":0.744879,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-0.551471,
-    "raw_return_5d_pct":1.310861,
-    "total_market_cap":96490699233.62
-   },
-   "thscode":"600795.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"钱江生化",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":5.1,
-    "raw_return_1d_pct":-1.544402,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-1.734104,
-    "raw_return_5d_pct":-0.195695,
-    "total_market_cap":4419587406.599999
-   },
-   "thscode":"600796.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"金开新能",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":5.52,
-    "raw_return_1d_pct":-0.361011,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-2.816901,
-    "raw_return_5d_pct":-2.816901,
-    "total_market_cap":10859633740.56
-   },
-   "thscode":"600821.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"春兰股份",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":4.7,
-    "raw_return_1d_pct":-1.67364,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-1.260504,
-    "raw_return_5d_pct":-1.052632,
-    "total_market_cap":2441455128.6
-   },
-   "thscode":"600854.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"王府井",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":9.79,
-    "raw_return_1d_pct":0.102249,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-1.011122,
-    "raw_return_5d_pct":-0.50813,
-    "total_market_cap":11003288640.96
-   },
-   "thscode":"600859.SH"
-  },
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"宏发股份",
-   "security_status":{
-    "as_of_trade_date":"2026-10-14",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing",
-     "adt20_below_minimum"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":null,
-    "amount_z20":null,
-    "raw_close":30.56,
-    "raw_return_1d_pct":-0.520833,
-    "raw_return_20d_pct":null,
-    "raw_return_3d_pct":-5.269684,
-    "raw_return_5d_pct":-8.857739,
-    "total_market_cap":47294482205.28
-   },
-   "thscode":"600885.SH"
   }
  ],
- "source_snapshot_sha256":"9c95dc6e00880d8676873b29636c2f84d40f38cf08e4314f2b40ca4d2800921a",
+ "source_snapshot_sha256":"8b6af2fa90adeb7ae21d37a02a52e46fb08a726cb58e2258bc10dc690e228365",
  "trade_date":"2026-10-14"
 }

@@ -1,0 +1,1862 @@
+{
+  "adapter_version": "akshare-tencent-v2",
+  "adjustment_basis": "native_Tencent_hfq_OHLC; one_normalization_vintage; validated_affine_inverse; actual_known_at",
+  "adjustment_parts": [
+    {
+      "path": "facts/adjustment/as_of_date=2026-10-15/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc-00/adjustment_factors.parquet",
+      "rows": 445012,
+      "sha256": "ed4622c01f03e41840ba5e632b73250817dc4201dbde4a28ade6a76fbf22957d"
+    },
+    {
+      "path": "facts/adjustment/as_of_date=2026-10-15/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc-30/adjustment_factors.parquet",
+      "rows": 416790,
+      "sha256": "4e1019e6bf4f850ae9044efd840472ab760f0b112ecceab7c7f15d2e3135bf48"
+    },
+    {
+      "path": "facts/adjustment/as_of_date=2026-10-15/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc-60/adjustment_factors.parquet",
+      "rows": 506778,
+      "sha256": "f2c8144fa22c2acbf4f7762c91aa38e3b425865238053a9acd62e9c5558c0792"
+    },
+    {
+      "path": "facts/adjustment/as_of_date=2026-10-15/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc-68/adjustment_factors.parquet",
+      "rows": 180086,
+      "sha256": "4b697c94102728f6897d447a88fd6d51ad21f65f10d33cd57533313e823d5b5f"
+    },
+    {
+      "path": "facts/adjustment/as_of_date=2026-10-15/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc-92/adjustment_factors.parquet",
+      "rows": 90052,
+      "sha256": "4e2f838b557278e9accff663f6c156ed8169b7dcd71fb9461f6c66de6845cac1"
+    }
+  ],
+  "akshare_version": "1.19.1",
+  "calendar": {
+    "conflicts": 0,
+    "explicit_open_and_closed_dates": true,
+    "independent_iFinD_open_sessions_checked": 82,
+    "provider": "akshare_sina"
+  },
+  "certified_sessions": 300,
+  "collection_completed_at": "2026-10-15T00:07:21+00:00",
+  "coverage_path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/history_coverage.parquet",
+  "coverage_sha256": "3def064ad9483607ead7c041efcba1d2b442fcdfe1ff44331abef4dafe278819",
+  "full_300_session_securities": 4866,
+  "new_listing_short_history_count": 186,
+  "partitions": [
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-17/daily_quotes.parquet",
+      "rows": 5379,
+      "sha256": "b8bb9c1fa03bed27aeda02386b86f08a38d3f752135fe88798c5c0a0244fc5df",
+      "trade_date": "2025-07-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-18/daily_quotes.parquet",
+      "rows": 5378,
+      "sha256": "c185fef31521c826a56a6ce4525f18b7b8e6788267c4350646b0f05fe74f5e86",
+      "trade_date": "2025-07-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-21/daily_quotes.parquet",
+      "rows": 5379,
+      "sha256": "96ec5f85803c72c069d3ff302dd8f698813ebe90f0352a7e3d8063eb05073793",
+      "trade_date": "2025-07-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-22/daily_quotes.parquet",
+      "rows": 5377,
+      "sha256": "15c2ee3da9f5435ca8ced4ec2a0acb12997397cb4e114e7f6433dbdb54ddde9f",
+      "trade_date": "2025-07-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-23/daily_quotes.parquet",
+      "rows": 5381,
+      "sha256": "24e5f9b80fe9e781327850965858bd279ea6b88b5730edf6e7ed7a74a7f11b2a",
+      "trade_date": "2025-07-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-24/daily_quotes.parquet",
+      "rows": 5380,
+      "sha256": "b9e2d696921859eb3be3e2ba62cc97d64f1450673e252e221654c249be3335a6",
+      "trade_date": "2025-07-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-25/daily_quotes.parquet",
+      "rows": 5382,
+      "sha256": "86f89da16aed7e3b416f8e961c62ea75f50ee6fb4a9589a90f6975f0515f72f2",
+      "trade_date": "2025-07-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-28/daily_quotes.parquet",
+      "rows": 5383,
+      "sha256": "4d04eb87e31d7e89af6688f51416c26ae14ef4e7650616901eb2e9bc673458a5",
+      "trade_date": "2025-07-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-29/daily_quotes.parquet",
+      "rows": 5387,
+      "sha256": "e888bfa0a6a1697f2f3b4107f263c2f5cbc3ac34ed46a93ce7a48bd0b0ec061d",
+      "trade_date": "2025-07-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-30/daily_quotes.parquet",
+      "rows": 5387,
+      "sha256": "7094c928e2ea736d9bfc13487d8c1a059a1a770b0ef738ca586e310f1cdd543c",
+      "trade_date": "2025-07-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-07-31/daily_quotes.parquet",
+      "rows": 5383,
+      "sha256": "7d04c6a2eb2962f03fea561b1d4095bee5b7efab092e58e80b07d5cd3fb2c934",
+      "trade_date": "2025-07-31"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-01/daily_quotes.parquet",
+      "rows": 5384,
+      "sha256": "bccbead494999340ec95622178ef340aeeede44f3439944e1fa8b167a3d481f6",
+      "trade_date": "2025-08-01"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-04/daily_quotes.parquet",
+      "rows": 5381,
+      "sha256": "264f81b77fef7944ab7bdef477b831e66215922deffda94d97933a88488610fb",
+      "trade_date": "2025-08-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-05/daily_quotes.parquet",
+      "rows": 5383,
+      "sha256": "ae295613f81ff48ac6edf1249123c19d555dfb1a64ca44c96ce329375f7e2911",
+      "trade_date": "2025-08-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-06/daily_quotes.parquet",
+      "rows": 5385,
+      "sha256": "6c7a989aa1e592ddbdb90aa99be5a1499631d511464c06b8fcac4e91b76b30cd",
+      "trade_date": "2025-08-06"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-07/daily_quotes.parquet",
+      "rows": 5385,
+      "sha256": "fe5981a3234563182bf07a39d8793c60670471cacdc5f0a818fa96882d8e1ac1",
+      "trade_date": "2025-08-07"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-08/daily_quotes.parquet",
+      "rows": 5387,
+      "sha256": "8b8e285100125d22578793b88f7e74872e684d28376383530cbe265dedbc3a86",
+      "trade_date": "2025-08-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-11/daily_quotes.parquet",
+      "rows": 5388,
+      "sha256": "833a1cc5bb43ee9abf1c676644b3db2dd5be000e4f091c81447ac263c4eaaf94",
+      "trade_date": "2025-08-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-12/daily_quotes.parquet",
+      "rows": 5390,
+      "sha256": "0043a54337553d83f7198e9c539fb843f0305df8164a1be499663582a61e721b",
+      "trade_date": "2025-08-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-13/daily_quotes.parquet",
+      "rows": 5387,
+      "sha256": "a692e9a6a86bfbe3090d74598dc06c179410c2ef0ec4fc520c638495cf1174eb",
+      "trade_date": "2025-08-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-14/daily_quotes.parquet",
+      "rows": 5389,
+      "sha256": "20e044a84c3323fae4429dff295ec805ac1ec26295d4a996553e450d572e320b",
+      "trade_date": "2025-08-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-15/daily_quotes.parquet",
+      "rows": 5388,
+      "sha256": "2e1e2720103182f78160ad9e21eef0a68e61686501076f3ea64dcc1de4511a56",
+      "trade_date": "2025-08-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-18/daily_quotes.parquet",
+      "rows": 5386,
+      "sha256": "7c13ca3c5c36d820c0bccd97e35a43360968c830cbc75d4541e57e337d4c8112",
+      "trade_date": "2025-08-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-19/daily_quotes.parquet",
+      "rows": 5389,
+      "sha256": "b73b16461416220372c8682ecb83caabbcf62fcd381dbddfef4ff1d1559cd3a5",
+      "trade_date": "2025-08-19"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-20/daily_quotes.parquet",
+      "rows": 5387,
+      "sha256": "7761dd12972f9ab64c876d30f0ca3053a76f0b8027113310958067d53cf76160",
+      "trade_date": "2025-08-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-21/daily_quotes.parquet",
+      "rows": 5390,
+      "sha256": "8f24006aae3b3cd8d24df7864e0edf6f713d344d49efe58facb20618d65ee25c",
+      "trade_date": "2025-08-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-22/daily_quotes.parquet",
+      "rows": 5391,
+      "sha256": "da21258216868fdec0a0b76216c1be1facacb807703b7e405476577762379fc8",
+      "trade_date": "2025-08-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-25/daily_quotes.parquet",
+      "rows": 5391,
+      "sha256": "90d9f727394c4cf7357fdbf7c2baf489d80c6bec916f8292a2f85531969f6c22",
+      "trade_date": "2025-08-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-26/daily_quotes.parquet",
+      "rows": 5392,
+      "sha256": "f6123f922021b969899d5d9f80b0210ebebb846ef0c47071222b8a464e8945ae",
+      "trade_date": "2025-08-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-27/daily_quotes.parquet",
+      "rows": 5393,
+      "sha256": "db2c03ad34cd9285c9bf1a58af5b7e1266e4a2b782b7bc8b4fe00773bf4ca977",
+      "trade_date": "2025-08-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-28/daily_quotes.parquet",
+      "rows": 5394,
+      "sha256": "be4432f007936e2d06abb44e5bd484598da3c906fa16948d49a51bccbc159218",
+      "trade_date": "2025-08-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-08-29/daily_quotes.parquet",
+      "rows": 5391,
+      "sha256": "109697e18bc178622e49421a4f14621d57fbe8815e8ffd7b9f62e49dd405fe0f",
+      "trade_date": "2025-08-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-01/daily_quotes.parquet",
+      "rows": 5391,
+      "sha256": "db673e76570db25f2aefa31fe7cc6102e5f6c9c10fbb3a751da3a9d308152d08",
+      "trade_date": "2025-09-01"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-02/daily_quotes.parquet",
+      "rows": 5392,
+      "sha256": "b8d10861daf62191ba96a6207b10f5e23505eb626783c9680774bb9a1d9bbd3e",
+      "trade_date": "2025-09-02"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-03/daily_quotes.parquet",
+      "rows": 5394,
+      "sha256": "e040f9c448a16f2bfa846c23df1d6106ca6c98f4e6bacbc211f0a58f80b6fea2",
+      "trade_date": "2025-09-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-04/daily_quotes.parquet",
+      "rows": 5393,
+      "sha256": "abfdb2a9ef80e7ce1a1119d92e827abfb623668db4f2a6062e23087fcbcf4126",
+      "trade_date": "2025-09-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-05/daily_quotes.parquet",
+      "rows": 5394,
+      "sha256": "ffb648e5a09c24de205e56304ae7d1b8bb7b084115cbaf7d92f3c1deb480f9b3",
+      "trade_date": "2025-09-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-08/daily_quotes.parquet",
+      "rows": 5396,
+      "sha256": "5a544303238a1d993504e64311dd7b173a4de555d76645691d5b63dca6f66ccb",
+      "trade_date": "2025-09-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-09/daily_quotes.parquet",
+      "rows": 5397,
+      "sha256": "f0ccc0f24c1d94df7585d9e7dbf030ae4ab8f3eb159da01662c3a512c0d0a827",
+      "trade_date": "2025-09-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-10/daily_quotes.parquet",
+      "rows": 5399,
+      "sha256": "1f907e89f615acb024eb45e677f7e6de3fcac84cd4ef53f59fea456685489368",
+      "trade_date": "2025-09-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-11/daily_quotes.parquet",
+      "rows": 5397,
+      "sha256": "01175a2f7cf32d13a5da45df95908a21bbafb4a89d4371208bda9bb4ed29c4fe",
+      "trade_date": "2025-09-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-12/daily_quotes.parquet",
+      "rows": 5400,
+      "sha256": "cff6e030b849b53597032019f0e26e018e58d5cccf85b1264fb1ac04e3c492d8",
+      "trade_date": "2025-09-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-15/daily_quotes.parquet",
+      "rows": 5398,
+      "sha256": "0efe281da80a5926db40f11ae50321149c595d2828fc3f6a932e3e01564eb164",
+      "trade_date": "2025-09-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-16/daily_quotes.parquet",
+      "rows": 5398,
+      "sha256": "48603dcea21bbf0d7b58cc082b559cbaa5b7fec71e82287b89877249e8e0e083",
+      "trade_date": "2025-09-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-17/daily_quotes.parquet",
+      "rows": 5397,
+      "sha256": "90274c22783325b6eb590c6562959b19e0df2467c62ab0967e5f446af4de51c5",
+      "trade_date": "2025-09-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-18/daily_quotes.parquet",
+      "rows": 5396,
+      "sha256": "7aef765ea46993c8d8a370c52c9261f188684e3c26ee4ea9c6f2420273a7e33a",
+      "trade_date": "2025-09-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-19/daily_quotes.parquet",
+      "rows": 5398,
+      "sha256": "04f69a459ad2044a3b682cde92f0a56a946527af72c521f1b62d90f0997a995a",
+      "trade_date": "2025-09-19"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-22/daily_quotes.parquet",
+      "rows": 5394,
+      "sha256": "8de7d02abf55479896187b73ca2160f27dfe3beef3b9e8ecf9d6d38bdf5ee1d3",
+      "trade_date": "2025-09-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-23/daily_quotes.parquet",
+      "rows": 5400,
+      "sha256": "3ca43826c886f689f27a295f103d88f46efbe619a00c614d3fcb72a5e65aa03d",
+      "trade_date": "2025-09-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-24/daily_quotes.parquet",
+      "rows": 5398,
+      "sha256": "15b574da638ae0126f6d1b1822784cefb6a3d5a3e62bc1d58cdcace4c1a0c1c3",
+      "trade_date": "2025-09-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-25/daily_quotes.parquet",
+      "rows": 5402,
+      "sha256": "23bd843080bb4293861d991fed3b69d4c8659ce3dd68b21b8fcea04f4d1c2999",
+      "trade_date": "2025-09-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-26/daily_quotes.parquet",
+      "rows": 5402,
+      "sha256": "162f71bb73ffb80919e2d05b4183aa40d2027829992476bea59f45f11a27ff55",
+      "trade_date": "2025-09-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-29/daily_quotes.parquet",
+      "rows": 5397,
+      "sha256": "fcc4028cbf3f5916a4616323449c3451aa409efc31ecf497a5d06309e7ef5d78",
+      "trade_date": "2025-09-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-09-30/daily_quotes.parquet",
+      "rows": 5400,
+      "sha256": "c13c41bd338898cfad96439a70181f77c6442c9dae72ac3c5d288bc415d4e780",
+      "trade_date": "2025-09-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-09/daily_quotes.parquet",
+      "rows": 5396,
+      "sha256": "8c5127f0da886d77e93cda4c8328addde83517a3fe5a3b85175f7ab4c0cb1798",
+      "trade_date": "2025-10-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-10/daily_quotes.parquet",
+      "rows": 5399,
+      "sha256": "cd1ad7ceb9555220945177864c1ecef89d5ab559f571f0f6aabd3030d53ad565",
+      "trade_date": "2025-10-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-13/daily_quotes.parquet",
+      "rows": 5401,
+      "sha256": "d306ac3be94ebac13b38a78ff864afdd4bd5117893ec7c599121e31c8ecf2bb5",
+      "trade_date": "2025-10-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-14/daily_quotes.parquet",
+      "rows": 5402,
+      "sha256": "4a1309ac82bd6caaf4d445c4d4fcad624a409f2f5d50f8378201b7e4eb94fba0",
+      "trade_date": "2025-10-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-15/daily_quotes.parquet",
+      "rows": 5402,
+      "sha256": "3a36e82b2beacb560b63848bedd8bc0893067f34995245700dc0c554053f381d",
+      "trade_date": "2025-10-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-16/daily_quotes.parquet",
+      "rows": 5406,
+      "sha256": "6b56e81f6fcc68defdea8c0c017fa01ee2e2d5b4b8f552a639e2517c604746ee",
+      "trade_date": "2025-10-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-17/daily_quotes.parquet",
+      "rows": 5409,
+      "sha256": "0bdf236d540930fb6d9183b1d26199d7db1bcdb764c314d94be97a888ee2d5d7",
+      "trade_date": "2025-10-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-20/daily_quotes.parquet",
+      "rows": 5408,
+      "sha256": "4b1cdc8d80147788792443ba67cf05fa15c7e046fc2528dafe644f7218225f54",
+      "trade_date": "2025-10-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-21/daily_quotes.parquet",
+      "rows": 5407,
+      "sha256": "be791d5b97292036515ff7a1038c8dca813d926e23df91c779e9630e48f402b5",
+      "trade_date": "2025-10-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-22/daily_quotes.parquet",
+      "rows": 5407,
+      "sha256": "a98db9ec4b9d22736c162252438a865f2a290bc7706765236729506a17a1540e",
+      "trade_date": "2025-10-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-23/daily_quotes.parquet",
+      "rows": 5409,
+      "sha256": "134320744e4453bb65bb7122c8183c5ec6d392ab20893f492cc4ee6b8e540736",
+      "trade_date": "2025-10-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-24/daily_quotes.parquet",
+      "rows": 5410,
+      "sha256": "ae1ccd2170691691a2df626d60fc10f9446d4e740956fe686979f61838dda54a",
+      "trade_date": "2025-10-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-27/daily_quotes.parquet",
+      "rows": 5409,
+      "sha256": "9db18e372cc421ff792030c0f1dc91c9cc456f2fc37a22c04fdbd613dbd77fc9",
+      "trade_date": "2025-10-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-28/daily_quotes.parquet",
+      "rows": 5410,
+      "sha256": "9aa5dac2fe1fa2c943a6d2f7d80e21dc7d85856d1cdf3ddd8473b8fd091ad7fa",
+      "trade_date": "2025-10-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-29/daily_quotes.parquet",
+      "rows": 5410,
+      "sha256": "8d04dfec1f8d01a8274b2bd71514d79c4d7f5e0ba44c844a6a2183ad0df46c9c",
+      "trade_date": "2025-10-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-30/daily_quotes.parquet",
+      "rows": 5409,
+      "sha256": "3d92810d151282976017d3b0eedde96b80b240fdc7751d425c426e409d825b91",
+      "trade_date": "2025-10-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-10-31/daily_quotes.parquet",
+      "rows": 5410,
+      "sha256": "4304e61d4d226ec3618580b2293ac79d0a79a64e03800c22fa88cddf6dafc7b4",
+      "trade_date": "2025-10-31"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-03/daily_quotes.parquet",
+      "rows": 5412,
+      "sha256": "832414f86fde410e37a60c67f6fd078692fb09dfd14e995bccb7c856647577ce",
+      "trade_date": "2025-11-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-04/daily_quotes.parquet",
+      "rows": 5412,
+      "sha256": "2f1389e5e590b23b4c60c5970b786f852ffc0259cc17c7b5636be434a329d426",
+      "trade_date": "2025-11-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-05/daily_quotes.parquet",
+      "rows": 5412,
+      "sha256": "e33bf2dc508c41fd1538918588c625e4b30bda9d37dbf27b243c375f7dad851c",
+      "trade_date": "2025-11-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-06/daily_quotes.parquet",
+      "rows": 5412,
+      "sha256": "fd2fe5699fd33d41429f5d9b2bc12598cf6eba55269f482f00e61eb44af870e8",
+      "trade_date": "2025-11-06"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-07/daily_quotes.parquet",
+      "rows": 5414,
+      "sha256": "43579b7ba857078bba628612a5719165ea82f9d5caf3014b8f9cdfc1e6dafa77",
+      "trade_date": "2025-11-07"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-10/daily_quotes.parquet",
+      "rows": 5417,
+      "sha256": "f32003c7a4c9aea89e70af9d9afae24ed9aa985722b553914e929ebf7a4ff8e5",
+      "trade_date": "2025-11-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-11/daily_quotes.parquet",
+      "rows": 5418,
+      "sha256": "3f902840b774f3b20762c244f4b2a2f2898fbe47730c8b8a6de4cf32bf35726d",
+      "trade_date": "2025-11-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-12/daily_quotes.parquet",
+      "rows": 5420,
+      "sha256": "1de3ebe5fa0cf51add53d3a40e3af8aeea87ee35773170bdb8229d10ec366d68",
+      "trade_date": "2025-11-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-13/daily_quotes.parquet",
+      "rows": 5419,
+      "sha256": "c7770f6a8538826016ad631f971db25f9173d1d65141f621a16ae191c8ab16e9",
+      "trade_date": "2025-11-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-14/daily_quotes.parquet",
+      "rows": 5417,
+      "sha256": "55de5c1334b7a60943e980b7f4824a7ffe75dc66b0b54ba93357a3bc3bb88368",
+      "trade_date": "2025-11-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-17/daily_quotes.parquet",
+      "rows": 5416,
+      "sha256": "bb55b35cefd960fea38819e68c5ec25931550c4f373fa6f2c0f6f8082dcdc46e",
+      "trade_date": "2025-11-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-18/daily_quotes.parquet",
+      "rows": 5419,
+      "sha256": "09f6eec4983788e254daf79aaa6d5f15d89d644d4c0128fa015a726b7476be0f",
+      "trade_date": "2025-11-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-19/daily_quotes.parquet",
+      "rows": 5421,
+      "sha256": "92d02160f78dadb3ec79d48d02145fd7ff335b311e0eb744e0dc703452fa41ce",
+      "trade_date": "2025-11-19"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-20/daily_quotes.parquet",
+      "rows": 5420,
+      "sha256": "fd9089f56c38757c93d83048ee44e1a8dea2fe0d29eca968bf177ecb4ab281d3",
+      "trade_date": "2025-11-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-21/daily_quotes.parquet",
+      "rows": 5423,
+      "sha256": "209f1f1bf7d193711cd53fc063ada53bc1d34659a2a7ffe43963a5e0d1fe5cf3",
+      "trade_date": "2025-11-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-24/daily_quotes.parquet",
+      "rows": 5419,
+      "sha256": "8df57f0bcbb38145594944418fcf461a4cdd55b5026e6938644311d1b327c16c",
+      "trade_date": "2025-11-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-25/daily_quotes.parquet",
+      "rows": 5417,
+      "sha256": "3696c52399f447c4e6a2c74366f414806cde28aa1f45f72839ff19e4d1056306",
+      "trade_date": "2025-11-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-26/daily_quotes.parquet",
+      "rows": 5415,
+      "sha256": "8e6d35e9f636b6f7ae82092aa982010a1fcd7f34e81c1f23a979b083baf7c16b",
+      "trade_date": "2025-11-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-27/daily_quotes.parquet",
+      "rows": 5415,
+      "sha256": "da9a035b55cb43347f5842f0ed797e438a217d6b5008883bfa051dedbc1a609b",
+      "trade_date": "2025-11-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-11-28/daily_quotes.parquet",
+      "rows": 5414,
+      "sha256": "fb410f9198952f1bae7e4ab0aad3f4630279833fd2e72fa3e2bedaec34e4eb52",
+      "trade_date": "2025-11-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-01/daily_quotes.parquet",
+      "rows": 5414,
+      "sha256": "3439501e01e7eaaaad67bf92a94309380d72362bc4471733c5b7f6507d469028",
+      "trade_date": "2025-12-01"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-02/daily_quotes.parquet",
+      "rows": 5417,
+      "sha256": "a61e4515570a7c4d31c8f51fb5f63362807df7da5a2548023ede77b0bcd7042f",
+      "trade_date": "2025-12-02"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-03/daily_quotes.parquet",
+      "rows": 5423,
+      "sha256": "ecc20fc04f5a8bf3f47933a23a18ed5ffb9ea2e5720ea6dede4c8f90615399ec",
+      "trade_date": "2025-12-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-04/daily_quotes.parquet",
+      "rows": 5421,
+      "sha256": "949ab01ad67d277f48e5a0a8b9047792fc72dc48973219f4bab20525f5577f33",
+      "trade_date": "2025-12-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-05/daily_quotes.parquet",
+      "rows": 5419,
+      "sha256": "83bb349732eb216685e6804a112e12d1b039434c099213b8b14c93572b7f2421",
+      "trade_date": "2025-12-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-08/daily_quotes.parquet",
+      "rows": 5421,
+      "sha256": "fdc133d53a8220a6d104617ed9de0ce0da0044a870023e4e1a8cbfc8b5fce469",
+      "trade_date": "2025-12-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-09/daily_quotes.parquet",
+      "rows": 5421,
+      "sha256": "ee1adcd6964e56e619c5e94e49391d1d0cc4f4e979315256423bcfa97c9bea0d",
+      "trade_date": "2025-12-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-10/daily_quotes.parquet",
+      "rows": 5418,
+      "sha256": "a963343d24657bab78072e7e8df78f1405e642960698e137266028c18dd79fc5",
+      "trade_date": "2025-12-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-11/daily_quotes.parquet",
+      "rows": 5421,
+      "sha256": "02ebfd9a6a5c652309d6d7eb8c9a7c958652e50dcd82549c002456efeef6014e",
+      "trade_date": "2025-12-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-12/daily_quotes.parquet",
+      "rows": 5423,
+      "sha256": "bc091175be99ae26436170e000473857b7367678f87847d9f9902bd7aff0a622",
+      "trade_date": "2025-12-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-15/daily_quotes.parquet",
+      "rows": 5422,
+      "sha256": "ac00b747430c24eb0ef548722000648776b1e0d87680c333a4fd77ed1815b6dc",
+      "trade_date": "2025-12-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-16/daily_quotes.parquet",
+      "rows": 5424,
+      "sha256": "c4d34a8a5aba22c5e7a85cfd1a44cdecb75a0a778945e0decf9c20e65915e8ff",
+      "trade_date": "2025-12-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-17/daily_quotes.parquet",
+      "rows": 5425,
+      "sha256": "f8dee26171ec18827e52a0fe61013f6cbbd8ac4b30fd535d2b5ec2be51daf401",
+      "trade_date": "2025-12-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-18/daily_quotes.parquet",
+      "rows": 5428,
+      "sha256": "c74c95b97511338f4ea34bc27089c910231f00d24c27b6371441db1ad921620e",
+      "trade_date": "2025-12-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-19/daily_quotes.parquet",
+      "rows": 5427,
+      "sha256": "cdd709cc34e8d2f571f94b9e1e2cdb88d190c6edf2f7f1ad7eb9890e7c207183",
+      "trade_date": "2025-12-19"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-22/daily_quotes.parquet",
+      "rows": 5423,
+      "sha256": "7216d6fcc5fe595cd1845e823c3591499e7a8f461cceeab4f4e371da51b89d48",
+      "trade_date": "2025-12-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-23/daily_quotes.parquet",
+      "rows": 5428,
+      "sha256": "85d071756cba98753fca873fee1d58fbbdc978fd064935858dedff58225cbd95",
+      "trade_date": "2025-12-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-24/daily_quotes.parquet",
+      "rows": 5430,
+      "sha256": "a2cd2558a70aa95b457588532dad0f834e0ddc58a87ae243aa0835b6e8533ebf",
+      "trade_date": "2025-12-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-25/daily_quotes.parquet",
+      "rows": 5433,
+      "sha256": "d644f1e0b3e94d52b55515f1739d5d803edbf9e8011e222e72a1afea918511b2",
+      "trade_date": "2025-12-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-26/daily_quotes.parquet",
+      "rows": 5432,
+      "sha256": "28df40e3b82fff2a9166efd53bedd5054241267330c5531087513acd4a57e502",
+      "trade_date": "2025-12-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-29/daily_quotes.parquet",
+      "rows": 5434,
+      "sha256": "6837c5e73b48415162266ba852da23b23eb9cd8c7dcc3abe0c2c705a7ffc2a58",
+      "trade_date": "2025-12-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-30/daily_quotes.parquet",
+      "rows": 5436,
+      "sha256": "9f8c1aa8e385afafa80d7ad3da4ab8f3c4091fc6d63311b0084efa660fc3a633",
+      "trade_date": "2025-12-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2025-12-31/daily_quotes.parquet",
+      "rows": 5437,
+      "sha256": "c0a70242900f59806ce7507b08cc5aa036d54bd6a93ef114e7a5a6003392cf10",
+      "trade_date": "2025-12-31"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-05/daily_quotes.parquet",
+      "rows": 5437,
+      "sha256": "727d4d4081e70c5a882d7377f1f368e0783500f27bfd0b848767a40c2614026e",
+      "trade_date": "2026-01-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-06/daily_quotes.parquet",
+      "rows": 5439,
+      "sha256": "69dd9437303124b3d14b7df19ef9944ed16c5f89b8d68c9474eb8f9d893be88c",
+      "trade_date": "2026-01-06"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-07/daily_quotes.parquet",
+      "rows": 5440,
+      "sha256": "5e8f028072df812f683880e0f686a739f7e3ca096cb5c50551246e27165dcd79",
+      "trade_date": "2026-01-07"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-08/daily_quotes.parquet",
+      "rows": 5439,
+      "sha256": "0b6d642ace55d1dfe5d2ff0321c67025795f93fb57d1b2406293d09e0032691c",
+      "trade_date": "2026-01-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-09/daily_quotes.parquet",
+      "rows": 5439,
+      "sha256": "f5ecaa25e44a546bf7e375cec04f38daeb1d7099103c28280103c9cef558aeb9",
+      "trade_date": "2026-01-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-12/daily_quotes.parquet",
+      "rows": 5440,
+      "sha256": "712abf08487b7d56a03ca444378da782beafdb78b619b3a883097ddf55dbae4f",
+      "trade_date": "2026-01-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-13/daily_quotes.parquet",
+      "rows": 5433,
+      "sha256": "40e18eace3eb68ab3e6b59c9e28540bb975c5cc95c169b1ff591fd5675af2e78",
+      "trade_date": "2026-01-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-14/daily_quotes.parquet",
+      "rows": 5434,
+      "sha256": "41bd010e605ccf4e2d4a511ad8aed628bc8f093f9d1ee5be8faaebcdf74c2ead",
+      "trade_date": "2026-01-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-15/daily_quotes.parquet",
+      "rows": 5437,
+      "sha256": "d8021da0aabf8a68b71f9dea3b61d3e438c11e3d45d1f9643d01d24cffeb6555",
+      "trade_date": "2026-01-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-16/daily_quotes.parquet",
+      "rows": 5440,
+      "sha256": "41e2b6df4bed611f95e48aa94a435aeb4983b69fd8a15b41902ccc27418660a4",
+      "trade_date": "2026-01-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-19/daily_quotes.parquet",
+      "rows": 5442,
+      "sha256": "6bef1d57547d02c63fe07353860c0881d9be74b92bf1064e1a5a7ed43b022419",
+      "trade_date": "2026-01-19"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-20/daily_quotes.parquet",
+      "rows": 5447,
+      "sha256": "6576219c81dfcb8ea479905680bc85752508e5d0670cbbca1c2aab5802359deb",
+      "trade_date": "2026-01-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-21/daily_quotes.parquet",
+      "rows": 5446,
+      "sha256": "da8ab2655af102ec83ca59c300121a17f71fe3b2d2ee8123224e779db02a1053",
+      "trade_date": "2026-01-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-22/daily_quotes.parquet",
+      "rows": 5448,
+      "sha256": "58ad9283ffa96a2e2ec595391823775e9323008ac2192e1ed95a57f220e712eb",
+      "trade_date": "2026-01-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-23/daily_quotes.parquet",
+      "rows": 5449,
+      "sha256": "d6034237f73a50444d652d4349bb6e12553a61b3ca7c4cc1f1a7696004311087",
+      "trade_date": "2026-01-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-26/daily_quotes.parquet",
+      "rows": 5446,
+      "sha256": "1c92336df201a7c70ed03851387eca55e5336e8e31eb8c4b239d8ab0fa8c0673",
+      "trade_date": "2026-01-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-27/daily_quotes.parquet",
+      "rows": 5446,
+      "sha256": "f1f0c2c6151b1695a932dc654268603bec82ab625995366b864ff2e4f6426a50",
+      "trade_date": "2026-01-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-28/daily_quotes.parquet",
+      "rows": 5447,
+      "sha256": "2fda1f3c8f2dd35775fb914000e5fbffbc6b63481bcba0f3d2f990afbd910785",
+      "trade_date": "2026-01-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-29/daily_quotes.parquet",
+      "rows": 5448,
+      "sha256": "21676cc4534908e7bfd23b3c27047dbf6d90b75d6f95f28f8aa15ec873795e23",
+      "trade_date": "2026-01-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-01-30/daily_quotes.parquet",
+      "rows": 5447,
+      "sha256": "a0f8b27458f65068f87439535a66cb6daed941ef06aaf6c0e77ff0b72b4e25d9",
+      "trade_date": "2026-01-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-02/daily_quotes.parquet",
+      "rows": 5449,
+      "sha256": "94c6a3ecb51c1180dba3d1c3331b387bb929642cd3e31addeffc130a449e8bde",
+      "trade_date": "2026-02-02"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-03/daily_quotes.parquet",
+      "rows": 5450,
+      "sha256": "b2df609d401f81a30e14bf2de7d51ae32ef5d4555eb050a3e4fe92e027805143",
+      "trade_date": "2026-02-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-04/daily_quotes.parquet",
+      "rows": 5452,
+      "sha256": "bc7d64ab49c6983619c59f0bedb740d485c836e97e21c5c5bffe9d0db39597e4",
+      "trade_date": "2026-02-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-05/daily_quotes.parquet",
+      "rows": 5452,
+      "sha256": "4f9f1f05d8a67747c6f88b637cbde5d2fcfc214c18d81807714d71d9a692b1cb",
+      "trade_date": "2026-02-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-06/daily_quotes.parquet",
+      "rows": 5452,
+      "sha256": "d981d5d37c136d8ef5479d4306d25cdc2955e3845d33d8577565df881078eb95",
+      "trade_date": "2026-02-06"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-09/daily_quotes.parquet",
+      "rows": 5451,
+      "sha256": "229248b0ad1c35e8450ba9941caeb149c1a138752e6bb0d1f6a2c50b4e86e053",
+      "trade_date": "2026-02-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-10/daily_quotes.parquet",
+      "rows": 5456,
+      "sha256": "4453b8e46022e3dc1cba4a1f0744ef7be69fe207de1f734ba4790288a93cdc65",
+      "trade_date": "2026-02-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-11/daily_quotes.parquet",
+      "rows": 5455,
+      "sha256": "a38353a66ea504c21519a7b10a4798f4d63bdb14ce24c21d9b4550e42e7a8b7e",
+      "trade_date": "2026-02-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-12/daily_quotes.parquet",
+      "rows": 5460,
+      "sha256": "9819a7a0bbb6837d40d61b2b95ee14226c9cdc34aed7123dcddf7210ad271cdd",
+      "trade_date": "2026-02-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-13/daily_quotes.parquet",
+      "rows": 5458,
+      "sha256": "7d1a4c477053e3638b75868f040864037423abbff4511f7e2d44c2594d05b772",
+      "trade_date": "2026-02-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-24/daily_quotes.parquet",
+      "rows": 5459,
+      "sha256": "75f5a631b9787e8c8c9047392d3a5a9da4f81904fed99fabf56f889402b6cbda",
+      "trade_date": "2026-02-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-25/daily_quotes.parquet",
+      "rows": 5456,
+      "sha256": "dac7740423012208bf2925f98bdee552695c54791f2a5b00f071d67a203ae529",
+      "trade_date": "2026-02-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-26/daily_quotes.parquet",
+      "rows": 5456,
+      "sha256": "a6b2924cef6b89b5b51a34af318f6ae42a782917e1b25db7fe42fbda1bade78a",
+      "trade_date": "2026-02-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-02-27/daily_quotes.parquet",
+      "rows": 5456,
+      "sha256": "a1069e1b59545c22487281a525ccd10784e008e30bd586602f46bf7cd134171c",
+      "trade_date": "2026-02-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-02/daily_quotes.parquet",
+      "rows": 5455,
+      "sha256": "bb99d3ac905796b50ea269b4e9d81330a2db65855a8559382da4ea3fda34bf9b",
+      "trade_date": "2026-03-02"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-03/daily_quotes.parquet",
+      "rows": 5457,
+      "sha256": "8139017edc7e1625e7b4068010adf0b8937555e9c90ce6d5681ddf3fe9fd8f9d",
+      "trade_date": "2026-03-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-04/daily_quotes.parquet",
+      "rows": 5459,
+      "sha256": "a7ba55247ca1c0c033cec892fe82319b9021bf026dcfdda99abea721b64ecbb7",
+      "trade_date": "2026-03-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-05/daily_quotes.parquet",
+      "rows": 5461,
+      "sha256": "fc360196c84148b1ed67f47ef4e5bb9d7cae59e2eb7c88d948c6e30dea9b7ccf",
+      "trade_date": "2026-03-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-06/daily_quotes.parquet",
+      "rows": 5462,
+      "sha256": "9ed2d8c2cf76c8107eceb431289f73f13f545b7e46ba25fb2088e4d6af58b036",
+      "trade_date": "2026-03-06"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-09/daily_quotes.parquet",
+      "rows": 5466,
+      "sha256": "4526cdb82b387ad7ad2d3e99f0f033540aef3b0eeeb1f931b64663f729c4e532",
+      "trade_date": "2026-03-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-10/daily_quotes.parquet",
+      "rows": 5464,
+      "sha256": "4a290d6af9b05d737446c04b01e09ca330c6fc3dc2cb3f9d2fe872c198a4b45d",
+      "trade_date": "2026-03-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-11/daily_quotes.parquet",
+      "rows": 5467,
+      "sha256": "0c711205228b2549e02cc759b855e8fb4d337a56e440524aedb94d5ca7bea3d2",
+      "trade_date": "2026-03-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-12/daily_quotes.parquet",
+      "rows": 5467,
+      "sha256": "6061596abe3e9857d7c4b34965ff047c0e0cf3208edc718b0a74e6d1aabed4de",
+      "trade_date": "2026-03-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-13/daily_quotes.parquet",
+      "rows": 5466,
+      "sha256": "ae397df97b654d7980903df14ad5ff2d2c494f885aa59ab1240c173e29d2d9bb",
+      "trade_date": "2026-03-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-16/daily_quotes.parquet",
+      "rows": 5465,
+      "sha256": "2a0caff21e2690a359b1ef8a44bfb617b08612f2d011c439e27317e1ce682b25",
+      "trade_date": "2026-03-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-17/daily_quotes.parquet",
+      "rows": 5463,
+      "sha256": "5232139d7871ed0668c0d787d0423f561a8ce06d63143e08b1cf4d34da7c1003",
+      "trade_date": "2026-03-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-18/daily_quotes.parquet",
+      "rows": 5464,
+      "sha256": "c5636203bfb51eb634d75fd3b89422baba9098337f080fbdf6488c52a5c2dfce",
+      "trade_date": "2026-03-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-19/daily_quotes.parquet",
+      "rows": 5464,
+      "sha256": "d076a0d8de2d70f8fe0de3591b539405b4b14b2ff856155347468eefbcfea97e",
+      "trade_date": "2026-03-19"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-20/daily_quotes.parquet",
+      "rows": 5466,
+      "sha256": "8071e2ed5d5f9a076ec6c4691c5770dc5d89f46b308f9426f3c801f374ce5941",
+      "trade_date": "2026-03-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-23/daily_quotes.parquet",
+      "rows": 5468,
+      "sha256": "682dcb563b8368ffc97667e035a897bbe270d5e3a3d71f4640eaf12d05f93742",
+      "trade_date": "2026-03-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-24/daily_quotes.parquet",
+      "rows": 5466,
+      "sha256": "a12d65e6c79fd82ef1fc94f8aef85ca1684ee38dd7be1b96d74eb600b276c743",
+      "trade_date": "2026-03-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-25/daily_quotes.parquet",
+      "rows": 5467,
+      "sha256": "d3815fd721be96aca21d7f90818d7426bc04fee0d19014afc581313f598496cc",
+      "trade_date": "2026-03-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-26/daily_quotes.parquet",
+      "rows": 5466,
+      "sha256": "8ef18a5885fd3866767b1fb8612e259108f2d1a506d0484909fcef8edd4d374b",
+      "trade_date": "2026-03-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-27/daily_quotes.parquet",
+      "rows": 5462,
+      "sha256": "36a420904c7d9c957c8d78c1a144cfbcc38af51d7d016ace915d58632e957f00",
+      "trade_date": "2026-03-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-30/daily_quotes.parquet",
+      "rows": 5460,
+      "sha256": "2560981c2aa9d88dce5d256f3bb62f8b76fadb3b74c3d2af9e15a92199b36250",
+      "trade_date": "2026-03-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-03-31/daily_quotes.parquet",
+      "rows": 5465,
+      "sha256": "9e749099578c501bbc85bffb5d3cbf236f21e2cbf872f0a3aa4da0327400bd77",
+      "trade_date": "2026-03-31"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-01/daily_quotes.parquet",
+      "rows": 5468,
+      "sha256": "7d9c93ec3ab42db0e2147735fc3ef28714bf0669e7606e8fb0e8e79080028fb0",
+      "trade_date": "2026-04-01"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-02/daily_quotes.parquet",
+      "rows": 5468,
+      "sha256": "ff56c8ada7454537c41eb31bdeddf67335b2e58fc6217d53d3babb1bad710e30",
+      "trade_date": "2026-04-02"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-03/daily_quotes.parquet",
+      "rows": 5469,
+      "sha256": "4e38392cff2466a1417fbe251cf3c0dbfe3a5c2f10741969c5f64a9d045893e5",
+      "trade_date": "2026-04-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-07/daily_quotes.parquet",
+      "rows": 5468,
+      "sha256": "40cf43cfd58934516750aba834da21ae292f00930525e1447d9e845e270bb48f",
+      "trade_date": "2026-04-07"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-08/daily_quotes.parquet",
+      "rows": 5474,
+      "sha256": "6a24ca39bcc32eb2b694185dfa8d9740ec5c9477c06ac4364bc8f8ef4bac0635",
+      "trade_date": "2026-04-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-09/daily_quotes.parquet",
+      "rows": 5475,
+      "sha256": "c5bb8040a68c42b1ec71f83ab88aae52268dfce245b5d5fdd4eaac641da9b6f3",
+      "trade_date": "2026-04-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-10/daily_quotes.parquet",
+      "rows": 5479,
+      "sha256": "8e8ea8f892177101448fe99b2db38f3494d92652f864f255b0f5f156a88fd5c5",
+      "trade_date": "2026-04-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-13/daily_quotes.parquet",
+      "rows": 5479,
+      "sha256": "ed89470dcddfc799ed46c99ed49f505f8007cb525b839fc2c0b94a13b1f85ca1",
+      "trade_date": "2026-04-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-14/daily_quotes.parquet",
+      "rows": 5482,
+      "sha256": "e15a6208e76c7aa1cf627816138e70ad3dc021dd83d5b5fd9112c1441c160983",
+      "trade_date": "2026-04-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-15/daily_quotes.parquet",
+      "rows": 5480,
+      "sha256": "126a8e1311b632fbf1bc27f54b0f45ac7bc469d6d2615b078dd1479b0794661b",
+      "trade_date": "2026-04-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-16/daily_quotes.parquet",
+      "rows": 5484,
+      "sha256": "2b8f371d2d37ada803d6cc9c3ee5eff71e048ddb1f1c0bd0ecc18eab8e359ce3",
+      "trade_date": "2026-04-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-17/daily_quotes.parquet",
+      "rows": 5484,
+      "sha256": "829de6528cabab5d732b9e2b616a2b473094bc1898f14cdb445d4e69ac331642",
+      "trade_date": "2026-04-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-20/daily_quotes.parquet",
+      "rows": 5480,
+      "sha256": "95ae5239d4d486c60a04be6d71be9162d91ec89ab8742c54eb6c7fb617dc7ebb",
+      "trade_date": "2026-04-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-21/daily_quotes.parquet",
+      "rows": 5485,
+      "sha256": "c699d1c333e47bebd02a3f1c3f204153d8411ecefcbd063f92d07db4c1b4ba2f",
+      "trade_date": "2026-04-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-22/daily_quotes.parquet",
+      "rows": 5484,
+      "sha256": "8434091ad46d585975223130b2401ee96b72acf87a20cc73995bc41a843e3282",
+      "trade_date": "2026-04-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-23/daily_quotes.parquet",
+      "rows": 5481,
+      "sha256": "f5f6c3f7d8266d9b476678c54f0d25d8a3dd79c2d552ddfcf6662c0446c9ebad",
+      "trade_date": "2026-04-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-24/daily_quotes.parquet",
+      "rows": 5483,
+      "sha256": "313f50ea03ee63b5e2b25da6737975fb49d455f4cb1de65b471aa4f189994686",
+      "trade_date": "2026-04-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-27/daily_quotes.parquet",
+      "rows": 5482,
+      "sha256": "afab8a65f279c558705192f3dae982107364adb308baad9a8aa69ec454377818",
+      "trade_date": "2026-04-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-28/daily_quotes.parquet",
+      "rows": 5477,
+      "sha256": "2d79958c929607b401136b5af2c91e4df2615f07f6eeadf37fed2e13753f4a2f",
+      "trade_date": "2026-04-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-29/daily_quotes.parquet",
+      "rows": 5452,
+      "sha256": "298b971e20379046a07419145b9e88051f9b217f26b811c4b69ead4b626a2c2f",
+      "trade_date": "2026-04-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-04-30/daily_quotes.parquet",
+      "rows": 5458,
+      "sha256": "dc8550746bb50c51f69e919ca227e5d47fba51e9e252b4926d8c406eae422748",
+      "trade_date": "2026-04-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-06/daily_quotes.parquet",
+      "rows": 5490,
+      "sha256": "f26477748d29521a148da5d3df9ad62004bd37fee5612796a9ff64569ca51fd7",
+      "trade_date": "2026-05-06"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-07/daily_quotes.parquet",
+      "rows": 5493,
+      "sha256": "90152982deeb94ff7bb3348d14ae3419134762f7d501fa8938b2d23c9eab2143",
+      "trade_date": "2026-05-07"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-08/daily_quotes.parquet",
+      "rows": 5491,
+      "sha256": "09aa74514d2c93a91ac5c295d5e6070d5d656b6c00687335a8f040616232a789",
+      "trade_date": "2026-05-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-11/daily_quotes.parquet",
+      "rows": 5491,
+      "sha256": "6244d29586f06760d8873c519d3f9a2634242d489789739fb7275982d7837b74",
+      "trade_date": "2026-05-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-12/daily_quotes.parquet",
+      "rows": 5490,
+      "sha256": "c712c06c5ca5e02b2f9945da8bf6407a72bfbe17179358c15a80d5ac0780658c",
+      "trade_date": "2026-05-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-13/daily_quotes.parquet",
+      "rows": 5493,
+      "sha256": "d6e00eb38b75c5d72b60cc227f4db25cd0ba7ee2f5c872d7b53d2f7e49c8a0ad",
+      "trade_date": "2026-05-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-14/daily_quotes.parquet",
+      "rows": 5493,
+      "sha256": "756433b75cf33917c853a1ac1b453d00edff9f9ac292b38666a72f9bd5ee9833",
+      "trade_date": "2026-05-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-15/daily_quotes.parquet",
+      "rows": 5495,
+      "sha256": "30da998962ae049591da87c6b46160323f979a2346915638890f349991bfc167",
+      "trade_date": "2026-05-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-18/daily_quotes.parquet",
+      "rows": 5499,
+      "sha256": "2baccfcb92e790940aaaf812a2a5caf0dad58ba63150cdf310a5ce487142008c",
+      "trade_date": "2026-05-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-19/daily_quotes.parquet",
+      "rows": 5493,
+      "sha256": "eafb2bad059268661513c8739fb1ebbe8222570989c952f42f40e5cfb80c5236",
+      "trade_date": "2026-05-19"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-20/daily_quotes.parquet",
+      "rows": 5497,
+      "sha256": "4bf358bf6aa63ed33c1b8e6cbd55fb1c93af98a028afdf901a8162c103f44bd4",
+      "trade_date": "2026-05-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-21/daily_quotes.parquet",
+      "rows": 5500,
+      "sha256": "87516b3e8252102076d9de831f3facf0af635a153251dc0507be6cd80da7052d",
+      "trade_date": "2026-05-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-22/daily_quotes.parquet",
+      "rows": 5503,
+      "sha256": "de57b5d59f2b0e8beba170ef2a674e9c8862e4e482846da9fc9ac90224083091",
+      "trade_date": "2026-05-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-25/daily_quotes.parquet",
+      "rows": 5503,
+      "sha256": "492116ff60df1464befca39477dfad87b7079c1c5017b009a8a5d2c767846a3a",
+      "trade_date": "2026-05-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-26/daily_quotes.parquet",
+      "rows": 5503,
+      "sha256": "d6fd95be05a8fe9ff63789e200620f0b819ac1b24c46243df85f5d3a53fc7ebd",
+      "trade_date": "2026-05-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-27/daily_quotes.parquet",
+      "rows": 5505,
+      "sha256": "d4d15a57ff90f5fb70aba77762306f876d6912f44a8e8602abc54abf54e3ac1b",
+      "trade_date": "2026-05-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-28/daily_quotes.parquet",
+      "rows": 5505,
+      "sha256": "84b82d79463c68bf0788cb1ab404c58fe47f69d64471ed1bdeb33a7e7b9a72d3",
+      "trade_date": "2026-05-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-05-29/daily_quotes.parquet",
+      "rows": 5505,
+      "sha256": "8dec402a7edbd7bc86d437bff76d143a29f4c097ab9b6250b8e203c9a06f445b",
+      "trade_date": "2026-05-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-01/daily_quotes.parquet",
+      "rows": 5503,
+      "sha256": "cd39230ff1c7e296bcd2689e8fee472014b5d75017499ddf62e69d218f9cf351",
+      "trade_date": "2026-06-01"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-02/daily_quotes.parquet",
+      "rows": 5502,
+      "sha256": "d8762cb170f7867365ad8d8f01f55e4cb5c2d8bdd7aab7be48f9f9215e62d08a",
+      "trade_date": "2026-06-02"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-03/daily_quotes.parquet",
+      "rows": 5506,
+      "sha256": "e6e9b52bdd53430af6cc36ed4b57d43ce3c8f809dfc8c88d91ac4b70888c49c8",
+      "trade_date": "2026-06-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-04/daily_quotes.parquet",
+      "rows": 5506,
+      "sha256": "69eddd4413dbc8b73a1da0e1345c6bbfadefed66bfc157f76f0eb2f2132d86e7",
+      "trade_date": "2026-06-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-05/daily_quotes.parquet",
+      "rows": 5509,
+      "sha256": "bc906606f1db9c1930ef4ff3eb3e36d428ca3ac71fc0306517acfc1bf924e458",
+      "trade_date": "2026-06-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-08/daily_quotes.parquet",
+      "rows": 5507,
+      "sha256": "6c8d8097de9484bbe25022ab6d41a3d31fbb3c51a15be21e362911dafe029f83",
+      "trade_date": "2026-06-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-09/daily_quotes.parquet",
+      "rows": 5508,
+      "sha256": "ad01c0e732890c41544a4354ead0e5bdbf26c74fc8405d9b28474b18c53fcbc3",
+      "trade_date": "2026-06-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-10/daily_quotes.parquet",
+      "rows": 5505,
+      "sha256": "d11ec7af36db8d89d24fc8dc2396396ed099cdee812101c4da0ca790d9687bdd",
+      "trade_date": "2026-06-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-11/daily_quotes.parquet",
+      "rows": 5504,
+      "sha256": "2dbea6dbbbe76813f2341c72db33ea94158b273d328277bb0401f74f5c70544f",
+      "trade_date": "2026-06-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-12/daily_quotes.parquet",
+      "rows": 5505,
+      "sha256": "6d8d65f5914a3d4bd650caeed153f853aac4f3991e779431cbcfd815699324c9",
+      "trade_date": "2026-06-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-15/daily_quotes.parquet",
+      "rows": 5501,
+      "sha256": "623edc82a1f782cf6b5146bad2c866add5000e0275964a3642db8f12b97894f3",
+      "trade_date": "2026-06-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-16/daily_quotes.parquet",
+      "rows": 5506,
+      "sha256": "c08aca5be00e19b5028956b229b42a0ca4e906cb9bf3fa15e179c635c0f3580a",
+      "trade_date": "2026-06-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-17/daily_quotes.parquet",
+      "rows": 5502,
+      "sha256": "77c95d0064af95ee6e0ed29baa0a47872e5320b964175e20e39d7fb8f3ef2b32",
+      "trade_date": "2026-06-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-18/daily_quotes.parquet",
+      "rows": 5499,
+      "sha256": "6f13a83fafbfa78b59c71cdcd421d0b7c701baa429129033797a44564ca9c787",
+      "trade_date": "2026-06-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-22/daily_quotes.parquet",
+      "rows": 5502,
+      "sha256": "7649e40f90fc45886bbc93f32ba11249c94dc61cfccc3282fbfe261bf54575e3",
+      "trade_date": "2026-06-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-23/daily_quotes.parquet",
+      "rows": 5507,
+      "sha256": "55832dc6382fe9572f08d4b77bef874e9d527592ab31b416d7c82b04c8018466",
+      "trade_date": "2026-06-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-24/daily_quotes.parquet",
+      "rows": 5506,
+      "sha256": "ce297c5f80dcaefe8af6713ea7b106a27056e25425010b291e838fdf5e72464c",
+      "trade_date": "2026-06-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-25/daily_quotes.parquet",
+      "rows": 5505,
+      "sha256": "119d5832ba19a34580a24343037285bf3868ee56d93a02329207104871ae58a1",
+      "trade_date": "2026-06-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-26/daily_quotes.parquet",
+      "rows": 5506,
+      "sha256": "110a3351b83e46fe1c8736362d92daee43e18477971fb92bb8b15e265090dc19",
+      "trade_date": "2026-06-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-29/daily_quotes.parquet",
+      "rows": 5503,
+      "sha256": "a2136c33bf19426366f1ffb6ec5d1951bdf150642bcf735a825dabb9745accac",
+      "trade_date": "2026-06-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-06-30/daily_quotes.parquet",
+      "rows": 5504,
+      "sha256": "1821c4a2c45c6b5dd5404e78b6f25832f77e83a283811f05acc57000964f577b",
+      "trade_date": "2026-06-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-01/daily_quotes.parquet",
+      "rows": 5507,
+      "sha256": "364be534c765d92125e64f707d6fa327e11635c250b601480f754b0923a69372",
+      "trade_date": "2026-07-01"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-02/daily_quotes.parquet",
+      "rows": 5513,
+      "sha256": "e969d7cd5aeb92db7636a1799db191e21d0360bd545881e5b0f6c2229633c091",
+      "trade_date": "2026-07-02"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-03/daily_quotes.parquet",
+      "rows": 5512,
+      "sha256": "51abe85741b1fc23347eb5c670be972dd17834da5d3bafe9172f3b26b43df0b1",
+      "trade_date": "2026-07-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-06/daily_quotes.parquet",
+      "rows": 5513,
+      "sha256": "d9ae09306fb7b1b507aca2c5c0a17565f29dd300a1e31dc034aafff9bdd67b59",
+      "trade_date": "2026-07-06"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-07/daily_quotes.parquet",
+      "rows": 5513,
+      "sha256": "7eea4a0eca0d2863fdbebf7c3d73f310468a5c548633e37d0b302d8bb671b889",
+      "trade_date": "2026-07-07"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-08/daily_quotes.parquet",
+      "rows": 5514,
+      "sha256": "e0f05620f381e76ada055f8ea67fb05f2dfa5e4dfa38407d5b39ecc49cc0bc2c",
+      "trade_date": "2026-07-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-09/daily_quotes.parquet",
+      "rows": 5515,
+      "sha256": "7bc52ab93c1bf2c2bce92016a09fb0ea1098ede9ae9118a395bddb88261b82b3",
+      "trade_date": "2026-07-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-10/daily_quotes.parquet",
+      "rows": 5517,
+      "sha256": "df0cb9f548d23e6badc2e60c353ae578b51909da3af51e6b1e08ae7ccb0c3941",
+      "trade_date": "2026-07-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-13/daily_quotes.parquet",
+      "rows": 5520,
+      "sha256": "bd633d82038cdfe0dcce10654cef319cc9ff144447948311fda614f5de439082",
+      "trade_date": "2026-07-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-14/daily_quotes.parquet",
+      "rows": 5522,
+      "sha256": "4131aba0e227dbaa560f96144c92bde094215ac6239d69bd36bca17fe4f386fa",
+      "trade_date": "2026-07-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-15/daily_quotes.parquet",
+      "rows": 5523,
+      "sha256": "95dea8d72970ddea8264b8f0b8443c18fe75f0552c1d55258c07399da5cdae6d",
+      "trade_date": "2026-07-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-16/daily_quotes.parquet",
+      "rows": 5522,
+      "sha256": "879b6c67a0403cae2f094212c37ae7b59315b9dc46c0b8060b7974326a378a33",
+      "trade_date": "2026-07-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-17/daily_quotes.parquet",
+      "rows": 5521,
+      "sha256": "4bbcb8df0c46f48bb8a1af68574ddb798173f73e52810fcd1cbdd7414704268f",
+      "trade_date": "2026-07-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-20/daily_quotes.parquet",
+      "rows": 5523,
+      "sha256": "3ed5bcfd859a65ada04966b757654f35c4ce791baefa91da20397e4ef8d941b7",
+      "trade_date": "2026-07-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-21/daily_quotes.parquet",
+      "rows": 5524,
+      "sha256": "bdff88db474a84e3dbc28b34c87f593eb35de6dc07d3c2904af7df80415c73ce",
+      "trade_date": "2026-07-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-22/daily_quotes.parquet",
+      "rows": 5525,
+      "sha256": "2b04ba9a8f6eb4554b3e2439ba7221eef22dfc9fff5cad432b9b12099fbf1a6d",
+      "trade_date": "2026-07-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-23/daily_quotes.parquet",
+      "rows": 5525,
+      "sha256": "cb5ecc95bd7e31ceee274558e63397011d4b22badea3ed6dd4bed5531dcc12c9",
+      "trade_date": "2026-07-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-24/daily_quotes.parquet",
+      "rows": 5525,
+      "sha256": "6988f288a334476b9d5cceaf278f448ecc1dd7136371db9d32791e06e0f60579",
+      "trade_date": "2026-07-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-27/daily_quotes.parquet",
+      "rows": 5522,
+      "sha256": "7a3434ae834a3e24816b95f6c39244981e48669063d621a0dc6f19853c330ff9",
+      "trade_date": "2026-07-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-28/daily_quotes.parquet",
+      "rows": 5523,
+      "sha256": "a6eab6c81de0f0569c3009c3b6d10810552df53d80c149353dd642881a2aacf9",
+      "trade_date": "2026-07-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-29/daily_quotes.parquet",
+      "rows": 5523,
+      "sha256": "fc469b14acf4fe842410c370ab5592ecdf986c05352be8895ebd7a726525492e",
+      "trade_date": "2026-07-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-30/daily_quotes.parquet",
+      "rows": 5528,
+      "sha256": "a4673cd36674c0ee185e63d14c82b2956de8643ebb4fe35b2b0cf1f435cb2d92",
+      "trade_date": "2026-07-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-07-31/daily_quotes.parquet",
+      "rows": 5528,
+      "sha256": "36f6c9611860cecf1426ddf7dce0e3a2582d690d4aa2497db6314516068346d5",
+      "trade_date": "2026-07-31"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-03/daily_quotes.parquet",
+      "rows": 5529,
+      "sha256": "53cc5d42cb224d132788722b08eb7d54e0091ae1360a9d756eafa87961d22394",
+      "trade_date": "2026-08-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-04/daily_quotes.parquet",
+      "rows": 5529,
+      "sha256": "175fe5ca3cdb8f696172d839c56a8ca791b8a0660a0a4d8096adc3cb33b307d7",
+      "trade_date": "2026-08-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-05/daily_quotes.parquet",
+      "rows": 5532,
+      "sha256": "fb75716fb7c0906d5ad054f0dc43413f91bb8cdc37f04819743a410690786530",
+      "trade_date": "2026-08-05"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-06/daily_quotes.parquet",
+      "rows": 5533,
+      "sha256": "cc38eecc4a30b660a2d276e21d78428d2ac47f6dff8353dd52e469a5a7e50fc2",
+      "trade_date": "2026-08-06"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-07/daily_quotes.parquet",
+      "rows": 5535,
+      "sha256": "e7217aaf1e5f960a6e57b48443c8cc3241128bc008a816f72aba9f071dc5605b",
+      "trade_date": "2026-08-07"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-10/daily_quotes.parquet",
+      "rows": 5538,
+      "sha256": "b8330ea06a274560521a9623cd8c900af2e12a1d8626c9c69297e719d195d95e",
+      "trade_date": "2026-08-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-11/daily_quotes.parquet",
+      "rows": 5539,
+      "sha256": "f3302ce4ef3f4a56a779169b2d06e7f5f6ad51207daf7d534142529469e3cde1",
+      "trade_date": "2026-08-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-12/daily_quotes.parquet",
+      "rows": 5539,
+      "sha256": "c3dbba8d2815bfdde17731befc7d4d11d7dc073d66bcc6fb809bb3bf142bce3c",
+      "trade_date": "2026-08-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-13/daily_quotes.parquet",
+      "rows": 5540,
+      "sha256": "ad4ab609419ec2ff9bedf73be507f82e0b58d6c4f78f6ed197e47128d6bb6f46",
+      "trade_date": "2026-08-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-14/daily_quotes.parquet",
+      "rows": 5540,
+      "sha256": "9797c2ff225b6abdfe6d753daeb9c96c11540e6842272e1d04728910f4816ddc",
+      "trade_date": "2026-08-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-17/daily_quotes.parquet",
+      "rows": 5539,
+      "sha256": "cd5cccc3d941dda1a060d0bd4e9bf63752a4742070c1570c4ea37899c320219d",
+      "trade_date": "2026-08-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-18/daily_quotes.parquet",
+      "rows": 5540,
+      "sha256": "5b7ae3ed778b7864fae440294a29c897dcbc6d77c6c2db47fc1884a4c2ac98dd",
+      "trade_date": "2026-08-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-19/daily_quotes.parquet",
+      "rows": 5541,
+      "sha256": "8c795377fecddf96e9d4418ca03abd1bb8a78193f08ef8c483e05e12f91b5b12",
+      "trade_date": "2026-08-19"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-20/daily_quotes.parquet",
+      "rows": 5541,
+      "sha256": "7b05b1decc37af41bcf5001175ee9a46704445597462c76cad5ddf65a2ff58a9",
+      "trade_date": "2026-08-20"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-21/daily_quotes.parquet",
+      "rows": 5543,
+      "sha256": "b9758fe23e74cbca8de86b41875d7dbb95cca19632ab33ee3a456ce48ab9d8c6",
+      "trade_date": "2026-08-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-24/daily_quotes.parquet",
+      "rows": 5545,
+      "sha256": "e17cbcc4f6e1c78c06fe30dadafef3154f0aee1c4de7b3af249461af814439ed",
+      "trade_date": "2026-08-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-25/daily_quotes.parquet",
+      "rows": 5546,
+      "sha256": "ee1d6883b585c7f4d0d3935358a59d522736f2f2b320cf76ea37e87f9a4f60f5",
+      "trade_date": "2026-08-25"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-26/daily_quotes.parquet",
+      "rows": 5547,
+      "sha256": "9f63aabff412f2e205eee2c6045e95ac300de6b416b878d3ace03d666f7c8739",
+      "trade_date": "2026-08-26"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-27/daily_quotes.parquet",
+      "rows": 5547,
+      "sha256": "6f7854055ba46ccdf64900937647186e57456a699ad2a4f12783564dacbf0fca",
+      "trade_date": "2026-08-27"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-28/daily_quotes.parquet",
+      "rows": 5547,
+      "sha256": "5ebfe93dda2d23c327c14c7aca962f94ebf8c4a3a7d68bdc83f44c615a3a030a",
+      "trade_date": "2026-08-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-08-31/daily_quotes.parquet",
+      "rows": 5545,
+      "sha256": "25b953e392f663ad6fa9cfcad1a04f539e3c9029c29b9a5b7cf49faa073efa12",
+      "trade_date": "2026-08-31"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-01/daily_quotes.parquet",
+      "rows": 5546,
+      "sha256": "2326d9d31344a8e97998c9f9a4a5da5e42e644c72b9472a92346b08b93efef4f",
+      "trade_date": "2026-09-01"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-02/daily_quotes.parquet",
+      "rows": 5547,
+      "sha256": "27de54c91b8f7a84e7be62c128752f529385b19789a229c1472c93b93ed3e340",
+      "trade_date": "2026-09-02"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-03/daily_quotes.parquet",
+      "rows": 5549,
+      "sha256": "4a29777d39e3581b0f52b88d7c551b4148c0f7bc86b9e3e8139f285f9be36489",
+      "trade_date": "2026-09-03"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-04/daily_quotes.parquet",
+      "rows": 5548,
+      "sha256": "f350cba470654946a0a61b2639967fdccbfeff8ac53d065be15ad8e82cbdcefd",
+      "trade_date": "2026-09-04"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-07/daily_quotes.parquet",
+      "rows": 5549,
+      "sha256": "48ca099f31f1ff83b3ce30b686c45b075b06b355ddc05479aab6c97f21a22182",
+      "trade_date": "2026-09-07"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-08/daily_quotes.parquet",
+      "rows": 5549,
+      "sha256": "e17af3e790fd1f62356753546f2d6f0c0b47735c1bf0e0774f93700eb4fa6850",
+      "trade_date": "2026-09-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-09/daily_quotes.parquet",
+      "rows": 5550,
+      "sha256": "7b53afdd39f8a92f5e3db586a1dc1d14305abaf2b4fab09ee7b2dbda16f14e2b",
+      "trade_date": "2026-09-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-10/daily_quotes.parquet",
+      "rows": 5549,
+      "sha256": "14db985d9e5f9972080dabf355445f89f7c9d665aa2eb653d1a92f9c7d145f79",
+      "trade_date": "2026-09-10"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-11/daily_quotes.parquet",
+      "rows": 5550,
+      "sha256": "87da2bc5e12d027783d4ab80f1d599a965e54d2502c062217116bbbd37e7367b",
+      "trade_date": "2026-09-11"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-14/daily_quotes.parquet",
+      "rows": 5550,
+      "sha256": "e637d1642a51a0f3fe3cdb82a191810c50bcf656ea4b7e23db7680c3d3e22224",
+      "trade_date": "2026-09-14"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-15/daily_quotes.parquet",
+      "rows": 5548,
+      "sha256": "67f7d14b2f0bda5780bbbc16c79b6ac4698127a83476263abd497f87eae7a740",
+      "trade_date": "2026-09-15"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-16/daily_quotes.parquet",
+      "rows": 5550,
+      "sha256": "b613721f7ddfa4e4f5bf6886e0b224eed029ba7d7810da005764270600c3e942",
+      "trade_date": "2026-09-16"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-17/daily_quotes.parquet",
+      "rows": 5553,
+      "sha256": "ff7bea333bc430137042693d9b684a6bb4a37f66d1f1be45cbe1e4145d4ab096",
+      "trade_date": "2026-09-17"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-18/daily_quotes.parquet",
+      "rows": 5553,
+      "sha256": "9e69100ba7a0e62db6727d467e57f9d03010e1164d6e159102469667a3ea3c15",
+      "trade_date": "2026-09-18"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-21/daily_quotes.parquet",
+      "rows": 5553,
+      "sha256": "da2743e35062e53a3b413d8a05f14e32c54fe16bec85f40cb8c3fc75cc1a1878",
+      "trade_date": "2026-09-21"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-22/daily_quotes.parquet",
+      "rows": 5554,
+      "sha256": "91361f603de049b1478f958cb633bbf4fbb937f62f34ed2cb39323bbe1b2cefb",
+      "trade_date": "2026-09-22"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-23/daily_quotes.parquet",
+      "rows": 5556,
+      "sha256": "979853011ab3c259a0b72ff69b49e68890f1f75013d156dc61de68503a991ef6",
+      "trade_date": "2026-09-23"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-24/daily_quotes.parquet",
+      "rows": 5557,
+      "sha256": "33795ea97d6f7a72708aa13951efc45edc08857289e6c4b88514a5c5a53c111a",
+      "trade_date": "2026-09-24"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-28/daily_quotes.parquet",
+      "rows": 5557,
+      "sha256": "531d37ed5419ee9b03b8ea41882d2899b292a03555dec25727bb103ed35d98d2",
+      "trade_date": "2026-09-28"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-29/daily_quotes.parquet",
+      "rows": 5559,
+      "sha256": "8f6efeb24a168c31c29168ee0af587ba89f4ceff41bc04d06f86604949312d01",
+      "trade_date": "2026-09-29"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-09-30/daily_quotes.parquet",
+      "rows": 5561,
+      "sha256": "feb12eaa8b9ef47a671921cfc895d0295c806978a828532de10c6ae44eb72b5f",
+      "trade_date": "2026-09-30"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-10-08/daily_quotes.parquet",
+      "rows": 5557,
+      "sha256": "a4e9a18858c9692f52371e95ca67c63ab4656cdd2f792ec45a6ef0cf45848458",
+      "trade_date": "2026-10-08"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-10-09/daily_quotes.parquet",
+      "rows": 5559,
+      "sha256": "c5e353ea9bf9ca5f618e1831079538275c5637a2f4650d1f488d04588a0051e9",
+      "trade_date": "2026-10-09"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-10-12/daily_quotes.parquet",
+      "rows": 5561,
+      "sha256": "93bf083d333b12bfafb7b59ae241b58a61fa82a9f8fabe748f618459c2b1fafb",
+      "trade_date": "2026-10-12"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-10-13/daily_quotes.parquet",
+      "rows": 5561,
+      "sha256": "d98a55d079a572eee2ea40ec3275530e0caa0bf8128885c1e6eb52c4c04d6179",
+      "trade_date": "2026-10-13"
+    },
+    {
+      "path": "facts/akshare/market_history/vintage=db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc/trade_date=2026-10-14/daily_quotes.parquet",
+      "rows": 5563,
+      "sha256": "d36be244bae7c546147e2cbb1d6a2de275ca30c1ee3306bdc743408bfad9695c",
+      "trade_date": "2026-10-14"
+    }
+  ],
+  "pre_close_basis": "native_Tencent_previous_close_for_latest_date; previous_observed_raw_close_for_history",
+  "provider": "akshare_tencent",
+  "quote_rows": 1638718,
+  "raw_history_reused_securities": 5382,
+  "schema_version": 1,
+  "securities_with_unresolved_bar_gaps": 524,
+  "share_counts_basis": "prior_verified_iFinD_reference; per_security_reference_date_preserved",
+  "trade_date": "2026-10-14",
+  "unavailable_derived_average_price_rows": 2527,
+  "unexpected_request_failures": [],
+  "universe_basis": "current_listed_A_shares; not_historical_membership_or_survivorship_free_backtest",
+  "universe_count": 5574,
+  "unresolved_bar_gap_count": 2692,
+  "vintage": "db92f35f5e18d0b2ba8eb289fe76ae2aecbd97cbfd6394b8e3f291a3caec67cc",
+  "window_end": "2026-10-14",
+  "window_start": "2025-07-17"
+}
