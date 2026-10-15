@@ -391,8 +391,12 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
     del frames
     if panel.duplicated(["thscode", "trade_date"]).any():
         raise ArtifactContractError("duplicate all-market AKShare observations")
+    panel["calculated_vwap_from_rounded_inputs"] = panel["avg_price"]
+    usable_average = panel["avg_price"].ge(panel["low"] - 1e-6) & panel["avg_price"].le(panel["high"] + 1e-6)
+    panel["avg_price_basis"] = usable_average.map(lambda value: "calculated_from_rounded_amount_and_volume" if value else "unavailable_rounded_ratio_outside_price_range")
+    panel["avg_price"] = panel["avg_price"].where(usable_average)
     raw = normalize_quotes(panel, universe)
-    raw = raw.merge(panel[["thscode", "trade_date", "pre_close_basis"]], on=["thscode", "trade_date"], validate="one_to_one")
+    raw = raw.merge(panel[["thscode", "trade_date", "pre_close_basis", "calculated_vwap_from_rounded_inputs", "avg_price_basis"]], on=["thscode", "trade_date"], validate="one_to_one")
     factor_columns = ["thscode", "trade_date", "adj_factor", "adj_multiplier", "adj_offset", "known_at", "base_date",
         "collection_completed_at", "adjustment_method", "source_provider", "source_endpoint",
         "provider_adj_open", "provider_adj_high", "provider_adj_low", "provider_adj_close"]
@@ -429,6 +433,7 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
         "adapter_version": ADAPTER_VERSION, "vintage": vintage, "trade_date": day,
         "collection_completed_at": completed, "window_start": meta["sessions"][0], "window_end": day,
         "certified_sessions": len(meta["sessions"]), "universe_count": len(universe), "quote_rows": len(raw), "raw_history_reused_securities": raw_reused_count,
+        "unavailable_derived_average_price_rows": int((~usable_average).sum()),
         "full_300_session_securities": int(coverage_frame["observed_sessions"].eq(len(meta["sessions"])).sum()),
         "new_listing_short_history_count": int(coverage_frame["pre_listing_sessions"].gt(0).sum()),
         "securities_with_unresolved_bar_gaps": int(coverage_frame["missing_expected_sessions"].map(len).gt(0).sum()),
