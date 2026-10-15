@@ -1,0 +1,835 @@
+{
+  "artifacts": {
+    "daily_quotes.parquet": {
+      "rows": 5565,
+      "sha256": "ca84c56b366d44d10ae6a6db10458cae00461e74b7ae66a339f5a43d8dfa6b7e"
+    },
+    "daily_security_status.parquet": {
+      "rows": 5576,
+      "sha256": "7a49aa6ada87403d9dc822d6c6ded520441b4a798acdcf3ec55aeda05cadcefc"
+    },
+    "data_reference_latest.json": {
+      "sha256": "ca21f45dd5ecb19d7f1533cfa2503c986e8dbe95f27523c1d730f0066bb212f2"
+    },
+    "market_summary.json": {
+      "sha256": "704b8d36375cd3f5a0a3e08817fa75fc58f2cd271f96b9760bbdc6d00a675751"
+    },
+    "opportunity_inputs_latest.json": {
+      "sha256": "88cada54285228f8dd3a033f390e065ca0b53d01c448373091763cff8443f252"
+    },
+    "opportunity_radar_latest.json": {
+      "bytes": 9494,
+      "hard_max_bytes": 307200,
+      "rows": 0,
+      "schema_version": 3,
+      "sha256": "40e904c0c764912a166bd348315198e81140730724005f30eea835248d3bbaf3"
+    },
+    "research_0_001.json": {
+      "bytes": 264028,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "1a11e5a32d223309140a162c38a8f8a785e0c08a7b426eb371fc22b0e357d714"
+    },
+    "research_0_002.json": {
+      "bytes": 248850,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "88187cd41ad0b6c27797e36ccb2456240351df9598d30355ba4654e8403f636d"
+    },
+    "research_0_003.json": {
+      "bytes": 210921,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "91d38f824f42cb23d6a2a5304cf25e446f1ae09595569c4277457df093601512"
+    },
+    "research_1_001.json": {
+      "bytes": 262826,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "23e973e8d7a92b4461c4e9a0b1fc5b79ee4bd492f468ae094057009a0477c2e7"
+    },
+    "research_1_002.json": {
+      "bytes": 263640,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "a0680d348ed89009416256b9bc8fb4201e6e4546929185392aaadb969b181087"
+    },
+    "research_1_003.json": {
+      "bytes": 258931,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "fd75ceac11bc4043135a07be98811c1bc3d74313a1f76f0284fff0280e4b12dc"
+    },
+    "research_1_004.json": {
+      "bytes": 18809,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "d52329f6f7bce320521e429e71ab8c5c9ad7252829dcbb3d635d9dd9c1bf731e"
+    },
+    "research_2_001.json": {
+      "bytes": 262228,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "e1ed8ccf418b7b095808a5783716e00c1e2944fb6af982cfed8411d4a70aec51"
+    },
+    "research_2_002.json": {
+      "bytes": 263248,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "a8bf6253fa125a845bd3e0756d358d333ebcdd8200afabd458db899c7c29b9d2"
+    },
+    "research_2_003.json": {
+      "bytes": 262748,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "93a3f9fbdd5e98e0a864223497db7479ce62335f23d0d5bd57683f3f54a78330"
+    },
+    "research_2_004.json": {
+      "bytes": 172481,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "5894ac6312d0233d70bce865527f871a84c5747f984c5bc7bee0812dd625ade3"
+    },
+    "research_3_001.json": {
+      "bytes": 262609,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "2afd1f8030280b6a9a3aed9324784c29894ceb79017c524a0238b6d3bba407b9"
+    },
+    "research_3_002.json": {
+      "bytes": 263095,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "14b41a2fef92733217fe8d8eb1e1aca988c253d8aa7742e27620e15aa18e35a5"
+    },
+    "research_3_003.json": {
+      "bytes": 264241,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "0b2eee37a7d03c0b8184be35fe57d72120c425b60393b0b5c9945d78f06cecbe"
+    },
+    "research_3_004.json": {
+      "bytes": 67245,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "b4345256f81b68bc0148b32b497cf78983610398a82b827c6cbcf45d754ffda4"
+    },
+    "research_4_001.json": {
+      "bytes": 259819,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "3ce4d1de81e1c0833fbfa9392a85241d9843cef1f2cba921fcb066b1986ee88e"
+    },
+    "research_4_002.json": {
+      "bytes": 263404,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "9d5bd6c95696ccf4100ccf37277439a01648d3a66e3f57267f1bf18870e1d0b7"
+    },
+    "research_4_003.json": {
+      "bytes": 263637,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "f589261ae09353964a8cf22706553736d1b562f1c32dac3e9ea29b75385ca7dd"
+    },
+    "research_4_004.json": {
+      "bytes": 3076,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "03f48ba105854869972bbb0fbb4dda5336df4d7c63fbbc2a8e1ceb1c7346f013"
+    },
+    "research_5_001.json": {
+      "bytes": 262557,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "4aa97926ae6e1378ef52120c293a98ef3345dcd36327bdd65747ffaf99acfe40"
+    },
+    "research_5_002.json": {
+      "bytes": 262630,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "b5217cbade6e74296f7386050b49ac57f6aea9d656e9640ff07c68167474ec6d"
+    },
+    "research_5_003.json": {
+      "bytes": 261139,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "85e0e32845924d1d45d7481f0165b0769830744f4196e461e50dc233e80c735f"
+    },
+    "research_5_004.json": {
+      "bytes": 110258,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "48ec0144fa08b40673e106aaebd43db7578b712a7dd01ca59cf6a58d52c9a40b"
+    },
+    "research_6_001.json": {
+      "bytes": 263952,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "3f53546f0efd5c262b6f9648243e1dc985c8cb070ea7b98c8abecf51afceb6d8"
+    },
+    "research_6_002.json": {
+      "bytes": 265104,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "6a6fdef9a52527e8c4f0104b3c9528c5be1065d6014ee980e5af6ae555a9e3d1"
+    },
+    "research_6_003.json": {
+      "bytes": 231625,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "61341f6027540addd60165928bc952f977e482975e85b97bab8a2e566a653918"
+    },
+    "research_6_004.json": {
+      "bytes": 86099,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "5e7a69cde19be0b74907a4b8172b6d2813ef25a306398ff0574fb1a8e77a86cf"
+    },
+    "research_7_001.json": {
+      "bytes": 262064,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "681b6ba5860bc5f4cc24aa28b3385301c65d21770203e50cb78c6a8ebc1464f6"
+    },
+    "research_7_002.json": {
+      "bytes": 260616,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "20c2929150b65494384efd0daa2ede309bac2da316591a1329c00876b92846b6"
+    },
+    "research_7_003.json": {
+      "bytes": 260170,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "11521d15fc541b5bffd2291f15d4105087234396faf2031af937db1bd2fa62e7"
+    },
+    "research_7_004.json": {
+      "bytes": 80378,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "356dda81ce877007db42bee474d5764c02ec968d442d99db5a38868c8bbf149e"
+    },
+    "research_8_001.json": {
+      "bytes": 258652,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "deeae7a238875fc301be033ae8fe7842c8f745b9501b6b7ed9b997ad3064ba6f"
+    },
+    "research_8_002.json": {
+      "bytes": 261918,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "9e865f4376426e9f520101530c00c8269c3759d5c2cb32eb9435e500c2d32875"
+    },
+    "research_8_003.json": {
+      "bytes": 261813,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "12f88b28360b592e36d645490012f536fa6ca90e75b04b22bb508decc707b931"
+    },
+    "research_8_004.json": {
+      "bytes": 39374,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "5fb7bb4be36b262c301f28cf518f38805f564133049b1bb32c3e4acbeb564ae5"
+    },
+    "research_9_001.json": {
+      "bytes": 263484,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "52193973958536ba50f9ad1c7036678699c0ecf57f16f7d3febf9fe2472a6f90"
+    },
+    "research_9_002.json": {
+      "bytes": 257245,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "e9c0fd52783ff1d88330123a1508483f1ec98dd5f58dc037c7a5ed7b8c747755"
+    },
+    "research_9_003.json": {
+      "bytes": 262082,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "d7bb7c7e0d66af535f6f1333b48cff338500825ebc898efc4c2458b5b9082e6b"
+    },
+    "research_9_004.json": {
+      "bytes": 86155,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "020809b257e2deae4a15cdeb117b0ae8ff4fb15b5c3bf7103c24f56a481932e0"
+    },
+    "research_a_001.json": {
+      "bytes": 260784,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "9b50ce4a46ca5b217c7e43fc862256da6fd1cdf0885c7517ee05271e0619f9d1"
+    },
+    "research_a_002.json": {
+      "bytes": 260973,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "dce3ae55dbb9ac2ef4ae023e0abe551d61542b9445e27a584c8a2784d6a16404"
+    },
+    "research_a_003.json": {
+      "bytes": 261233,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "482c1846dc518932afd4f73c550ac921d25bdaa641231d83542098a3072cc9fe"
+    },
+    "research_a_004.json": {
+      "bytes": 87046,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "d9bfde2775580e6811d7770d08439dceaa7ccd9c0a0e42b9480f0f40726b4582"
+    },
+    "research_b_001.json": {
+      "bytes": 261458,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "00701d0ede14398948c5fed19c337593358381f4e61dbe5556a670f3d627ab22"
+    },
+    "research_b_002.json": {
+      "bytes": 263246,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "6114e98b32a44f347ee8955089573c80fb8ed38a1c99f0c1ef7c68230326cd2e"
+    },
+    "research_b_003.json": {
+      "bytes": 261140,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "f38bf5d33ac44c6ad889999fe86b356b52ace9576fb0e2ed423670385efaf932"
+    },
+    "research_b_004.json": {
+      "bytes": 74298,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "ccf3677f6dd3ad701072165302e309c3d942cb39ae99f1dda9cb327e811774d0"
+    },
+    "research_c_001.json": {
+      "bytes": 259680,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "5d849d0867a8d445f9e9584241f370db43d5ac0d07a8ef46007523f40df05d2d"
+    },
+    "research_c_002.json": {
+      "bytes": 263034,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "58392bb2f059d1b43657383a366486cf424b10f8ef1ec1fb9113ad66fc79b8cd"
+    },
+    "research_c_003.json": {
+      "bytes": 263659,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "6ea5e492ceb33243a7fb2502d4b2fa400f85861cfa671998e469055955126627"
+    },
+    "research_c_004.json": {
+      "bytes": 97196,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "fbea4bef6f5f60dfb7669be99986e74c7c6932a35e454d7c3339eb6b72801c0e"
+    },
+    "research_d_001.json": {
+      "bytes": 262315,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "f6990f40f4ca2d0c900a36a4d9f62941787d26e396862c35f94206155f731a71"
+    },
+    "research_d_002.json": {
+      "bytes": 263020,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "9d8f7b8a1df88a2aa23c0493d5a4179df66146a697ef0644890b222a5412c8db"
+    },
+    "research_d_003.json": {
+      "bytes": 262679,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "5b9b90d5275fb698acbf2fe88d699f700e76497bcf49c7bac202ebb71d245770"
+    },
+    "research_d_004.json": {
+      "bytes": 146193,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "0ae051dff29b7e57d14f693cc69bb1751fbb912c5dd3d6eb102389efc72eb201"
+    },
+    "research_e_001.json": {
+      "bytes": 259645,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "7035bf4098797cb711939f2e9508453e156dc39b45964989337a3e7fb4a8fe6d"
+    },
+    "research_e_002.json": {
+      "bytes": 257612,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "ec8d9c64a1483427ce56713bae267f1d98c7bc2ab76ad194d2f144ac11e8de02"
+    },
+    "research_e_003.json": {
+      "bytes": 262293,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "5b0cf64863b1c512cc42494a5d0a810fa809f731a77e0f241e407adbc3307805"
+    },
+    "research_e_004.json": {
+      "bytes": 170137,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "5e63000dd19cfb051fe46af7114e1e863f939c13ab62180a0773a8be39ee01a1"
+    },
+    "research_f_001.json": {
+      "bytes": 259809,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "22f2badac8444278911f97580467da58badadf1579f9ac811633c46f103abfda"
+    },
+    "research_f_002.json": {
+      "bytes": 263056,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "64d53b95c91f375121aa8c8adddaa39b5e4190ceec5367047b1f605e3a51a76b"
+    },
+    "research_f_003.json": {
+      "bytes": 259912,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "1948ce04395ce5c606d39b44eb46fdb38f965ce74e280d2b65813a65e4599d33"
+    },
+    "research_f_004.json": {
+      "bytes": 16732,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "10ce83def88cc2064e9e459df722e0c7c6fbc350892077e1afab374bf08cee59"
+    },
+    "research_inputs_latest.json": {
+      "bytes": 21420,
+      "hard_max_bytes": 307200,
+      "schema_version": 1,
+      "sha256": "b49289624107acf4b803b67338cc81ea036eeae62481f540d9722e04bc24d616"
+    },
+    "security_reference.parquet": {
+      "rows": 5576,
+      "sha256": "758eb22bc591ccb83d784b5360470da47f822a73414d637eb52622cd07cdd5c8"
+    },
+    "stock_state.parquet": {
+      "rows": 5565,
+      "sha256": "d0fcfc963558184efcdddecd90ff33001e6b1c4eff8aee2fe8bfba6fd463517e"
+    },
+    "technical_scan.parquet": {
+      "rows": 5576,
+      "sha256": "2651b0ecea78d327c8b109a811e063a9dd388557cda030fc253ebe297edf316b"
+    },
+    "technical_signals_latest.json": {
+      "sha256": "c4464dbf4ba8120526b47211d6c3fc163887b09507a992c2eb5f5000beb7e20c"
+    },
+    "trading_calendar.parquet": {
+      "rows": 61,
+      "sha256": "aac0b58b88d5c0ea8c06a83b55ae47dab1743428d52f6914e85b308ad63debcd"
+    },
+    "universe.parquet": {
+      "rows": 5576,
+      "sha256": "71862d50cdb7d70a63a8165de3ee3400a1fdb44e975d14a4022046d008e0865d"
+    }
+  },
+  "collected_at_utc": "2026-10-15T23:35:39+00:00",
+  "collection_completed_at": "2026-10-15T23:35:39+00:00",
+  "collection_started_at": "2026-10-15T23:35:02+00:00",
+  "configured_decision_cutoff": "2026-10-15T20:15:00+08:00",
+  "data_fresh": true,
+  "data_reference": {
+    "feature_input_sha256": "d075544d4ecf706fca31f0788d802ecaf325807a95b6cf594e7f920313aee319",
+    "opportunity_inputs_schema_version": 4,
+    "opportunity_radar_schema_version": 3,
+    "readiness": {
+      "adjustment": {
+        "coverage": 0.0,
+        "method": "point_in_time_native_adjusted_OHLC_or_factor_input",
+        "state": "missing"
+      },
+      "corporate_actions": {
+        "events_effective_today": 0,
+        "state": "missing"
+      },
+      "history": {
+        "calendar_basis": "cached_exchange_calendar_with_unknown_weekday_gaps",
+        "horizons": {
+          "1D": {
+            "adjusted_coverage": 0.0,
+            "adjusted_price_points_required": 2,
+            "adjusted_return_field": "return_1d_pct",
+            "adjusted_state": "missing",
+            "coverage": 1.0,
+            "raw_return_basis": "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
+            "raw_return_field": "raw_return_1d_pct",
+            "sessions_required": 1,
+            "state": "ready"
+          },
+          "20D": {
+            "adjusted_coverage": 0.0,
+            "adjusted_price_points_required": 21,
+            "adjusted_return_field": "return_20d_pct",
+            "adjusted_state": "missing",
+            "coverage": 0.992453,
+            "raw_return_basis": "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
+            "raw_return_field": "raw_return_20d_pct",
+            "sessions_required": 20,
+            "state": "ready"
+          },
+          "3D": {
+            "adjusted_coverage": 0.0,
+            "adjusted_price_points_required": 4,
+            "adjusted_return_field": "return_3d_pct",
+            "adjusted_state": "missing",
+            "coverage": 0.999102,
+            "raw_return_basis": "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
+            "raw_return_field": "raw_return_3d_pct",
+            "sessions_required": 3,
+            "state": "ready"
+          },
+          "5D": {
+            "adjusted_coverage": 0.0,
+            "adjusted_price_points_required": 6,
+            "adjusted_return_field": "return_5d_pct",
+            "adjusted_state": "missing",
+            "coverage": 0.998203,
+            "raw_return_basis": "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
+            "raw_return_field": "raw_return_5d_pct",
+            "sessions_required": 5,
+            "state": "ready"
+          }
+        },
+        "price_points_loaded": 300,
+        "scope_end": "2026-10-15",
+        "sessions": 300,
+        "state": "ready",
+        "target_sessions": 300,
+        "unavailable_fields": [
+          "return_60d_pct",
+          "rv60_pct",
+          "distance_from_high_60_pct",
+          "drawdown_from_high_252_pct"
+        ],
+        "unconfirmed_calendar_dates": []
+      },
+      "index_membership": {
+        "index_count": 0,
+        "state": "missing"
+      },
+      "index_prices": {
+        "benchmarks": {
+          "CSI1000": null,
+          "CSI300": null
+        },
+        "state": "missing"
+      },
+      "industry": {
+        "classification": "SW",
+        "coverage": 0.0,
+        "state": "missing"
+      },
+      "stock_state": {
+        "partial_modules": [
+          "adjustment",
+          "tradability"
+        ],
+        "rows": 5565,
+        "state": "ready",
+        "tradability_state_counts": {
+          "unknown": 5565
+        }
+      },
+      "tradability": {
+        "clear_count": 0,
+        "coverage": 0.0,
+        "restricted_count": 0,
+        "state": "missing",
+        "unknown_count": 5576,
+        "unknown_is_not_suspension": true
+      }
+    },
+    "schema_version": 6,
+    "source_snapshot_sha256": "8e014b94e930326b2af6e93aa65a52ac7187a9d0085f23c27de4e9b631b65241",
+    "stock_state_rows": 5565
+  },
+  "effective_pit_cutoff": "2026-10-15T12:15:00+00:00",
+  "feature_input_sha256": "d075544d4ecf706fca31f0788d802ecaf325807a95b6cf594e7f920313aee319",
+  "feature_pit_timing": {
+    "collection_completed_at": "2026-10-15T23:35:39+00:00",
+    "collection_started_at": "2026-10-15T23:35:02+00:00",
+    "configured_decision_cutoff": "2026-10-15T20:15:00+08:00",
+    "effective_pit_cutoff": "2026-10-15T12:15:00+00:00"
+  },
+  "provenance": {
+    "calendar": "SSE",
+    "calendar_market_code": "212001",
+    "daily_status_frame_sha256": "b6dbbd2511674eef587aef35c2481445f1dbc39da5c1469923b343171d52223b",
+    "daily_status_schema_signature": "7c2cde3db8e112fd112494b10ff25865a741fbaefccb0817450f864827039fd3",
+    "quotes_frame_sha256": "ff44922e0278f5fbbaa0955c7ca196e3723fec0a01d246bdaf3fd110e43aa917",
+    "quotes_schema_signature": "c93bd3bbc5f06d91ce4add8e3a537ecc90379c552e9cc5c83602d83582431691",
+    "security_reference_frame_sha256": "66dfeb00b83884076739d615dd6724ae47188481aceceb30889dc3edfc4ff6ae",
+    "security_reference_schema_signature": "01911771e4ad3513390355b58f98f35abf8ce31d3e4b390867fedaa488557163",
+    "trading_calendar_frame_sha256": "8e64d8e87a7ced81b23ca0e435d985f1444d00870d6b7734e2425ed2bbc33543",
+    "trading_calendar_schema_signature": "7d7b6132ee729680d7dc85cb7b4764db0967e2b32ab460a7bc41290dcd5a9da3",
+    "universe_block": "001005010",
+    "universe_frame_sha256": "b851571c0eb9e557ef52d752a321bb817c1ae524fd6e4f886e5ea0dfd19a2583",
+    "universe_report": "p03291",
+    "universe_schema_signature": "14194066c7ea6c8ea8510a106b45c02a609f616d0908986f25c68f1b3fb37bd6"
+  },
+  "provider": "ifind_http",
+  "quality": {
+    "errors": [],
+    "metrics": {
+      "average_price_outside_range_rows": 0,
+      "calendar_as_of_dates": [
+        "2026-10-15"
+      ],
+      "calendar_open_dates": [
+        "2026-07-15",
+        "2026-07-16",
+        "2026-07-17",
+        "2026-07-20",
+        "2026-07-21",
+        "2026-07-22",
+        "2026-07-23",
+        "2026-07-24",
+        "2026-07-27",
+        "2026-07-28",
+        "2026-07-29",
+        "2026-07-30",
+        "2026-07-31",
+        "2026-08-03",
+        "2026-08-04",
+        "2026-08-05",
+        "2026-08-06",
+        "2026-08-07",
+        "2026-08-10",
+        "2026-08-11",
+        "2026-08-12",
+        "2026-08-13",
+        "2026-08-14",
+        "2026-08-17",
+        "2026-08-18",
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21",
+        "2026-08-24",
+        "2026-08-25",
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-31",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04",
+        "2026-09-07",
+        "2026-09-08",
+        "2026-09-09",
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-14",
+        "2026-09-15",
+        "2026-09-16",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-09-24",
+        "2026-09-28",
+        "2026-09-29",
+        "2026-09-30",
+        "2026-10-08",
+        "2026-10-09",
+        "2026-10-12",
+        "2026-10-13",
+        "2026-10-14",
+        "2026-10-15"
+      ],
+      "change_ratio_inconsistent_rows": 0,
+      "complete_ohlc_rows": 5565,
+      "drift": {
+        "alerts": [],
+        "no_quote_observed": {
+          "current": 11,
+          "delta": 0,
+          "previous": 11
+        },
+        "pre_close_continuity": {
+          "comparable_count": 5563,
+          "mismatch_count": 1,
+          "mismatch_ratio": 0.00018,
+          "per_security_tolerance": 0.05
+        },
+        "previous_trade_date": "2026-10-14",
+        "quote_coverage": {
+          "current": 0.998027,
+          "delta": 1e-06,
+          "previous": 0.998027
+        },
+        "reference_coverage": {
+          "current": 1.0,
+          "delta": 0.0,
+          "previous": 1.0
+        },
+        "state": "checked",
+        "total_amount": {
+          "current": 1645717856288.2002,
+          "previous": 1426399730629.5298,
+          "ratio": 1.153756
+        },
+        "universe_count": {
+          "current": 5576,
+          "delta": 2,
+          "delta_ratio": 0.000359,
+          "previous": 5574
+        },
+        "universe_group_counts": {
+          "board": {
+            "BSE": {
+              "current": 350,
+              "delta": 1,
+              "delta_ratio": 0.002865,
+              "previous": 349
+            },
+            "CHINEXT": {
+              "current": 1410,
+              "delta": 1,
+              "delta_ratio": 0.00071,
+              "previous": 1409
+            },
+            "SSE_MAIN": {
+              "current": 1703,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1703
+            },
+            "STAR": {
+              "current": 617,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 617
+            },
+            "SZSE_MAIN": {
+              "current": 1496,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1496
+            }
+          },
+          "exchange": {
+            "BSE": {
+              "current": 350,
+              "delta": 1,
+              "delta_ratio": 0.002865,
+              "previous": 349
+            },
+            "SSE": {
+              "current": 2320,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2320
+            },
+            "SZSE": {
+              "current": 2906,
+              "delta": 1,
+              "delta_ratio": 0.000344,
+              "previous": 2905
+            }
+          }
+        }
+      },
+      "float_exceeds_total_rows": 0,
+      "future_listing_date_rows": 0,
+      "invalid_ohlc_rows": 0,
+      "negative_amount_rows": 0,
+      "negative_float_shares_rows": 0,
+      "negative_total_shares_rows": 0,
+      "negative_turnover_rows": 0,
+      "negative_volume_rows": 0,
+      "nonpositive_price_values": 0,
+      "observation_state_counts": {
+        "no_quote_observed": 11,
+        "traded": 5565
+      },
+      "quote_count": 5565,
+      "quote_coverage": 0.998027,
+      "quote_dates": [
+        "2026-10-15"
+      ],
+      "quote_duplicates": 0,
+      "quote_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "quote_field_coverage": {
+        "avg_price": 1.0,
+        "pre_close": 1.0,
+        "turnover_ratio": 1.0
+      },
+      "reference_count": 5576,
+      "reference_coverage": 1.0,
+      "reference_dates": [
+        "2026-10-15"
+      ],
+      "reference_duplicates": 0,
+      "reference_field_coverage": {
+        "float_a_shares": 1.0,
+        "listing_date": 1.0,
+        "total_shares": 1.0
+      },
+      "requested_trade_date": "2026-10-15",
+      "status_count": 5576,
+      "status_dates": [
+        "2026-10-15"
+      ],
+      "status_duplicates": 0,
+      "universe_count": 5576,
+      "universe_dates": [
+        "2026-10-15"
+      ],
+      "universe_duplicates": 0,
+      "universe_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "unknown_quote_codes": 0,
+      "unknown_reference_codes": 0
+    },
+    "ok": true,
+    "warnings": []
+  },
+  "quality_thresholds": {
+    "min_extended_field_coverage": 0.95,
+    "min_quote_coverage": 0.98,
+    "min_reference_coverage": 0.98,
+    "min_universe_size": 5000
+  },
+  "raw_payload_persisted": false,
+  "requested_trade_date": "2026-10-15",
+  "research_context": {
+    "availability_scope": "market_snapshot_only; inspect_each_fact_and_capability",
+    "first_observed_at": "2026-10-15T23:35:39+00:00",
+    "historical_decision_cutoff": "2026-10-15T20:15:00+08:00",
+    "known_at": "2026-10-15T23:35:39+00:00",
+    "mode": "historical_cutoff",
+    "research_asof": "2026-10-15T12:15:00+00:00",
+    "source_published_at": null,
+    "trade_date": "2026-10-15",
+    "usable_for_current_research": false,
+    "usable_for_historical_replay": false
+  },
+  "schema_version": 3,
+  "source_endpoints": [
+    "get_trade_dates",
+    "data_pool",
+    "basic_data_service",
+    "cmd_history_quotation"
+  ],
+  "source_trade_date": "2026-10-15",
+  "trade_date": "2026-10-15",
+  "verified": true
+}

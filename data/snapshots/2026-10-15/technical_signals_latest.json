@@ -1,0 +1,61 @@
+{
+ "candidates":[],
+ "document_type":"a_share_price_volume_signals",
+ "feature_input_sha256":"d075544d4ecf706fca31f0788d802ecaf325807a95b6cf594e7f920313aee319",
+ "generated_at":"2026-10-15T23:35:39+00:00",
+ "ordering_policy":"next_session_review, WATCH, pending_verification, extended_wait; thscode within group; no score",
+ "research_policy":"optional catalyst verification and risk checks; missing financials do not block technical publication",
+ "review_log_path":"facts/technical_reviews/*.json",
+ "schema_version":1,
+ "series_command":"china-stock-engine inspect-series --code CODE --sessions 120 --research-asof CUTOFF",
+ "source_snapshot_sha256":"8e014b94e930326b2af6e93aa65a52ac7187a9d0085f23c27de4e9b631b65241",
+ "summary":{
+  "all_results_path":"features/technical_signals/trade_date=2026-10-15/technical_scan.parquet",
+  "atr_method":"simple_mean_true_range_adjusted_ohlc; previous_close_required",
+  "comparison_counts":{
+   "A0":0,
+   "A1":0,
+   "A2":0
+  },
+  "config":{
+   "breakout_amount_ratio":1.5,
+   "candidate_limit":100,
+   "contraction_tag_ratio":0.8,
+   "history_sessions":300,
+   "max_atr5_to_atr20":0.7,
+   "max_entry_distance_atr":1.0,
+   "max_watch_distance_atr":1.0,
+   "min_close_location":0.75,
+   "min_listing_sessions":120,
+   "min_prior_adt20":50000000
+  },
+  "eligibility_counts":{
+   "excluded":5576
+  },
+  "exclusion_reason_counts":{
+   "current_bar_invalid_or_unverified":5565,
+   "current_quote_missing":11,
+   "delisting_security":1,
+   "history_or_adjustment_gap_61_sessions":5576,
+   "listing_age_below_minimum":86,
+   "prior_adt20_below_minimum":1373,
+   "prior_adt20_missing":53,
+   "st_security":201
+  },
+  "execution_policy":"end_of_day_signal; next_session_execution_unverified; WATCH_is_observation_only",
+  "pending_reason_counts":{
+   "delisting_status_unknown":5575,
+   "is_st_unknown":5576,
+   "is_suspended_unknown":5576
+  },
+  "price_basis":"single_PIT_native_adjusted_OHLC_or_factor_vintage; raw_level=(adjusted_level-offset)/multiplier",
+  "scanned_count":5576,
+  "signal_counts":{
+   "NONE":5576
+  },
+  "strategy_version":"price-volume-v1",
+  "universe_count":5576,
+  "window_policy":"prior_high60 and prior_adt20 exclude today; WATCH ATR/MA include today; entry ATR excludes today"
+ },
+ "trade_date":"2026-10-15"
+}
