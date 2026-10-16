@@ -196,6 +196,8 @@ manifest、`stock_state` 和三个 JSON 接口均明确记录 `collection_starte
 
 ## 本地使用
 
+当前打标签可使用 [A 股申万行业标签快照](docs/INDUSTRY_TAGS.md)：Parquet 保存 2026-10-15 股票池的 5,576 只股票及于 2026-10-16 取得的一、二、三级行业名称，附来源和覆盖清单。该静态参考表的分类版本与生效日未由来源报告，不能直接用于历史 PIT 回填。
+
 项目要求 Python 3.12：
 
 ```powershell

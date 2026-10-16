@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "dataset": "current_a_share_industry_tags",
+  "snapshot_date": "2026-10-16",
+  "universe_as_of_date": "2026-10-15",
+  "generated_at": "2026-10-16T00:29:26.197555+00:00",
+  "source": "ifind_mcp_search_stocks",
+  "source_homepage": "https://www.51ifind.com",
+  "source_method": "stock.search_stocks; partition by 3-digit stock-code prefix; CSV export or inline table",
+  "classification_system": "SW",
+  "classification_version": null,
+  "version_status": "not_reported",
+  "universe_path": "data/snapshots/2026-10-15/universe.parquet",
+  "universe_sha256": "71862d50cdb7d70a63a8165de3ee3400a1fdb44e975d14a4022046d008e0865d",
+  "parquet_path": "data/reference/industry/snapshot_date=2026-10-16/a_share_industry.parquet",
+  "parquet_sha256": "55e87e96831b6809b3c0dbcb20077d8a663c11500d88ed4f52572133a76eb465",
+  "parquet_bytes": 147534,
+  "row_count": 5576,
+  "unique_stock_count": 5576,
+  "source_row_count": 5581,
+  "missing_stock_codes": [],
+  "coverage": {
+    "sw1_name": {
+      "observed": 5576,
+      "denominator": 5576,
+      "ratio": 1.0,
+      "distinct_observed_names": 31
+    },
+    "sw2_name": {
+      "observed": 5576,
+      "denominator": 5576,
+      "ratio": 1.0,
+      "distinct_observed_names": 131
+    },
+    "sw3_name": {
+      "observed": 5576,
+      "denominator": 5576,
+      "ratio": 1.0,
+      "distinct_observed_names": 336
+    }
+  },
+  "by_exchange": {
+    "BSE": {
+      "stocks": 350,
+      "fully_named": 350
+    },
+    "SSE": {
+      "stocks": 2320,
+      "fully_named": 2320
+    },
+    "SZSE": {
+      "stocks": 2906,
+      "fully_named": 2906
+    }
+  },
+  "excluded_outside_reference_universe": [
+    {
+      "thscode": "001381.SZ",
+      "source_security_name": "皇冠新材"
+    },
+    {
+      "thscode": "301718.SZ",
+      "source_security_name": "通则康威"
+    },
+    {
+      "thscode": "920196.BJ",
+      "source_security_name": "南方乳业"
+    },
+    {
+      "thscode": "920285.BJ",
+      "source_security_name": "远大健科"
+    },
+    {
+      "thscode": "920296.BJ",
+      "source_security_name": "文峰光电"
+    }
+  ],
+  "source_batches": [
+    {
+      "prefix": "000",
+      "query": "股票代码以000开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 412,
+      "downloaded_count": 412,
+      "transport": "csv_export",
+      "response_sha256": "f5341412c5e20e9f520ae415c5678d629850700576d63f2cb4ae8b0a32f43888",
+      "observed_at": "2026-10-16T00:24:26.982Z"
+    },
+    {
+      "prefix": "001",
+      "query": "股票代码以001开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 123,
+      "downloaded_count": 123,
+      "transport": "csv_export",
+      "response_sha256": "31eb36afd79ca6def0ed5e620556d7fa0793e5bfc889988cb0f556336f2e008d",
+      "observed_at": "2026-10-16T00:24:28.570Z"
+    },
+    {
+      "prefix": "002",
+      "query": "股票代码以002开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 919,
+      "downloaded_count": 919,
+      "transport": "csv_export",
+      "response_sha256": "87fb8e6142edc1a34223a90bcafbcb2dbdea122dabb3efe7f12e411c715a1bc3",
+      "observed_at": "2026-10-16T00:24:29.982Z"
+    },
+    {
+      "prefix": "003",
+      "query": "股票代码以003开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 42,
+      "downloaded_count": 42,
+      "transport": "inline_table",
+      "response_sha256": "5dc46759d3d83bee9483ed8eb7efe9978c7cd35f8932ec71cd81bcfa4f2af7c3",
+      "observed_at": "2026-10-16T00:24:30.808Z"
+    },
+    {
+      "prefix": "300",
+      "query": "股票代码以300开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 936,
+      "downloaded_count": 936,
+      "transport": "csv_export",
+      "response_sha256": "aae6b498f7d82edf88b7cf0f2bf2a08704a7189b872d9242d201a3ac64d333e6",
+      "observed_at": "2026-10-16T00:24:31.984Z"
+    },
+    {
+      "prefix": "301",
+      "query": "股票代码以301开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 475,
+      "downloaded_count": 475,
+      "transport": "csv_export",
+      "response_sha256": "1fba7323ea0893ad98599581f1bf141a5c92e636a6dee68e28ed62887c09da34",
+      "observed_at": "2026-10-16T00:24:33.527Z"
+    },
+    {
+      "prefix": "302",
+      "query": "股票代码以302开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 1,
+      "downloaded_count": 1,
+      "transport": "inline_table",
+      "response_sha256": "5cbd53d617822a409d5be2039790fe86ad6157ba96b13aeeed5d07e07eb175f5",
+      "observed_at": "2026-10-16T00:24:34.347Z"
+    },
+    {
+      "prefix": "600",
+      "query": "股票代码以600开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 747,
+      "downloaded_count": 747,
+      "transport": "csv_export",
+      "response_sha256": "e59e98436cbfa4758a096b68fa6892af5e106c7cb9eac93d9cd9d352af3177e6",
+      "observed_at": "2026-10-16T00:24:35.360Z"
+    },
+    {
+      "prefix": "601",
+      "query": "股票代码以601开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 227,
+      "downloaded_count": 227,
+      "transport": "csv_export",
+      "response_sha256": "9f405d335a7a6e6229aaadea0a7d55972f2cf07292679c743db6d512b572645d",
+      "observed_at": "2026-10-16T00:24:36.519Z"
+    },
+    {
+      "prefix": "603",
+      "query": "股票代码以603开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 616,
+      "downloaded_count": 616,
+      "transport": "csv_export",
+      "response_sha256": "a6e81dc61863676d5aa2a6cad6bd7f3a91249fca752700bec1f2a386cf595972",
+      "observed_at": "2026-10-16T00:24:38.156Z"
+    },
+    {
+      "prefix": "605",
+      "query": "股票代码以605开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 112,
+      "downloaded_count": 112,
+      "transport": "csv_export",
+      "response_sha256": "a5293f953e38e9707b1d70c5a8288ee529a6c0204ce64aecf7d0a341e368094e",
+      "observed_at": "2026-10-16T00:24:39.988Z"
+    },
+    {
+      "prefix": "688",
+      "query": "股票代码以688开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 617,
+      "downloaded_count": 617,
+      "transport": "csv_export",
+      "response_sha256": "a465b0194c0e356bca681c57598b236d3ccbf01fe74533406c2571ffdff6200b",
+      "observed_at": "2026-10-16T00:24:41.262Z"
+    },
+    {
+      "prefix": "689",
+      "query": "股票代码以689开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 1,
+      "downloaded_count": 1,
+      "transport": "inline_table",
+      "response_sha256": "b6a1281a4df0263e652b7c2e8438858466baf8dc5abff90b2362e450ff45a863",
+      "observed_at": "2026-10-16T00:24:42.068Z"
+    },
+    {
+      "prefix": "920",
+      "query": "股票代码以920开头，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "reported_count": 353,
+      "downloaded_count": 353,
+      "transport": "csv_export",
+      "response_sha256": "a95c5e39d0672230a5aa19a0dceb0f7b10d0bd17687df8ecd45f6a436f36b340",
+      "observed_at": "2026-10-16T00:24:43.279Z"
+    }
+  ],
+  "source_corrections": [
+    {
+      "thscode": "003029.SZ",
+      "reason": "replacement characters in original inline table; refreshed from single-stock query",
+      "query": "股票代码003029，所属一级申万行业，所属二级申万行业，所属三级申万行业",
+      "response_sha256": "d94185945dfc5180330735975127074f84753ba505af4d2c650cf282b73dc625",
+      "observed_at": "2026-10-16T00:29:24.186Z"
+    }
+  ],
+  "validation": {
+    "stock_codes_unique": true,
+    "source_partition_counts_reconciled": true,
+    "universe_join_one_to_one": true,
+    "hierarchy_names_have_unique_parents": true,
+    "parquet_roundtrip_equal": true
+  },
+  "limitations": [
+    "Classification version, industry codes and effective dates were not reported by this source query and are null.",
+    "Universe is the archived 2026-10-15 repo universe; observed_at is the actual 2026-10-16 retrieval time.",
+    "Counts of observed industry names are not a complete taxonomy dictionary.",
+    "Current observation only; not suitable for historical point-in-time backfill.",
+    "Standalone tagging reference; not promoted into facts/classification or daily pipeline."
+  ]
+}
