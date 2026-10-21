@@ -1,6 +1,6 @@
 {
  "capability_counts":{
-  "company_events":559,
+  "company_events":427,
   "earnings_cashflow":2,
   "forecast_revisions":0,
   "minimum_financial_bundle":2
@@ -11,14 +11,14 @@
    {
     "exposure_count":2,
     "minimum_financial_state":"observed",
-    "part":"research_d_003.json",
+    "part":"research_d_002.json",
     "routes":[
      "minimum_financial_bundle_review",
      "revenue_growth_profit_decline",
      "commodity_profit_transmission_review"
     ],
     "security_name":"宝钢股份",
-    "sha256":"d79297767ad5763298e112eb1608d346f39a4315588fda71a88536a90c88a973",
+    "sha256":"adcedbeae61bebdc56cbd2075d226bd80fd90fc61e524ce0b7488269a35747dc",
     "thscode":"600019.SH"
    },
    {
@@ -32,7 +32,7 @@
      "commodity_profit_transmission_review"
     ],
     "security_name":"紫金矿业",
-    "sha256":"b87e787669097c0f3ce30dc4d1729cc1fd3d05fbd28af80134825cd9ab2d8008",
+    "sha256":"92e5965b7b8fd592508e7b96ce05cc7f98958c25a328a38450d019453f85c5f1",
     "thscode":"601899.SH"
    }
   ],
@@ -41,11 +41,11 @@
   "selection":"complete_minimum_bundle_or_attributed_commodity_exposure",
   "truncated":false
  },
- "configured_decision_cutoff":"2026-10-15T12:15:00+00:00",
+ "configured_decision_cutoff":"2026-10-21T12:15:00+00:00",
  "data_mode":"facts_and_deterministic_features_only",
  "discovery_routes":{
   "commodity_profit_transmission_review":2,
-  "event_filing":559,
+  "event_filing":427,
   "minimum_financial_bundle_review":2,
   "parent_profit_yoy_positive":1,
   "revenue_growth_profit_decline":1
@@ -53,8 +53,8 @@
  "document_type":"a_share_research_facts_index",
  "event_window":{
   "basis":"publication_date; last_20_market_sessions",
-  "end":"2026-10-16",
-  "start":"2026-09-10"
+  "end":"2026-10-22",
+  "start":"2026-09-16"
  },
  "evidence_domains":{
   "EVENT":"published event facts; planned is not completed",
@@ -62,7 +62,7 @@
   "FINANCIAL":"reported statements; YoY is not an expectations beat",
   "TAPE":"price/liquidity subfamilies are not independent evidence"
  },
- "feature_input_sha256":"41f50438d0059b4893565188efed3278727af168b025c9360e822293afc35f14",
+ "feature_input_sha256":"266f82671edcb5ffe3b15d9038b13a09d3207f8799f7c23ea986b9d79722c586",
  "field_coverage":{
   "denominator":5576,
   "financial_non_null_counts":{
@@ -73,7 +73,7 @@
    "interest_bearing_debt":2,
    "inventory":2,
    "net_profit_ex_nonrecurring":2,
-   "net_profit_parent":949,
+   "net_profit_parent":948,
    "operating_cash_flow":2,
    "operating_costs":2,
    "revenue":2,
@@ -86,17 +86,17 @@
    "ps_ttm":0
   }
  },
- "generated_at":"2026-10-15T23:35:39+00:00",
+ "generated_at":"2026-10-21T23:31:42+00:00",
  "generated_at_semantics":"maximum_actual_source_completion_or_exposure_known_at_not_build_wall_clock",
  "hard_max_bytes_per_file":307200,
  "lookup_policy":"sha256(ASCII thscode) first hex character; pages sorted by thscode, size bounded; all PIT reference securities, not only tape Top100",
- "market_effective_pit_cutoff":"2026-10-15T12:15:00+00:00",
+ "market_effective_pit_cutoff":"2026-10-21T12:15:00+00:00",
  "modules":{
   "events":{
    "collection_completed_at":"2026-10-14T23:35:59.651309+00:00",
-   "observed_codes":738,
+   "observed_codes":737,
    "provider_adapter":"source_attributed_normalized_batches; live_scope_in_supplemental_manifest",
-   "queried_codes":1161,
+   "queried_codes":1160,
    "source_batch_hashes":[
     "166c5ed0a5e4b3dc30e87955e73f4b97c7a4de19ea42bf4bc2c3753fa21ad270",
     "17a17a35012134014f790cd30d186f4e95515b1db79097c3c346b84023322af0",
@@ -127,9 +127,9 @@
   },
   "financials":{
    "collection_completed_at":"2026-10-12T01:35:27.601019+00:00",
-   "observed_codes":949,
+   "observed_codes":948,
    "provider_adapter":"source_attributed_normalized_batches; live_scope_in_supplemental_manifest",
-   "queried_codes":949,
+   "queried_codes":948,
    "source_batch_hashes":[
     "0a11ddc12f0084a018aec0bdb0da6efdf2e2851ac475f81179673b7b12b8ddeb",
     "0bfa8e0e759a61c7eac5783f1ba57a2551bbb990a0c704cfc5bec42bd029e29e",
@@ -165,549 +165,509 @@
   }
  },
  "readiness_semantics":"index_and_shards_built; not_all_research_capabilities_ready",
- "research_asof":"2026-10-15T23:38:33+00:00",
- "research_effective_pit_cutoff":"2026-10-15T23:35:39+00:00",
+ "research_asof":"2026-10-21T23:34:51+00:00",
+ "research_effective_pit_cutoff":"2026-10-21T23:31:42+00:00",
  "schema_version":1,
  "shards":{
   "0":[
    {
-    "bytes":264028,
+    "bytes":263203,
     "first_code":"000007.SZ",
-    "last_code":"300833.SZ",
+    "last_code":"301002.SZ",
     "path":"research_0_001.json",
-    "rows":126,
-    "sha256":"c9e2783da0edb056fd0bb9175c4631313aff184775eb6d6c07f743671468b97f"
-   },
-   {
-    "bytes":248850,
-    "first_code":"300835.SZ",
-    "last_code":"603955.SH",
-    "path":"research_0_002.json",
     "rows":131,
-    "sha256":"e32b59b64e48c468516203693bd39c1d903fa046f301c3d7663bdd3b71fd9576"
+    "sha256":"7a497aa5a0958bd3730d971db417c196cc65f496a4344566a0dd92ad3709a819"
    },
    {
-    "bytes":210921,
-    "first_code":"603986.SH",
+    "bytes":264724,
+    "first_code":"301018.SZ",
+    "last_code":"605388.SH",
+    "path":"research_0_002.json",
+    "rows":136,
+    "sha256":"5c8277598c4294c71c787c373d9389f6e54c17078370689275fdca7f98aca0d6"
+   },
+   {
+    "bytes":139048,
+    "first_code":"688010.SH",
     "last_code":"920931.BJ",
     "path":"research_0_003.json",
-    "rows":78,
-    "sha256":"3e75c1ba9a5efb968eec9feac4e073ed6d2521337a6f78b9e6a491e0eca81c0a"
+    "rows":68,
+    "sha256":"9e72d6eb03ac0558aea2eb5e5a625b1870b9a7561e16ac9489a47fc78d76b1b0"
    }
   ],
   "1":[
    {
-    "bytes":262826,
+    "bytes":264084,
     "first_code":"000056.SZ",
-    "last_code":"300607.SZ",
+    "last_code":"300757.SZ",
     "path":"research_1_001.json",
-    "rows":105,
-    "sha256":"e073f35e49d7f5b7c463d6c2ec05818c8829deb3401847d114716f6fd088ca0f"
+    "rows":111,
+    "sha256":"1fc1f4ab42f445bf739c56f9213c16aaa99f42b061268baeef25d8e606903c8f"
    },
    {
-    "bytes":263640,
-    "first_code":"300619.SZ",
-    "last_code":"603025.SH",
+    "bytes":263578,
+    "first_code":"300779.SZ",
+    "last_code":"603089.SH",
     "path":"research_1_002.json",
-    "rows":112,
-    "sha256":"5a3ed122a7052b0f0b2967d980cb2deb05749f3756963b1b40052fe422ab18c0"
+    "rows":113,
+    "sha256":"ffd2927ae7ce36059d99af7dfcf0171231788f0edf1819a896392680f77f1ecb"
    },
    {
-    "bytes":258931,
-    "first_code":"603029.SH",
-    "last_code":"920571.BJ",
-    "path":"research_1_003.json",
-    "rows":108,
-    "sha256":"41d0aec95663bab469a263ba0b9b6b8b16685bbb35bebb480b797f989aca1a3f"
-   },
-   {
-    "bytes":18809,
-    "first_code":"920592.BJ",
+    "bytes":250192,
+    "first_code":"603100.SH",
     "last_code":"920992.BJ",
-    "path":"research_1_004.json",
-    "rows":4,
-    "sha256":"c9fc15c60dc1313f96683665b1bd48362d1ac4f53198a8752a90ef7d8fd25630"
+    "path":"research_1_003.json",
+    "rows":106,
+    "sha256":"fe7b8ea3ca93ae6d4d872e207d16c09845b0b7d03e55ff7d2b91c5bb6b7212b9"
    }
   ],
   "2":[
    {
-    "bytes":262228,
+    "bytes":261314,
     "first_code":"000027.SZ",
-    "last_code":"002614.SZ",
+    "last_code":"002835.SZ",
     "path":"research_2_001.json",
-    "rows":68,
-    "sha256":"c8d88d85b8ec267b980f5d0961934364d9ba13edc1d420c921733aebf5883667"
+    "rows":83,
+    "sha256":"a41dbb1e1aecf1564d5ac906fce48906cd1c5db7c83cfc24d32c7eb8d5105ad2"
    },
    {
-    "bytes":263248,
-    "first_code":"002633.SZ",
-    "last_code":"600151.SH",
+    "bytes":259950,
+    "first_code":"002849.SZ",
+    "last_code":"600367.SH",
     "path":"research_2_002.json",
-    "rows":126,
-    "sha256":"c6e206c18392e1ea9d0be93c03c74fa7b46da4f9a8724ca887409cedc3780864"
+    "rows":123,
+    "sha256":"877ad11771b3e9e18154cfb7f21c3b7bcef993ea8ca0d46095b5ce22460ee4d2"
    },
    {
-    "bytes":262748,
-    "first_code":"600157.SH",
-    "last_code":"605318.SH",
+    "bytes":263537,
+    "first_code":"600370.SH",
+    "last_code":"688225.SH",
     "path":"research_2_003.json",
-    "rows":110,
-    "sha256":"4e32ff720623e090b901fc8e2897cf39554b2d9e2f3de4599dd4fda780213ac2"
+    "rows":119,
+    "sha256":"9e1fca523b2462c1aade085b64db388ba92c1e4501ab8fd07fd7bac53d77b5c2"
    },
    {
-    "bytes":172481,
-    "first_code":"605339.SH",
+    "bytes":108872,
+    "first_code":"688246.SH",
     "last_code":"920926.BJ",
     "path":"research_2_004.json",
-    "rows":79,
-    "sha256":"a4d73e7777ee80579c3f52e3133ff7d896d631ae510063ba2dd9086c8da7e724"
+    "rows":57,
+    "sha256":"1f14c0ed622b32adc057aa3bc69ca348dc6f087050aca21bf3cd02130782a47c"
    }
   ],
   "3":[
    {
-    "bytes":262609,
+    "bytes":262474,
     "first_code":"000025.SZ",
-    "last_code":"300022.SZ",
+    "last_code":"300043.SZ",
     "path":"research_3_001.json",
-    "rows":85,
-    "sha256":"aa87d2baa242a0596b1dd6b7f4ab3162667ce257d5e31f7e66915a3a8994f980"
+    "rows":89,
+    "sha256":"b3898d518232d6aeb98011f9ffb649b9c0bb71d995ed5ad296aae42c8b9fb60d"
    },
    {
-    "bytes":263095,
-    "first_code":"300024.SZ",
-    "last_code":"600203.SH",
+    "bytes":264725,
+    "first_code":"300050.SZ",
+    "last_code":"600872.SH",
     "path":"research_3_002.json",
-    "rows":114,
-    "sha256":"9f55e4c4cf5f28f6fbb6fc9e7a14326260cfe8b26d3bc73543666f85cd929f01"
+    "rows":134,
+    "sha256":"a7ee81eb4993987f53447e7817c5e0ebb17352779b9da349cedbd9206c83e3ef"
    },
    {
-    "bytes":264241,
-    "first_code":"600207.SH",
-    "last_code":"688635.SH",
+    "bytes":264499,
+    "first_code":"600873.SH",
+    "last_code":"920751.BJ",
     "path":"research_3_003.json",
-    "rows":123,
-    "sha256":"7acaa5e3968b72afe36f580081681c1d94761092ca76d2ee29003cfba60bb0db"
+    "rows":124,
+    "sha256":"0701e0c0b7dc3bf3e8b1e0c808aebc60ca5ecb27a68eb9c893c0be58a0d5008a"
    },
    {
-    "bytes":67245,
-    "first_code":"688651.SH",
+    "bytes":14904,
+    "first_code":"920765.BJ",
     "last_code":"920971.BJ",
     "path":"research_3_004.json",
-    "rows":33,
-    "sha256":"7be47ab6d70ab2d4e32059ba6c7a71adb3879fc058a36aadbe6f295499d704ed"
+    "rows":8,
+    "sha256":"e83cd2243d4b7f0a375272186632f54fd689f8d486143d99310404310e0edf95"
    }
   ],
   "4":[
    {
-    "bytes":259819,
+    "bytes":259515,
     "first_code":"000028.SZ",
-    "last_code":"300311.SZ",
+    "last_code":"300321.SZ",
     "path":"research_4_001.json",
-    "rows":105,
-    "sha256":"3f107b41784aac359c6e0fee4db311138c3cf4a8b49cd8d52b4991075298123f"
+    "rows":107,
+    "sha256":"1b695d91123522d6a5e3c83821d1c70ab9e42ada2cc270cc1191ad56035e16fd"
    },
    {
-    "bytes":263404,
-    "first_code":"300315.SZ",
-    "last_code":"600917.SH",
+    "bytes":262733,
+    "first_code":"300352.SZ",
+    "last_code":"603031.SH",
     "path":"research_4_002.json",
-    "rows":119,
-    "sha256":"acadbb97c9af11d15ffe033a9c2a2ea7e0a2ea503f87391d9ed456d07474f437"
+    "rows":131,
+    "sha256":"48b22112f77836ab67ff1df1425460647186879518e0958d90c29ba02114886f"
    },
    {
-    "bytes":263637,
-    "first_code":"600935.SH",
-    "last_code":"920924.BJ",
-    "path":"research_4_003.json",
-    "rows":121,
-    "sha256":"ec66f0f7f4b33f7e5bc37f4976c9f2b19931695c2972ead00d7cf1164669b102"
-   },
-   {
-    "bytes":3076,
-    "first_code":"920946.BJ",
+    "bytes":241339,
+    "first_code":"603067.SH",
     "last_code":"920978.BJ",
-    "path":"research_4_004.json",
-    "rows":2,
-    "sha256":"6d611cd41681d8c840533c2c90af2c7bb895a9eaa0f67f46bf7be6610802e76d"
+    "path":"research_4_003.json",
+    "rows":109,
+    "sha256":"febe3619624e52485bd9910626ecd5956c7d7adecb15f7a708d3af5692496516"
    }
   ],
   "5":[
    {
-    "bytes":262557,
+    "bytes":261820,
     "first_code":"000059.SZ",
-    "last_code":"002788.SZ",
+    "last_code":"002946.SZ",
     "path":"research_5_001.json",
-    "rows":78,
-    "sha256":"2df21092b0b69a878928a069d233f5a8995c374b1c68acff7a0eab95d48606e3"
+    "rows":83,
+    "sha256":"20650362cdc53f2e6ab9319fbe9a9d7fd1ae48244f33020dcad98483e0782d21"
    },
    {
-    "bytes":262630,
-    "first_code":"002800.SZ",
-    "last_code":"600511.SH",
+    "bytes":263405,
+    "first_code":"002949.SZ",
+    "last_code":"600969.SH",
     "path":"research_5_002.json",
-    "rows":112,
-    "sha256":"fc7b60d00034858275e0f61ad646a9636e1fdda10c4d01946202382a5e3b4ed0"
+    "rows":127,
+    "sha256":"c579ffe149a7252b5ba32abf0a6b5b3adafb670120b22a357df7feeab911832a"
    },
    {
-    "bytes":261139,
-    "first_code":"600520.SH",
-    "last_code":"688501.SH",
+    "bytes":262194,
+    "first_code":"600976.SH",
+    "last_code":"920125.BJ",
     "path":"research_5_003.json",
-    "rows":107,
-    "sha256":"1e6e3ab7fb43e37dfd1708ca59c4c5482f1269233bf303a8c5454cec4e5caef2"
+    "rows":103,
+    "sha256":"296b7c560ddcb93f436ac814e6ca639c5564514d155fd4fcc9e060259f8d32d5"
    },
    {
-    "bytes":110258,
-    "first_code":"688512.SH",
+    "bytes":68634,
+    "first_code":"920152.BJ",
     "last_code":"920981.BJ",
     "path":"research_5_004.json",
-    "rows":31,
-    "sha256":"ad6dfea4d0929a07c79886ab053b0ca99befe8e1e53169f66a5efa2a8e64459f"
+    "rows":15,
+    "sha256":"debee08855ff7d25d407e14c1fc91994cf6400e8bd08565c9582b4c67001f5cc"
    }
   ],
   "6":[
    {
-    "bytes":263952,
+    "bytes":264339,
     "first_code":"000060.SZ",
-    "last_code":"002899.SZ",
+    "last_code":"003004.SZ",
     "path":"research_6_001.json",
-    "rows":110,
-    "sha256":"f0d06c50463afb6bd56b5daba2c8cdc75c7001bb66f623e2ac05d951bb870955"
+    "rows":115,
+    "sha256":"751379c773d958133d2b6a091b054949f9c4ed52858e716506d2bb784a543109"
    },
    {
-    "bytes":265104,
-    "first_code":"002901.SZ",
-    "last_code":"601222.SH",
+    "bytes":264327,
+    "first_code":"003027.SZ",
+    "last_code":"601992.SH",
     "path":"research_6_002.json",
     "rows":141,
-    "sha256":"47c8eb4b06bf429b2af4d73fa0e8415a64e83416a8f51f917457fe586f4e3262"
+    "sha256":"cd602f877281539b3a358c8cb356f50c6bbfc024a6c8f8418b40e14967295788"
    },
    {
-    "bytes":231625,
-    "first_code":"601366.SH",
-    "last_code":"688825.SH",
+    "bytes":262757,
+    "first_code":"603010.SH",
+    "last_code":"920181.BJ",
     "path":"research_6_003.json",
-    "rows":87,
-    "sha256":"cdfbeae5c7232e2bddb9009f76f40f0a23f88b03c8bd16c30323d02b7c86f68e"
+    "rows":94,
+    "sha256":"d87c62d2fe9147d42db68d99774d3bdef2f9bbf02c37ebcf57550924ed2b1c06"
    },
    {
-    "bytes":86099,
-    "first_code":"688837.SH",
+    "bytes":24185,
+    "first_code":"920199.BJ",
     "last_code":"920970.BJ",
     "path":"research_6_004.json",
-    "rows":22,
-    "sha256":"b6475bc08e259f4c618ffe525fd3209720977aa01bfb6e978a5a85fa3e7c6681"
+    "rows":10,
+    "sha256":"c9ccac4a6a5a230347cc402325efb4d961498866fc9688ebb647ecfbe5d05000"
    }
   ],
   "7":[
    {
-    "bytes":262064,
+    "bytes":262567,
     "first_code":"000020.SZ",
-    "last_code":"002893.SZ",
+    "last_code":"002970.SZ",
     "path":"research_7_001.json",
-    "rows":86,
-    "sha256":"61f3e85335772c3ed6c4427be3bba03cb1a2d107300ad58612a16fb8b1bfa85c"
+    "rows":90,
+    "sha256":"318af3a848baac3cabb9fe0144a1de096b5cc17f294b2d7a3e5a3111b9cc1490"
    },
    {
-    "bytes":260616,
-    "first_code":"002926.SZ",
-    "last_code":"600642.SH",
+    "bytes":264689,
+    "first_code":"002979.SZ",
+    "last_code":"600854.SH",
     "path":"research_7_002.json",
-    "rows":134,
-    "sha256":"b1732011a3d362ec00461fb976159dd2c4255cdd885608961c63cc73b5dd8b51"
+    "rows":143,
+    "sha256":"e205a10abb749a4b03358c6698d0753ed8f1855f453fb0410cc36075351f1c34"
    },
    {
-    "bytes":260170,
-    "first_code":"600666.SH",
-    "last_code":"688786.SH",
-    "path":"research_7_003.json",
-    "rows":104,
-    "sha256":"2a52600f9de4ca1b96ffdc7cd3fab740fa5f7ba7ae6341901740e046e4cc5cd0"
-   },
-   {
-    "bytes":80378,
-    "first_code":"688789.SH",
+    "bytes":264181,
+    "first_code":"600859.SH",
     "last_code":"920942.BJ",
-    "path":"research_7_004.json",
-    "rows":30,
-    "sha256":"fbee71128a25602288707ce61a18c02c969b753d6e81c34657dd053d13cf5248"
+    "path":"research_7_003.json",
+    "rows":121,
+    "sha256":"e70a18a443eaa00d0cad87d766a8ecde81f0ebe12a99ab769318e3271db536f3"
    }
   ],
   "8":[
    {
-    "bytes":258652,
+    "bytes":262812,
     "first_code":"000002.SZ",
-    "last_code":"002956.SZ",
+    "last_code":"300052.SZ",
     "path":"research_8_001.json",
-    "rows":94,
-    "sha256":"e6783932446942bd987f6024be5654f8c5f884f4cca141101b5ed17b4de2431e"
+    "rows":101,
+    "sha256":"56c5a0ed00b712e83280535c8b08d99a5ee9261a1f7eb4204e575c7073d32292"
    },
    {
-    "bytes":261918,
-    "first_code":"002971.SZ",
-    "last_code":"600887.SH",
+    "bytes":264253,
+    "first_code":"300093.SZ",
+    "last_code":"601169.SH",
     "path":"research_8_002.json",
-    "rows":127,
-    "sha256":"fb2303194d61ecaa414311c9815c90ac77008c5d087aac8b027c5ac9d7608b69"
+    "rows":133,
+    "sha256":"dc09f4370085b94e44ff447b9d1b81eea4f84988b43a622d1d45b5d1f0d61e01"
    },
    {
-    "bytes":261813,
-    "first_code":"600893.SH",
-    "last_code":"920202.BJ",
-    "path":"research_8_003.json",
-    "rows":114,
-    "sha256":"e2e2a5b45777715435b45e2e2d866d8208c74f052f48b6813311fee3c1190a46"
-   },
-   {
-    "bytes":39374,
-    "first_code":"920220.BJ",
+    "bytes":256565,
+    "first_code":"601179.SH",
     "last_code":"920925.BJ",
-    "path":"research_8_004.json",
-    "rows":16,
-    "sha256":"0d26e21efe77ba20edbbc51eb5fb534c2f6227d27ceb90e6cd2f422bce1a630e"
+    "path":"research_8_003.json",
+    "rows":117,
+    "sha256":"5d6ff4b0716c1e2a6ead0a9ec482735f0bf68b98fdcfb8f8a20edaee8b11cdca"
    }
   ],
   "9":[
    {
-    "bytes":263484,
+    "bytes":264505,
     "first_code":"000011.SZ",
-    "last_code":"300758.SZ",
+    "last_code":"300891.SZ",
     "path":"research_9_001.json",
-    "rows":116,
-    "sha256":"747ff3a91d075bea619bdfb60b1953ad648e6833bc591843addc5078228ad5f4"
+    "rows":125,
+    "sha256":"108fd6866f5e6e5978a3d91f9af32b404accbf2b1a1e0b439e32fed36ccfa4ef"
    },
    {
-    "bytes":260614,
-    "first_code":"300763.SZ",
-    "last_code":"603225.SH",
+    "bytes":263557,
+    "first_code":"300909.SZ",
+    "last_code":"603309.SH",
     "path":"research_9_002.json",
-    "rows":131,
-    "sha256":"b87e787669097c0f3ce30dc4d1729cc1fd3d05fbd28af80134825cd9ab2d8008"
+    "rows":130,
+    "sha256":"92e5965b7b8fd592508e7b96ce05cc7f98958c25a328a38450d019453f85c5f1"
    },
    {
-    "bytes":262082,
-    "first_code":"603228.SH",
-    "last_code":"688828.SH",
+    "bytes":256634,
+    "first_code":"603331.SH",
+    "last_code":"920670.BJ",
     "path":"research_9_003.json",
-    "rows":90,
-    "sha256":"de8a7751c86a1f370fa9e414013716bc7812fdafcb752181b8dc5d603c346614"
+    "rows":106,
+    "sha256":"9a7b4ba597ed422c9794357cb2b0b8ad00acbd0fbb8884e831310234f8df8d78"
    },
    {
-    "bytes":86155,
-    "first_code":"920005.BJ",
+    "bytes":21481,
+    "first_code":"920685.BJ",
     "last_code":"920806.BJ",
     "path":"research_9_004.json",
-    "rows":28,
-    "sha256":"494617d75321e67a2d72716f034e3869a518a9fc09d4811371c14a9fdbb6ab88"
+    "rows":4,
+    "sha256":"df315cd7f281dc9c13df5f9c5d29acbb8d814d318718fb14b33db5679199bd42"
    }
   ],
   "a":[
    {
-    "bytes":260784,
+    "bytes":255642,
     "first_code":"000034.SZ",
     "last_code":"002810.SZ",
     "path":"research_a_001.json",
     "rows":96,
-    "sha256":"3d980d39728a66baaee9e4d3905df1694346615c4d92e037f6e704fed2da808a"
+    "sha256":"dfdfcffe9964694dca64a6bdf87d116e74be197eef8d684d8a9bb01588312547"
    },
    {
-    "bytes":260973,
+    "bytes":255387,
     "first_code":"002815.SZ",
-    "last_code":"301707.SZ",
+    "last_code":"600283.SH",
     "path":"research_a_002.json",
-    "rows":106,
-    "sha256":"89e78d291f61f2752013460e06effd07d2f72b3497b103e3f2e548b0b887c026"
+    "rows":119,
+    "sha256":"2b0ad2c75dc0dbcac89e6c980867ef5fa8ad25e6a51565b7075844e2e8ac742e"
    },
    {
-    "bytes":261233,
-    "first_code":"600028.SH",
-    "last_code":"688721.SH",
+    "bytes":262885,
+    "first_code":"600325.SH",
+    "last_code":"920227.BJ",
     "path":"research_a_003.json",
-    "rows":116,
-    "sha256":"f703a9ce39273c1b83362dc7e1157b4c2fe2f7e49e31490e87b835251480084b"
+    "rows":115,
+    "sha256":"c7017c8f63bb825b4eda82e4c27eb1e2e1be0457901f94effe4cf1ceb3331f37"
    },
    {
-    "bytes":87046,
-    "first_code":"688783.SH",
+    "bytes":18125,
+    "first_code":"920239.BJ",
     "last_code":"920950.BJ",
     "path":"research_a_004.json",
-    "rows":21,
-    "sha256":"e5ba63e58dba8a36eab128d40a9304c2770da334105b6262b7b9eeb3df46a376"
+    "rows":8,
+    "sha256":"66c8f7e5bd2d4bd99b5b4d05cdd29033221c5fcb8f040c4aa1b8f7f0b67c1a39"
    }
   ],
   "b":[
    {
-    "bytes":261458,
+    "bytes":259796,
     "first_code":"000010.SZ",
-    "last_code":"300072.SZ",
+    "last_code":"300143.SZ",
     "path":"research_b_001.json",
-    "rows":107,
-    "sha256":"0572ba2a879f113ae075d64d0e3179abae08b417355d12435616a021848cf246"
+    "rows":110,
+    "sha256":"be704fed53c9da4753e3ce566c000ff28bb25c3c34357d46bc24515f9625f3f4"
    },
    {
-    "bytes":263246,
-    "first_code":"300112.SZ",
-    "last_code":"600298.SH",
+    "bytes":263740,
+    "first_code":"300183.SZ",
+    "last_code":"600641.SH",
     "path":"research_b_002.json",
-    "rows":111,
-    "sha256":"872027990979654a743e7fd9b51f3d0983c54bdd4c4d52af85f1d1a4f83f0770"
+    "rows":125,
+    "sha256":"22d7d3b911a61ffe4bf0bcf95fd6e19c3d86c5c975d561053dc77e685931c6d1"
    },
    {
-    "bytes":261140,
-    "first_code":"600300.SH",
-    "last_code":"920015.BJ",
+    "bytes":260490,
+    "first_code":"600673.SH",
+    "last_code":"920627.BJ",
     "path":"research_b_003.json",
-    "rows":112,
-    "sha256":"a502e10d3f659daef493980dc39affa592ed354a61bb82c09bd77456f3e13519"
+    "rows":118,
+    "sha256":"b7d3ced3934565b9bc9f627753f5755966a600fc6753dfca6f8a7cd4b74cb1d6"
    },
    {
-    "bytes":74298,
-    "first_code":"920019.BJ",
+    "bytes":30781,
+    "first_code":"920651.BJ",
     "last_code":"920964.BJ",
     "path":"research_b_004.json",
-    "rows":33,
-    "sha256":"f2134df14485cc13e57d9ceffa1a86c2d437e102fd1f4411e6f9d314f35c6d59"
+    "rows":11,
+    "sha256":"26468a0e8c699a2df9a37101593b000446e2bc424ba7653ca70f71b5fe570303"
    }
   ],
   "c":[
    {
-    "bytes":259680,
+    "bytes":264170,
     "first_code":"000014.SZ",
-    "last_code":"300218.SZ",
+    "last_code":"300369.SZ",
     "path":"research_c_001.json",
-    "rows":105,
-    "sha256":"cf684f5612443ca6f940cad4b73c6a994ccf08832a70043328ae4a047cd484a2"
+    "rows":115,
+    "sha256":"f08ac0fabd90bf6111ac880a7d2af06d2dc954d6a8f2e9dfaa6df934615cc02b"
    },
    {
-    "bytes":263034,
-    "first_code":"300229.SZ",
-    "last_code":"600537.SH",
+    "bytes":260945,
+    "first_code":"300385.SZ",
+    "last_code":"600721.SH",
     "path":"research_c_002.json",
     "rows":105,
-    "sha256":"585eb2240f6c9cb18959791c6669f317420c0279f75144dbd481363981fb6129"
+    "sha256":"d985cca952e6d475c498c7c2f0595405298f6fe5a6739646542df9489a111651"
    },
    {
-    "bytes":263659,
-    "first_code":"600547.SH",
-    "last_code":"688629.SH",
+    "bytes":264136,
+    "first_code":"600734.SH",
+    "last_code":"920158.BJ",
     "path":"research_c_003.json",
-    "rows":114,
-    "sha256":"3706d121ecb31b6848e92d7263c7d4bffe3d84ba8a5f202f517a78ea0325b0bb"
+    "rows":117,
+    "sha256":"2769e1e07bde971e08e8eb23e78963d49d83a8f564024487234f106950d8d355"
    },
    {
-    "bytes":97196,
-    "first_code":"688656.SH",
+    "bytes":26183,
+    "first_code":"920160.BJ",
     "last_code":"920885.BJ",
     "path":"research_c_004.json",
-    "rows":29,
-    "sha256":"423c4c0902e1488b07f759d01b9884fa090a5dc601153d40566a42ee65d00e8f"
+    "rows":16,
+    "sha256":"0cbef0c0861226b9225dda0c34e1a6b7394af6eff72e259d2925f5abbb0cd2ac"
    }
   ],
   "d":[
    {
-    "bytes":262315,
+    "bytes":263307,
     "first_code":"000001.SZ",
-    "last_code":"003010.SZ",
+    "last_code":"300160.SZ",
     "path":"research_d_001.json",
-    "rows":101,
-    "sha256":"ac861dcd002df131a99ddc3e2285a318968d6f43cef18951c7458118629463ea"
+    "rows":108,
+    "sha256":"9f0fb5fad104a3db20361f61bfac4305689e54e552fc887376f234935c1272d9"
    },
    {
-    "bytes":252856,
-    "first_code":"003032.SZ",
-    "last_code":"301697.SZ",
+    "bytes":262964,
+    "first_code":"300171.SZ",
+    "last_code":"600392.SH",
     "path":"research_d_002.json",
-    "rows":97,
-    "sha256":"f6f9fb54bdd6e3dbb419cb63efbd7ee8225de6eeebe00c6d503783ece6731794"
+    "rows":109,
+    "sha256":"adcedbeae61bebdc56cbd2075d226bd80fd90fc61e524ce0b7488269a35747dc"
    },
    {
-    "bytes":262075,
-    "first_code":"600019.SH",
-    "last_code":"688004.SH",
+    "bytes":263029,
+    "first_code":"600406.SH",
+    "last_code":"688620.SH",
     "path":"research_d_003.json",
-    "rows":97,
-    "sha256":"d79297767ad5763298e112eb1608d346f39a4315588fda71a88536a90c88a973"
+    "rows":112,
+    "sha256":"b9a8685963a038d84fbe6fa72fc25a34117a50a56bffe685aee2819fabcaa985"
    },
    {
-    "bytes":160205,
-    "first_code":"688038.SH",
+    "bytes":92141,
+    "first_code":"688660.SH",
     "last_code":"920982.BJ",
     "path":"research_d_004.json",
-    "rows":55,
-    "sha256":"0a9b1da0791d46ddd4300c485e9250b2b28c82d940e3aa05ff434e072bf8b5bc"
+    "rows":21,
+    "sha256":"f8b7ee8922c196b09972bb1588c4458cd50a566073a34c8c567887ee088d3bf5"
    }
   ],
   "e":[
    {
-    "bytes":259645,
+    "bytes":264380,
     "first_code":"000039.SZ",
-    "last_code":"003021.SZ",
+    "last_code":"300079.SZ",
     "path":"research_e_001.json",
-    "rows":105,
-    "sha256":"e62db5f4d8f7866b403e6ee7ab6b39e9167d51053c55f4508cb7980c14e3bfff"
+    "rows":114,
+    "sha256":"0559102c908527d123247b1517ff649becdef5eb057bf869bca6c184fa7023f2"
    },
    {
-    "bytes":257612,
-    "first_code":"003040.SZ",
-    "last_code":"600160.SH",
+    "bytes":259088,
+    "first_code":"300092.SZ",
+    "last_code":"600233.SH",
     "path":"research_e_002.json",
-    "rows":82,
-    "sha256":"4ef4aa13f55ecfb1290b32630611ab5a78c1a29f35cf296ec4f67a753f9e1262"
+    "rows":81,
+    "sha256":"466d378e1948fb5a4120418fad3b8e3607993c4e462540e58a1f689f6ec1a1d0"
    },
    {
-    "bytes":262293,
-    "first_code":"600183.SH",
-    "last_code":"688168.SH",
+    "bytes":263114,
+    "first_code":"600246.SH",
+    "last_code":"688521.SH",
     "path":"research_e_003.json",
-    "rows":109,
-    "sha256":"5b4826c5eb4732cb3c31d694e393a20514c154087e4c09a3505c5c4f0e993f03"
+    "rows":115,
+    "sha256":"cd4ac468db05fd6e272a69284067785cf8b3b9c3d9c0bfdc7f040f79ffc52a58"
    },
    {
-    "bytes":170137,
-    "first_code":"688200.SH",
+    "bytes":131638,
+    "first_code":"688553.SH",
     "last_code":"920876.BJ",
     "path":"research_e_004.json",
-    "rows":52,
-    "sha256":"f3c867cc0ca7c94946b3dc4b1ca2fd0d6c01075f19b698e25e3f2a2e820c0d01"
+    "rows":38,
+    "sha256":"f11bfa7c7d2eb0fdae9e7de797609cc12b28ae0a014d283aca526b8520414212"
    }
   ],
   "f":[
    {
-    "bytes":259809,
+    "bytes":257099,
     "first_code":"000031.SZ",
     "last_code":"300472.SZ",
     "path":"research_f_001.json",
     "rows":113,
-    "sha256":"d7cf63daea41d3c350a031bcf677da2f1a858e5a6c2d2ac798a967c40256343d"
+    "sha256":"0f01dcada328218add9ee095eba5b8c41a8b310d6b6fc56bf7f0ce042f4a3ed3"
    },
    {
-    "bytes":263056,
+    "bytes":263402,
     "first_code":"300476.SZ",
-    "last_code":"601928.SH",
+    "last_code":"603102.SH",
     "path":"research_f_002.json",
-    "rows":110,
-    "sha256":"6ac6e390e0014d0e0f5933a9e621b00131c46206968a2271748d5d3609e0a077"
+    "rows":117,
+    "sha256":"c4442c944a9ee26f64875dcaf46b9c593baf86efef1d4e83c869e5774c37ecad"
    },
    {
-    "bytes":259912,
-    "first_code":"601956.SH",
-    "last_code":"920252.BJ",
+    "bytes":244770,
+    "first_code":"603123.SH",
+    "last_code":"920976.BJ",
     "path":"research_f_003.json",
     "rows":86,
-    "sha256":"57d415fb9b91c8a3ffcadb3f2c8cdb6abd8e8b3b457fb4168ba0b56fb78e895a"
-   },
-   {
-    "bytes":16732,
-    "first_code":"920371.BJ",
-    "last_code":"920976.BJ",
-    "path":"research_f_004.json",
-    "rows":7,
-    "sha256":"cffba621c8d0ea537f3014e4ce54bc1627d318db5288c7d3825dba9bd99adac8"
+    "sha256":"aed31d6188d1bf288938e34d2312c007cb49371f482979b89b1e534ed50f2065"
    }
   ]
  },
- "source_snapshot_sha256":"8e014b94e930326b2af6e93aa65a52ac7187a9d0085f23c27de4e9b631b65241",
- "trade_date":"2026-10-15",
+ "source_snapshot_sha256":"7b247685ab8c076c9e069e09e69372789f6ccf67967000567170cdb9be97268a",
+ "trade_date":"2026-10-21",
  "unimplemented_modules":[
   "full_financial_statement_indicator_mapping",
   "industry_operating_data",

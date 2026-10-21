@@ -1,14 +1,14 @@
 {
  "candidates":[],
  "document_type":"a_share_price_volume_signals",
- "feature_input_sha256":"41f50438d0059b4893565188efed3278727af168b025c9360e822293afc35f14",
- "generated_at":"2026-10-15T23:35:39+00:00",
+ "feature_input_sha256":"266f82671edcb5ffe3b15d9038b13a09d3207f8799f7c23ea986b9d79722c586",
+ "generated_at":"2026-10-21T23:31:42+00:00",
  "ordering_policy":"next_session_review, WATCH, pending_verification, extended_wait; thscode within group; no score",
  "research_policy":"optional catalyst verification and risk checks; missing financials do not block technical publication",
  "review_log_path":"facts/technical_reviews/*.json",
  "schema_version":1,
  "series_command":"china-stock-engine inspect-series --code CODE --sessions 120 --research-asof CUTOFF",
- "source_snapshot_sha256":"8e014b94e930326b2af6e93aa65a52ac7187a9d0085f23c27de4e9b631b65241",
+ "source_snapshot_sha256":"7b247685ab8c076c9e069e09e69372789f6ccf67967000567170cdb9be97268a",
  "summary":{
   "all_results_path":"latest/technical_scan.parquet",
   "atr_method":"simple_mean_true_range_adjusted_ohlc; previous_close_required",
@@ -33,17 +33,17 @@
    "excluded":5576
   },
   "exclusion_reason_counts":{
-   "current_bar_invalid_or_unverified":5565,
-   "current_quote_missing":11,
+   "current_bar_invalid_or_unverified":5568,
+   "current_quote_missing":8,
    "delisting_security":1,
    "history_or_adjustment_gap_61_sessions":5576,
-   "listing_age_below_minimum":86,
-   "prior_adt20_below_minimum":1373,
-   "prior_adt20_missing":53,
-   "st_security":201
+   "listing_age_below_minimum":85,
+   "prior_adt20_below_minimum":1397,
+   "prior_adt20_missing":50,
+   "st_security":199
   },
   "execution_policy":"end_of_day_signal; next_session_execution_unverified; WATCH_is_observation_only",
-  "historical_results_path":"features/technical_signals/trade_date=2026-10-15/technical_scan.parquet",
+  "historical_results_path":"features/technical_signals/trade_date=2026-10-21/technical_scan.parquet",
   "pending_reason_counts":{
    "delisting_status_unknown":5575,
    "is_st_unknown":5576,
@@ -58,5 +58,5 @@
   "universe_count":5576,
   "window_policy":"prior_high60 and prior_adt20 exclude today; WATCH ATR/MA include today; entry ATR excludes today"
  },
- "trade_date":"2026-10-15"
+ "trade_date":"2026-10-21"
 }
