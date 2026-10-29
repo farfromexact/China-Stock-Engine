@@ -4,9 +4,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import pandas as pd
+
 from china_stock_engine.akshare_backfill import normalize_pair, symbol, thscode, publish
 from china_stock_engine.data_reference import apply_adjustments, load_market_history
-from china_stock_engine.storage import atomic_write_json, atomic_write_parquet, sha256_file
+from china_stock_engine.storage import read_parquet_file, atomic_write_json, atomic_write_parquet, sha256_file
 from china_stock_engine.technical_signals import add_technical_metrics, scan_technical_signals, TechnicalConfig
 
 
@@ -75,7 +76,7 @@ class AKShareBackfillTests(unittest.TestCase):
             self.assertEqual(early.iloc[0]['close'],10.)
             self.assertEqual(late.iloc[0]['close'],11.)
             # The original fact is retained for historical decisions.
-            self.assertEqual(pd.read_parquet(root/'facts/market'/f'trade_date={day}'/'daily_quotes.parquet').iloc[0]['close'],10.)
+            self.assertEqual(read_parquet_file(root/'facts/market'/f'trade_date={day}'/'daily_quotes.parquet').iloc[0]['close'],10.)
 
     def test_partial_collection_never_promotes(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -5,12 +5,15 @@ import shutil
 import unittest
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from china_stock_engine.storage import (
     ArtifactContractError,
     MAX_OPPORTUNITY_RADAR_BYTES,
     atomic_write_json,
     load_manifest,
+    read_parquet_file,
     publish_data_reference_artifacts,
 )
 
@@ -23,6 +26,35 @@ class StorageTests(unittest.TestCase):
         if TEST_ROOT.exists():
             shutil.rmtree(TEST_ROOT)
         TEST_ROOT.mkdir(parents=True)
+
+    def test_single_file_preserves_schema_under_hive_partition_directories(self) -> None:
+        path = TEST_ROOT / "vintage=receipt" / "trade_date=2026-08-18" / "quotes.parquet"
+        path.parent.mkdir(parents=True)
+        # Exercise both legacy string and pandas 3 large_string artifacts.
+        for dtype in (pa.string(), pa.large_string()):
+            with self.subTest(dtype=dtype):
+                table = pa.table({
+                    "trade_date": pa.array(["2026-08-17", None], type=dtype),
+                    "thscode": pa.array(["000001.SZ", "920001.BJ"], type=dtype),
+                    "close": [10.0, 20.0],
+                })
+                pq.write_table(table, path)
+                actual = read_parquet_file(path)
+                pd.testing.assert_frame_equal(actual, table.to_pandas())
+                self.assertNotIn("vintage", actual.columns)
+                self.assertEqual(actual.loc[0, "trade_date"], "2026-08-17")
+                pd.testing.assert_frame_equal(
+                    read_parquet_file(path, columns=["thscode", "close"]),
+                    table.select(["thscode", "close"]).to_pandas(),
+                )
+
+    def test_single_file_does_not_hide_missing_or_corrupt_artifacts(self) -> None:
+        path = TEST_ROOT / "missing.parquet"
+        with self.assertRaises(FileNotFoundError):
+            read_parquet_file(path)
+        path.write_bytes(b"not a parquet file")
+        with self.assertRaises(pa.ArrowInvalid):
+            read_parquet_file(path)
 
     def test_manifest_missing_is_missing_but_corruption_fails_closed(self) -> None:
         path = TEST_ROOT / "manifest.json"

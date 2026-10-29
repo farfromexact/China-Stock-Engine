@@ -10,6 +10,8 @@ from typing import Any
 
 import pandas as pd
 
+from .storage import read_parquet_file
+
 STRATEGY_VERSION = "price-volume-v1"
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config/technical_signals.json"
 
@@ -296,10 +298,10 @@ def attach_signal_history(data_dir: Path, scan: pd.DataFrame, adjusted: pd.DataF
         path = Path(receipt_path).parent / "technical_scan.parquet"
         if (receipt.get("artifacts", {}).get(path.name) or {}).get("sha256") != sha256_file(path):
             raise ArtifactContractError("technical history hash mismatch")
-        previous = pd.read_parquet(path).set_index("thscode")
+        previous = read_parquet_file(path).set_index("thscode")
         break
     current_path = data_dir / "features/technical_signals" / f"trade_date={trade_date}" / "technical_scan.parquet"
-    corrections = pd.read_parquet(current_path).set_index("thscode") if current_path.exists() else pd.DataFrame()
+    corrections = read_parquet_file(current_path).set_index("thscode") if current_path.exists() else pd.DataFrame()
     factors = adjusted.set_index(["thscode", "trade_date"]) if not adjusted.empty else pd.DataFrame()
     rows = []
     for row in scan.to_dict("records"):

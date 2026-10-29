@@ -96,6 +96,18 @@ def load_manifest(path: Path, *, missing_ok: bool = True) -> dict[str, Any]:
     return manifest
 
 
+def read_parquet_file(path: Path, *, columns: list[str] | None = None) -> pd.DataFrame:
+    """Read one artifact without inferring Hive columns from its parent path.
+
+    Facts already contain their partition columns. Passing a filename to Arrow's
+    dataset reader can merge these with inferred dictionary columns, conflicting
+    with large_string fields written by pandas 3. A file handle preserves the
+    stored schema and never injects parent-directory values.
+    """
+    with Path(path).open("rb") as handle:
+        return pd.read_parquet(handle, engine="pyarrow", columns=columns)
+
+
 def atomic_write_parquet(path: Path, frame: pd.DataFrame) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.tmp")

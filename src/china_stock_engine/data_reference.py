@@ -12,6 +12,7 @@ from typing import Any
 import pandas as pd
 
 from .storage import (
+    read_parquet_file,
     json_sha256,
     load_json_object,
     load_manifest,
@@ -373,7 +374,7 @@ def load_market_history(
         return pd.DataFrame()
     frames = []
     for path in selected:
-        frame = pd.read_parquet(path)
+        frame = read_parquet_file(path)
         day = _partition_value(path, "trade_date=") or path.parent.name
         receipt = path.parent / "market_receipt.json"
         observed_manifest = load_manifest(receipt if receipt.exists() else (path.parent / "manifest.json" if path.parent.name == day else (data_dir / "facts").resolve().parent / "snapshots" / day / "manifest.json"))
@@ -422,7 +423,7 @@ def load_market_history(
     calendar_paths = sorted((data_dir / "facts/reference").glob("as_of_date=*/trading_calendar.parquet"))
     calendar_paths += sorted((data_dir / "facts/akshare/reference").glob("as_of_date=*/vintage=*/trading_calendar.parquet"))
     calendars = [
-        pd.read_parquet(path)
+        read_parquet_file(path)
         for path in calendar_paths
         if (_partition_value(path, "as_of_date=") or "") <= end_date
     ]
@@ -491,7 +492,7 @@ def load_index_history(
                 if path.parent.parent.name.removeprefix("as_of_date=") <= end_date]
     if not selected and not vintages:
         return pd.DataFrame()
-    output = pd.concat([pd.read_parquet(path) for path in selected + sorted(vintages)], ignore_index=True)
+    output = pd.concat([read_parquet_file(path) for path in selected + sorted(vintages)], ignore_index=True)
     _normalize_date_column(output, "trade_date")
     output["thscode"] = output["thscode"].astype("string").str.upper().str.strip()
     for column in ("open", "high", "low", "close"):
@@ -521,11 +522,11 @@ def _latest_partition_frame(
     vintages = [path for path in (data_dir / "facts" / category).glob(f"as_of_date=*/vintage=*/{file_name}")
                 if path.parent.parent.name.removeprefix("as_of_date=") <= as_of_date]
     if eligible or vintages:
-        frames = [pd.read_parquet(eligible[-1])] if eligible else []
-        frames.extend(pd.read_parquet(path) for path in sorted(vintages))
+        frames = [read_parquet_file(eligible[-1])] if eligible else []
+        frames.extend(read_parquet_file(path) for path in sorted(vintages))
         return pd.concat(frames, ignore_index=True).drop_duplicates()
     latest_path = data_dir / "latest" / file_name
-    return pd.read_parquet(latest_path) if latest_path.exists() else pd.DataFrame()
+    return read_parquet_file(latest_path) if latest_path.exists() else pd.DataFrame()
 
 
 def load_adjustment_snapshot(data_dir: Path, as_of_date: str) -> pd.DataFrame:
@@ -1612,11 +1613,11 @@ def build_data_reference_outputs(
             )
     history = load_market_history(data_dir, selected_date, limit=technical_config.history_sessions, research_asof=research_asof)
     # Bind identity and share counts to the same verified market snapshot.
-    reference = pd.read_parquet(snapshot_dir / "security_reference.parquet")
+    reference = read_parquet_file(snapshot_dir / "security_reference.parquet")
     status_path = snapshot_dir / "daily_security_status.parquet"
     if not status_path.exists():
         status_path = latest / "daily_security_status.parquet"
-    daily_status = pd.read_parquet(status_path)
+    daily_status = read_parquet_file(status_path)
     observation_date = timestamp(research_asof).tz_convert("Asia/Shanghai").date().isoformat() if research_asof else selected_date
     adjustments = load_adjustment_snapshot(data_dir, observation_date)
     market_pit_timing = dict(pit_timing)
@@ -1748,7 +1749,7 @@ def build_data_reference_outputs(
     quote_path = snapshot_dir / "daily_quotes.parquet"
     if not quote_path.exists():
         quote_path = latest / "daily_quotes.parquet"
-    current_quotes = pd.read_parquet(quote_path)
+    current_quotes = read_parquet_file(quote_path)
     opportunity_inputs = build_opportunity_inputs(
         manifest,
         market_summary,

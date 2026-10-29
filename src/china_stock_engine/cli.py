@@ -22,6 +22,7 @@ from .report_dashboard import build_data_reference_dashboard
 from .data_reference import build_data_reference_outputs
 from .research_inputs import import_research_batch
 from .storage import (
+    read_parquet_file,
     atomic_write_json,
     atomic_write_parquet,
     load_manifest,
@@ -543,7 +544,7 @@ def _refresh_adjustments(
     )
     if not universe_path.exists():
         raise FileNotFoundError("latest universe is required before adjustment refresh")
-    universe = pd.read_parquet(universe_path)
+    universe = read_parquet_file(universe_path)
     codes = universe["thscode"].dropna().astype(str).tolist()
     from .ifind_supplemental import collect_adjustments
 
@@ -731,8 +732,8 @@ def _prepare_backfill_client(
         if cached_paths is None:
             return None
         try:
-            universe = pd.read_parquet(cached_paths[0])
-            reference = pd.read_parquet(cached_paths[1])
+            universe = read_parquet_file(cached_paths[0])
+            reference = read_parquet_file(cached_paths[1])
         except (OSError, ValueError):
             return None
         universe_required = {
@@ -770,7 +771,7 @@ def _prepare_backfill_client(
         if path is None:
             return None
         try:
-            frame = pd.read_parquet(path)
+            frame = read_parquet_file(path)
         except (OSError, ValueError):
             return None
         if frame.empty or not required_quote_columns.issubset(frame.columns):
@@ -1088,7 +1089,7 @@ def _record_technical_review(args: argparse.Namespace) -> int:
     scan_path = root / "technical_scan.parquet"
     if receipt["artifacts"][scan_path.name]["sha256"] != sha256_file(scan_path):
         raise ArtifactContractError("technical scan hash mismatch")
-    scan = pd.read_parquet(scan_path)
+    scan = read_parquet_file(scan_path)
     code = args.code.strip().upper()
     selected = scan.loc[scan["thscode"].eq(code)]
     if selected.empty or selected.iloc[0]["signal"] not in ("BREAKOUT", "WATCH"):

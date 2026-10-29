@@ -10,7 +10,7 @@ from typing import Any
 
 import pandas as pd
 
-from .storage import load_json_object, load_manifest
+from .storage import read_parquet_file, load_json_object, load_manifest
 
 
 REQUIRED_FILES = (
@@ -137,15 +137,15 @@ def build_dashboard(data_dir: Path, output_path: Path) -> Path:
         raise ValueError("latest snapshot is not verified and fresh")
 
     frames = {
-        "universe.parquet": pd.read_parquet(latest / "universe.parquet"),
-        "security_reference.parquet": pd.read_parquet(
+        "universe.parquet": read_parquet_file(latest / "universe.parquet"),
+        "security_reference.parquet": read_parquet_file(
             latest / "security_reference.parquet"
         ),
-        "daily_quotes.parquet": pd.read_parquet(latest / "daily_quotes.parquet"),
-        "trading_calendar.parquet": pd.read_parquet(
+        "daily_quotes.parquet": read_parquet_file(latest / "daily_quotes.parquet"),
+        "trading_calendar.parquet": read_parquet_file(
             latest / "trading_calendar.parquet"
         ),
-        "daily_security_status.parquet": pd.read_parquet(
+        "daily_security_status.parquet": read_parquet_file(
             latest / "daily_security_status.parquet"
         ),
     }

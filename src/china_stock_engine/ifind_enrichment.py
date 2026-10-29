@@ -19,7 +19,7 @@ import pandas as pd
 from .ifind_http import _tables_frame
 from .ifind_supplemental import BoundedClient, CANARY_CODES, _timestamp, _document_link, _save_batch, utc_now, safe_failure
 from .research_inputs import FINANCIAL_V2_FIELDS, FORECAST_FIELDS, EVENT_DETAIL_FIELDS, normalize_research_batch
-from .storage import ArtifactContractError, atomic_write_json, atomic_write_parquet, json_sha256, load_json_object, load_manifest, sha256_file
+from .storage import read_parquet_file, ArtifactContractError, atomic_write_json, atomic_write_parquet, json_sha256, load_json_object, load_manifest, sha256_file
 
 VERSION = "ifind_enrichment_v1"
 MODULES = {"financial_history", "industry", "tradability", "index_prices", "structured_events", "forecasts"}
@@ -293,7 +293,7 @@ def _index_cache(root, profile_hash, codes, end):
             raise ArtifactContractError("benchmark receipt identity mismatch")
         ref = receipt["artifact"]
         _verify(root, ref)
-        frame = pd.read_parquet(root / ref["path"])
+        frame = read_parquet_file(root / ref["path"])
         found.update(zip(frame["thscode"], frame["trade_date"]))
         refs.append(ref)
     missing_dates = sorted(day for code, day in wanted - found)
@@ -446,7 +446,7 @@ def main(argv=None):
         parser.error("--codes cannot override the canary sample")
     if args.codes:
         codes = sorted(set(code.strip().upper() for code in args.codes.split(",") if code.strip()))
-        universe = pd.read_parquet(verified_path("universe.parquet"))
+        universe = read_parquet_file(verified_path("universe.parquet"))
         if not set(codes) <= set(universe["thscode"]):
             raise ArtifactContractError("deep-research codes must belong to the verified market universe")
     else:

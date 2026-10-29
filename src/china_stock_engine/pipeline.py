@@ -26,6 +26,7 @@ from .data_reference import (
     data_cutoff_time_for_date,
 )
 from .storage import (
+    read_parquet_file,
     ArtifactContractError,
     load_json_object,
     load_manifest,
@@ -145,7 +146,7 @@ def _previous_quality_context(
     }
     if not all(path.exists() for path in paths.values()):
         return None
-    return {name: pd.read_parquet(path) for name, path in paths.items()}
+    return {name: read_parquet_file(path) for name, path in paths.items()}
 
 
 def collect_and_publish(
@@ -505,11 +506,11 @@ def validate_latest(
     errors = list(artifact_errors)
     try:
         latest = data_dir / "latest"
-        universe = pd.read_parquet(latest / "universe.parquet")
-        security_reference = pd.read_parquet(latest / "security_reference.parquet")
-        quotes = pd.read_parquet(latest / "daily_quotes.parquet")
-        trading_calendar = pd.read_parquet(latest / "trading_calendar.parquet")
-        daily_status = pd.read_parquet(latest / "daily_security_status.parquet")
+        universe = read_parquet_file(latest / "universe.parquet")
+        security_reference = read_parquet_file(latest / "security_reference.parquet")
+        quotes = read_parquet_file(latest / "daily_quotes.parquet")
+        trading_calendar = read_parquet_file(latest / "trading_calendar.parquet")
+        daily_status = read_parquet_file(latest / "daily_security_status.parquet")
         trade_date = str(manifest.get("trade_date") or "")
         thresholds = manifest.get("quality_thresholds") or {}
         quality = validate_data(

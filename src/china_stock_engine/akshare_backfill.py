@@ -15,7 +15,8 @@ import threading
 import time
 from typing import Any
 import pandas as pd
-from .storage import (ArtifactContractError, atomic_write_json, atomic_write_parquet,
+
+from .storage import (read_parquet_file, ArtifactContractError, atomic_write_json, atomic_write_parquet,
                       json_sha256, load_json_object, load_manifest, sha256_file)
 
 ADAPTER_VERSION = "akshare-tencent-v2"
@@ -216,7 +217,7 @@ def bootstrap(data_dir: Path, cache: Path, end: str, session_count: int) -> dict
         raise ArtifactContractError("incomplete AKShare current universe")
     listing = pd.DataFrame(listings).drop_duplicates("thscode", keep="last").set_index("thscode") if listings else pd.DataFrame()
     old_path = data_dir / "latest/security_reference.parquet"
-    old = pd.read_parquet(old_path).set_index("thscode") if old_path.exists() else pd.DataFrame()
+    old = read_parquet_file(old_path).set_index("thscode") if old_path.exists() else pd.DataFrame()
     refs = []
     for row in universe.to_dict("records"):
         code = row["thscode"]
@@ -251,7 +252,7 @@ def bootstrap(data_dir: Path, cache: Path, end: str, session_count: int) -> dict
 
 def collect(data_dir: Path, cache: Path, end: str, session_count: int, workers: int, limit: int | None = None) -> dict:
     meta = bootstrap(data_dir, cache, end, session_count)
-    universe = pd.read_parquet(cache / "universe.parquet")
+    universe = read_parquet_file(cache / "universe.parquet")
     codes = universe["thscode"].tolist()
     if limit:
         codes = codes[:limit]
@@ -270,7 +271,7 @@ def collect(data_dir: Path, cache: Path, end: str, session_count: int, workers: 
                 raise ArtifactContractError(f"cached raw checkpoint hash mismatch: {code}")
             if previous_receipt.get("bootstrap_sha256") == json_sha256(meta):
                 return code, previous_receipt, True
-            previous = pd.read_parquet(path)
+            previous = read_parquet_file(path)
         error = None
         for attempt in range(3):
             try:
@@ -341,18 +342,18 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
     from .data_reference import build_data_reference_outputs, data_cutoff_time_for_date
     from .pipeline import validate_latest
     meta = result["bootstrap"]
-    universe = normalize_universe(pd.read_parquet(cache / "universe.parquet"))
+    universe = normalize_universe(read_parquet_file(cache / "universe.parquet"))
     if result["securities"] != len(universe) or result["failures"]:
         raise ArtifactContractError("all-market collection incomplete; refusing latest promotion")
-    original_ref = pd.read_parquet(cache / "reference.parquet")
+    original_ref = read_parquet_file(cache / "reference.parquet")
     reference = normalize_security_reference(original_ref, universe)
     reference = reference.merge(original_ref[["thscode", "listing_date_basis", "share_count_reference_date"]],
                                 on="thscode", validate="one_to_one")
-    calendar = normalize_trade_calendar(pd.read_parquet(cache / "calendar.parquet"))
+    calendar = normalize_trade_calendar(read_parquet_file(cache / "calendar.parquet"))
     certified_open = set(calendar.loc[calendar["is_open"].eq(True), "trade_date"].astype(str))
     independently_observed_open = set()
     for cached_calendar in (data_dir / "facts/reference").glob("as_of_date=*/trading_calendar.parquet"):
-        prior = pd.read_parquet(cached_calendar)
+        prior = read_parquet_file(cached_calendar)
         if "source_provider" in prior:
             prior = prior.loc[prior["source_provider"].eq("ifind_http")]
         independently_observed_open.update(prior.loc[prior["is_open"].eq(True), "trade_date"].astype(str))
@@ -367,7 +368,7 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
         receipt = load_json_object(path.with_suffix(".json"), missing_ok=False)
         if receipt["bootstrap_sha256"] != json_sha256(meta) or sha256_file(path) != receipt["sha256"]:
             raise ArtifactContractError(f"normalized checkpoint hash mismatch: {code}")
-        frame = pd.read_parquet(path)
+        frame = read_parquet_file(path)
         traded = frame["volume"].gt(0) & frame["amount"].gt(0)
         vwap = frame["amount"] / frame["volume"].where(traded)
         if (traded & (vwap.lt(frame["low"] / 3) | vwap.gt(frame["high"] * 3))).any():
@@ -507,7 +508,7 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
             ("quotes", "daily_quotes.parquet", ["trade_date", "thscode"]),
             ("trading_calendar", "trading_calendar.parquet", ["calendar", "trade_date"]),
             ("daily_status", "daily_security_status.parquet", ["trade_date", "thscode"])):
-            stored = pd.read_parquet(seed_snapshot / filename)
+            stored = read_parquet_file(seed_snapshot / filename)
             persisted_manifest["provenance"][name + "_schema_signature"] = schema_signature(stored)
             persisted_manifest["provenance"][name + "_frame_sha256"] = frame_hash(stored, keys)
         atomic_write_json(seed_snapshot / "manifest.json", persisted_manifest)
@@ -538,7 +539,7 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
             raise ArtifactContractError("isolated AKShare derived publication failed validation: " + json.dumps(validation.get("errors", []), ensure_ascii=False))
         final_manifest = load_manifest(staging / "latest/manifest.json", missing_ok=False)
         _persist_technical_artifacts(data_dir, day, {
-            "technical_scan.parquet": pd.read_parquet(staging / "latest/technical_scan.parquet"),
+            "technical_scan.parquet": read_parquet_file(staging / "latest/technical_scan.parquet"),
             "technical_signals_latest.json": load_json_object(staging / "latest/technical_signals_latest.json", missing_ok=False),
         }, final_manifest, current_research=True)
         promote_verified_snapshot_to_latest(data_dir, day, source_dir=staging / "latest")

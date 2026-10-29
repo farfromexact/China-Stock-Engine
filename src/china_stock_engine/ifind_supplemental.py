@@ -21,6 +21,7 @@ import pandas as pd
 from .ifind_http import IFindHTTPClient, IFindHTTPError, _tables_frame, _raise_api_error
 from .research_inputs import normalize_research_batch
 from .storage import (
+    read_parquet_file,
     ArtifactContractError, atomic_write_json, atomic_write_parquet,
     json_sha256, load_json_object, load_manifest, sha256_file,
 )
@@ -264,7 +265,7 @@ def _cached_closes(data_dir, trade_date, codes, *, start_date=None):
     paths = [path for path in paths if path.parent.name[11:] >= start_date] if start_date else paths[-300:]
     if not paths:
         raise ArtifactContractError("no cached market history; refusing redundant download")
-    frames = [pd.read_parquet(path, columns=["trade_date", "thscode", "close"]) for path in paths]
+    frames = [read_parquet_file(path, columns=["trade_date", "thscode", "close"]) for path in paths]
     frame = pd.concat(frames, ignore_index=True)
     return frame.loc[frame["thscode"].isin(codes)].sort_values(["trade_date", "thscode"])
 

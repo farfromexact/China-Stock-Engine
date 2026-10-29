@@ -41,6 +41,12 @@
 
 `latest/` 只指向最后一个通过质量门的快照。采集或权限失败只更新尝试状态，不覆盖最后有效数据。
 
+读取单个 Parquet 产物使用 `storage.read_parquet_file(path, columns=...)`。
+文件已包含日期字段；该函数通过文件句柄读取，避免 Arrow 把上层
+`trade_date=...`、`as_of_date=...`、`vintage=...` 目录再次推断成 Hive 分区列。
+这样可兼容已有 `string` 与 pandas 3 写出的 `large_string`，不会注入目录字段，
+也不会用目录日期覆盖文件值；缺失或损坏文件仍报错。日期一致性继续由质量门检查。
+
 ## `stock_state` 字段组
 
 ### 身份与时间

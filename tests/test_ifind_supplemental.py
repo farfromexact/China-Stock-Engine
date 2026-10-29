@@ -12,7 +12,7 @@ from china_stock_engine.ifind_supplemental import (
     collect_financials_incremental, _save_batch,
 )
 from china_stock_engine.ifind_http import IFindHTTPError
-from china_stock_engine.storage import ArtifactContractError, atomic_write_parquet
+from china_stock_engine.storage import read_parquet_file, ArtifactContractError, atomic_write_parquet
 from china_stock_engine.data_reference import feature_pit_timing, apply_adjustments, load_adjustment_snapshot
 
 
@@ -75,7 +75,7 @@ class SupplementalTests(unittest.TestCase):
             self.assertEqual(other_client.audit, [])
             self.assertEqual(pointer, (data_dir / "latest/supplemental_manifest.json").read_bytes())
             artifact = first["modules"]["adjustment"]
-            frame = pd.read_parquet(data_dir / artifact["path"])
+            frame = read_parquet_file(data_dir / artifact["path"])
             self.assertTrue((pd.to_datetime(frame["known_at"], utc=True) > pd.Timestamp("2026-09-04T23:59:59Z")).all())
 
     def test_budget_and_failure_do_not_replace_last_valid_pointer(self):
