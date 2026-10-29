@@ -29,6 +29,14 @@ from .opportunity_radar import (
 )
 
 
+def _replace_numeric_infinities(frame: pd.DataFrame) -> pd.DataFrame:
+    """Clean numeric metrics without comparing list-valued evidence to scalars."""
+    output = frame.copy()
+    for column in output.select_dtypes(include="number").columns:
+        output[column] = output[column].replace([float("inf"), float("-inf")], pd.NA)
+    return output
+
+
 DATA_REFERENCE_SCHEMA_VERSION = 6
 STOCK_STATE_SCHEMA_VERSION = 6
 MAX_DATA_REFERENCE_BYTES = 2 * 1024 * 1024
@@ -1173,7 +1181,7 @@ def build_stock_state(
         if column not in current.columns:
             current[column] = pd.NA
     current = current.rename(columns={"turnover_ratio_z20": "turnover_z20"})
-    current = current.replace([float("inf"), float("-inf")], pd.NA)
+    current = _replace_numeric_infinities(current)
     state = current.reindex(columns=list(dict.fromkeys((*STOCK_STATE_COLUMNS, *TECHNICAL_METRIC_COLUMNS)))).sort_values("thscode")
 
     session_count = len(set(observed_dates) & set(slots))

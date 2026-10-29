@@ -6,15 +6,34 @@ import shutil
 import unittest
 
 import pandas as pd
+import pyarrow as pa
 
 from china_stock_engine.report_dashboard import build_data_reference_dashboard
 from china_stock_engine.data_reference import STOCK_STATE_COLUMNS, build_data_reference
+from china_stock_engine.data_reference import _replace_numeric_infinities
 
 
 TEST_ROOT = Path(__file__).resolve().parents[1] / ".test-tmp" / "data-reference"
 
 
 class DataReferenceTests(unittest.TestCase):
+    def test_infinity_cleanup_preserves_arrow_list_evidence(self) -> None:
+        frame = pd.DataFrame({
+            "metric": [float("inf"), float("-inf"), 0.0],
+            "nullable_metric": pd.Series([float("inf"), 1.0, None], dtype="Float64"),
+            "reason_codes": pd.Series([[], ["missing_quote"], None], dtype=pd.ArrowDtype(pa.list_(pa.string()))),
+            "empty_reasons": pd.Series([[], [], []], dtype=pd.ArrowDtype(pa.list_(pa.null()))),
+            "label": ["inf", "-inf", None],
+        })
+        result = _replace_numeric_infinities(frame)
+        self.assertTrue(result.loc[:1, "metric"].isna().all())
+        self.assertEqual(result.loc[2, "metric"], 0.0)
+        self.assertTrue(pd.isna(result.loc[0, "nullable_metric"]))
+        self.assertEqual(result.loc[1, "nullable_metric"], 1.0)
+        for column in ("reason_codes", "empty_reasons", "label"):
+            pd.testing.assert_series_equal(result[column], frame[column])
+        self.assertEqual(frame.loc[0, "metric"], float("inf"))
+
     def setUp(self) -> None:
         if TEST_ROOT.exists():
             shutil.rmtree(TEST_ROOT)
