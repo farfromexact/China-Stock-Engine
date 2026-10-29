@@ -1,0 +1,292 @@
+{
+  "artifacts": {
+    "daily_quotes.parquet": {
+      "rows": 5570,
+      "sha256": "a22eeb09b179f5fa675ca962b0f21e911a0eef075f447420b2279ab7b3ca33e9"
+    },
+    "daily_security_status.parquet": {
+      "rows": 5577,
+      "sha256": "230f09064e5c021dfca9431779b14f2c7c517b95583ca05c3bd20f50e9e15898"
+    },
+    "market_summary.json": {
+      "sha256": "ed3e56591f5b991a0b79c2104df429fc862e34016252813a071e3431aa11a7f3"
+    },
+    "security_reference.parquet": {
+      "rows": 5577,
+      "sha256": "9c6b71fe8022fd53f32ec217bfaf3229a1a68eb236bd18f17952f77accb89693"
+    },
+    "trading_calendar.parquet": {
+      "rows": 60,
+      "sha256": "c208175e8acb622007b3c7cbfce37a1eec9e3d442fe346cb33cffa5020b86b24"
+    },
+    "universe.parquet": {
+      "rows": 5577,
+      "sha256": "935c4f191e71825ba796affa32d075009bad238031a3dc737da94f52bc897034"
+    }
+  },
+  "collected_at_utc": "2026-10-29T01:25:40+00:00",
+  "collection_completed_at": "2026-10-29T01:25:40+00:00",
+  "collection_started_at": "2026-10-29T01:24:24+00:00",
+  "configured_decision_cutoff": "2026-10-27T20:15:00+08:00",
+  "data_fresh": true,
+  "effective_pit_cutoff": "2026-10-27T12:15:00+00:00",
+  "provenance": {
+    "calendar": "SSE",
+    "calendar_market_code": "212001",
+    "daily_status_frame_sha256": "3e3506eb7eae8c89994e38041759d4ea84db0013a50dc350d5c57d272a3f25f6",
+    "daily_status_schema_signature": "f4220d3f4663d078e7e5da0d76c80ceb16ecb3f2d6aa7e0380153d28fdafd48b",
+    "quotes_frame_sha256": "61f2aaa130a8b362c8211eac25728d150adf5d7a39ba802d7caa9d548a2afe70",
+    "quotes_schema_signature": "e441333195e21729b229a8c5405e412c5ca94f3959e5f4abcb26872bceb177b7",
+    "security_reference_frame_sha256": "025851eaf3fa800f7429edbe13e3cf3f6a275d8b2d384a86228b35affefa29d2",
+    "security_reference_schema_signature": "63baa48056b84f0873c443ee9db461f6db9e6f81400d4d6423b73108f7ebf168",
+    "trading_calendar_frame_sha256": "07b4f655074abab3208c7ef8b2bfaea5a103506349449bcc0f3909175671ec3c",
+    "trading_calendar_schema_signature": "7d7b6132ee729680d7dc85cb7b4764db0967e2b32ab460a7bc41290dcd5a9da3",
+    "universe_block": "001005010",
+    "universe_frame_sha256": "e229e977550c9c996a379e3c168a2144c9c702c4b1284bbf6b9e9fbb958bc630",
+    "universe_report": "p03291",
+    "universe_schema_signature": "5f010abbee5407028bf349a8acad070033e7d13cdc12c01b7b101a2465594c6c"
+  },
+  "provider": "ifind_http",
+  "quality": {
+    "errors": [],
+    "metrics": {
+      "average_price_outside_range_rows": 0,
+      "calendar_as_of_dates": [
+        "2026-10-27"
+      ],
+      "calendar_open_dates": [
+        "2026-07-28",
+        "2026-07-29",
+        "2026-07-30",
+        "2026-07-31",
+        "2026-08-03",
+        "2026-08-04",
+        "2026-08-05",
+        "2026-08-06",
+        "2026-08-07",
+        "2026-08-10",
+        "2026-08-11",
+        "2026-08-12",
+        "2026-08-13",
+        "2026-08-14",
+        "2026-08-17",
+        "2026-08-18",
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21",
+        "2026-08-24",
+        "2026-08-25",
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-31",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04",
+        "2026-09-07",
+        "2026-09-08",
+        "2026-09-09",
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-14",
+        "2026-09-15",
+        "2026-09-16",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-09-24",
+        "2026-09-28",
+        "2026-09-29",
+        "2026-09-30",
+        "2026-10-08",
+        "2026-10-09",
+        "2026-10-12",
+        "2026-10-13",
+        "2026-10-14",
+        "2026-10-15",
+        "2026-10-16",
+        "2026-10-19",
+        "2026-10-20",
+        "2026-10-21",
+        "2026-10-22",
+        "2026-10-23",
+        "2026-10-26",
+        "2026-10-27"
+      ],
+      "change_ratio_inconsistent_rows": 0,
+      "complete_ohlc_rows": 5570,
+      "drift": {
+        "alerts": [],
+        "no_quote_observed": {
+          "current": 7,
+          "delta": 0,
+          "previous": 7
+        },
+        "pre_close_continuity": {
+          "comparable_count": 5570,
+          "mismatch_count": 0,
+          "mismatch_ratio": 0.0,
+          "per_security_tolerance": 0.05
+        },
+        "previous_trade_date": "2026-10-26",
+        "quote_coverage": {
+          "current": 0.998745,
+          "delta": 0.0,
+          "previous": 0.998745
+        },
+        "reference_coverage": {
+          "current": 1.0,
+          "delta": 0.0,
+          "previous": 1.0
+        },
+        "state": "checked",
+        "total_amount": {
+          "current": 1472896979284.94,
+          "previous": 1623091874610.96,
+          "ratio": 0.907464
+        },
+        "universe_count": {
+          "current": 5577,
+          "delta": 0,
+          "delta_ratio": 0.0,
+          "previous": 5577
+        },
+        "universe_group_counts": {
+          "board": {
+            "BSE": {
+              "current": 353,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 353
+            },
+            "CHINEXT": {
+              "current": 1411,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1411
+            },
+            "SSE_MAIN": {
+              "current": 1701,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1701
+            },
+            "STAR": {
+              "current": 617,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 617
+            },
+            "SZSE_MAIN": {
+              "current": 1495,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1495
+            }
+          },
+          "exchange": {
+            "BSE": {
+              "current": 353,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 353
+            },
+            "SSE": {
+              "current": 2318,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2318
+            },
+            "SZSE": {
+              "current": 2906,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2906
+            }
+          }
+        }
+      },
+      "float_exceeds_total_rows": 0,
+      "future_listing_date_rows": 0,
+      "invalid_ohlc_rows": 0,
+      "negative_amount_rows": 0,
+      "negative_float_shares_rows": 0,
+      "negative_total_shares_rows": 0,
+      "negative_turnover_rows": 0,
+      "negative_volume_rows": 0,
+      "nonpositive_price_values": 0,
+      "observation_state_counts": {
+        "no_quote_observed": 7,
+        "traded": 5570
+      },
+      "quote_count": 5570,
+      "quote_coverage": 0.998745,
+      "quote_dates": [
+        "2026-10-27"
+      ],
+      "quote_duplicates": 0,
+      "quote_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "quote_field_coverage": {
+        "avg_price": 1.0,
+        "pre_close": 1.0,
+        "turnover_ratio": 1.0
+      },
+      "reference_count": 5577,
+      "reference_coverage": 1.0,
+      "reference_dates": [
+        "2026-10-27"
+      ],
+      "reference_duplicates": 0,
+      "reference_field_coverage": {
+        "float_a_shares": 1.0,
+        "listing_date": 1.0,
+        "total_shares": 1.0
+      },
+      "requested_trade_date": "2026-10-27",
+      "status_count": 5577,
+      "status_dates": [
+        "2026-10-27"
+      ],
+      "status_duplicates": 0,
+      "universe_count": 5577,
+      "universe_dates": [
+        "2026-10-27"
+      ],
+      "universe_duplicates": 0,
+      "universe_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "unknown_quote_codes": 0,
+      "unknown_reference_codes": 0
+    },
+    "ok": true,
+    "warnings": []
+  },
+  "quality_thresholds": {
+    "min_extended_field_coverage": 0.95,
+    "min_quote_coverage": 0.98,
+    "min_reference_coverage": 0.98,
+    "min_universe_size": 5000
+  },
+  "raw_payload_persisted": false,
+  "requested_trade_date": "2026-10-27",
+  "schema_version": 3,
+  "source_endpoints": [
+    "get_trade_dates",
+    "data_pool",
+    "basic_data_service",
+    "cmd_history_quotation"
+  ],
+  "source_trade_date": "2026-10-27",
+  "trade_date": "2026-10-27",
+  "verified": true
+}
