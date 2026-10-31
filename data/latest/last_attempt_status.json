@@ -1,17 +1,214 @@
 {
-  "completed_at_utc": "2026-10-31T02:25:24+00:00",
-  "completed_count": 2,
-  "completed_trade_dates": [
-    "2026-10-29",
-    "2026-10-30"
-  ],
-  "data_fresh": true,
+  "artifacts": {
+    "daily_quotes.parquet": {
+      "rows": 5571,
+      "sha256": "87581020ff4673e67d4f33fdaa6c64afb19d8c47dc1ed5e5456868de5ee12646"
+    },
+    "daily_security_status.parquet": {
+      "rows": 5577,
+      "sha256": "f985f86f4494dea791de0ac894fada751867933c34a89b7615894c531f9d7e5e"
+    },
+    "market_summary.json": {
+      "sha256": "02ad3aefcddee92f0996704583984b82d0ce9f9474b5f2124355665902526a14"
+    },
+    "security_reference.parquet": {
+      "rows": 5577,
+      "sha256": "df788de46847f78360bb177351eb73eb7a16f0facc00e6fd2d25c36942cf6b66"
+    },
+    "trading_calendar.parquet": {
+      "rows": 11,
+      "sha256": "ce70e3ba882d264a516296949dddb96d10519b209afa79c668a2f81775dc6f67"
+    },
+    "universe.parquet": {
+      "rows": 5577,
+      "sha256": "d325c0fdbbc434ece0eb421c1286f676df5119d7085a753fc33205989e7eb7d2"
+    }
+  },
+  "completed_at_utc": "2026-10-31T02:30:59+00:00",
+  "data_fresh": false,
+  "data_reference": {},
+  "data_reference_error": "ArtifactContractError: source snapshot artifact hash mismatch: trading_calendar.parquet",
   "last_valid_trade_date": "2026-10-30",
-  "non_trading_dates": [],
+  "previous_valid_trade_date": "2026-10-30",
   "provider": "ifind_http",
+  "quality": {
+    "errors": [],
+    "metrics": {
+      "average_price_outside_range_rows": 0,
+      "calendar_as_of_dates": [
+        "2026-10-30"
+      ],
+      "calendar_open_dates": [
+        "2026-10-16",
+        "2026-10-19",
+        "2026-10-20",
+        "2026-10-21",
+        "2026-10-22",
+        "2026-10-23",
+        "2026-10-26",
+        "2026-10-27",
+        "2026-10-28",
+        "2026-10-29",
+        "2026-10-30"
+      ],
+      "change_ratio_inconsistent_rows": 0,
+      "complete_ohlc_rows": 5571,
+      "drift": {
+        "alerts": [],
+        "no_quote_observed": {
+          "current": 6,
+          "delta": -1,
+          "previous": 7
+        },
+        "pre_close_continuity": {
+          "comparable_count": 5570,
+          "mismatch_count": 0,
+          "mismatch_ratio": 0.0,
+          "per_security_tolerance": 0.05
+        },
+        "previous_trade_date": "2026-10-29",
+        "quote_coverage": {
+          "current": 0.998924,
+          "delta": 0.000179,
+          "previous": 0.998745
+        },
+        "reference_coverage": {
+          "current": 1.0,
+          "delta": 0.0,
+          "previous": 1.0
+        },
+        "state": "checked",
+        "total_amount": {
+          "current": 1687710160982.29,
+          "previous": 1570711538965.54,
+          "ratio": 1.074488
+        },
+        "universe_count": {
+          "current": 5577,
+          "delta": 0,
+          "delta_ratio": 0.0,
+          "previous": 5577
+        },
+        "universe_group_counts": {
+          "board": {
+            "BSE": {
+              "current": 354,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 354
+            },
+            "CHINEXT": {
+              "current": 1410,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1410
+            },
+            "SSE_MAIN": {
+              "current": 1701,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1701
+            },
+            "STAR": {
+              "current": 617,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 617
+            },
+            "SZSE_MAIN": {
+              "current": 1495,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 1495
+            }
+          },
+          "exchange": {
+            "BSE": {
+              "current": 354,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 354
+            },
+            "SSE": {
+              "current": 2318,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2318
+            },
+            "SZSE": {
+              "current": 2905,
+              "delta": 0,
+              "delta_ratio": 0.0,
+              "previous": 2905
+            }
+          }
+        }
+      },
+      "float_exceeds_total_rows": 0,
+      "future_listing_date_rows": 0,
+      "invalid_ohlc_rows": 0,
+      "negative_amount_rows": 0,
+      "negative_float_shares_rows": 0,
+      "negative_total_shares_rows": 0,
+      "negative_turnover_rows": 0,
+      "negative_volume_rows": 0,
+      "nonpositive_price_values": 0,
+      "observation_state_counts": {
+        "no_quote_observed": 6,
+        "traded": 5571
+      },
+      "quote_count": 5571,
+      "quote_coverage": 0.998924,
+      "quote_dates": [
+        "2026-10-30"
+      ],
+      "quote_duplicates": 0,
+      "quote_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "quote_field_coverage": {
+        "avg_price": 1.0,
+        "pre_close": 1.0,
+        "turnover_ratio": 1.0
+      },
+      "reference_count": 5577,
+      "reference_coverage": 1.0,
+      "reference_dates": [
+        "2026-10-30"
+      ],
+      "reference_duplicates": 0,
+      "reference_field_coverage": {
+        "float_a_shares": 1.0,
+        "listing_date": 1.0,
+        "total_shares": 1.0
+      },
+      "requested_trade_date": "2026-10-30",
+      "status_count": 5577,
+      "status_dates": [
+        "2026-10-30"
+      ],
+      "status_duplicates": 0,
+      "universe_count": 5577,
+      "universe_dates": [
+        "2026-10-30"
+      ],
+      "universe_duplicates": 0,
+      "universe_exchanges": [
+        "BSE",
+        "SSE",
+        "SZSE"
+      ],
+      "unknown_quote_codes": 0,
+      "unknown_reference_codes": 0
+    },
+    "ok": true,
+    "warnings": []
+  },
   "raw_payload_persisted": false,
-  "requested_end": "2026-10-30",
-  "requested_start": "2026-10-29",
+  "requested_trade_date": "2026-10-30",
   "schema_version": 2,
-  "state": "success_backfill"
+  "started_at_utc": "2026-10-31T02:29:10+00:00",
+  "state": "failed_derived_contract"
 }
