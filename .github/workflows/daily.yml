@@ -47,12 +47,6 @@ jobs:
         shell: bash
         run: |
           git push --dry-run origin HEAD:main
-          REPO_BYTES=$(du -sb "${GITHUB_WORKSPACE}" | awk '{print $1}')
-          echo "Repository working size: ${REPO_BYTES} bytes"
-          if (( REPO_BYTES >= 900000000 )); then
-            echo "Repository is at the 900 MB migration gate; free capacity or move long-term facts before collecting." >&2
-            exit 1
-          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -68,6 +62,9 @@ jobs:
 
       - name: Run tests
         run: python -m unittest discover -s tests -v
+
+      - name: Retain five complete snapshots and check active data capacity
+        run: python -m china_stock_engine.retention --check-capacity
 
       - name: Collect iFinD A-share snapshot
         id: collect
@@ -207,13 +204,16 @@ jobs:
           cd "${GITHUB_WORKSPACE}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          REPO_BYTES=$(du -sb . | awk '{print $1}')
-          echo "Repository working size: ${REPO_BYTES} bytes"
-          if (( REPO_BYTES >= 900000000 )); then
-            echo "Repository is at the 900 MB migration gate; move long-term facts to object storage before publishing." >&2
+          if ! python -m china_stock_engine.retention --check-capacity; then
+            # Record capacity failures without attempting to publish oversized data.
+            if [[ -f data/storage_status.json ]]; then
+              git add data/storage_status.json
+              if ! git diff --cached --quiet; then
+                git commit -m "data: record storage publication failure"
+                git push origin HEAD:main
+              fi
+            fi
             exit 1
-          elif (( REPO_BYTES >= 800000000 )); then
-            echo "Warning: repository exceeds 800 MB; object-storage migration is due." >&2
           fi
           if [[ "${COLLECT_OUTCOME}" == "success" && "${COLLECTION_STATE}" != "market_closed" && "${VALIDATE_OUTCOME}" == "success" && "${REFERENCE_OUTCOME}" == "success" ]]; then
             git add --all data

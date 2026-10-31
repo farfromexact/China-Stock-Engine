@@ -4,7 +4,7 @@
 
 - 数据：[a_share_industry.parquet](../data/reference/industry/snapshot_date=2026-10-16/a_share_industry.parquet)
 - 来源与校验清单：[manifest.json](../data/reference/industry/snapshot_date=2026-10-16/manifest.json)
-- 股票范围：[2026-10-15 股票池](../data/snapshots/2026-10-15/universe.parquet)
+- 股票范围：[2026-10-15 股票池](../data/facts/reference/as_of_date=2026-10-15/universe.parquet)
 - 取得日期：2026-10-16；每条记录的实际取得时间见 `observed_at`。
 
 ## 覆盖情况

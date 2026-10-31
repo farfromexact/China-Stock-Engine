@@ -52,7 +52,7 @@ class CollectionConfig:
     request_interval_seconds: float = 0.15
     trade_calendar_offset: int = -10
     history_limit: int = 20
-    snapshot_limit: int = 60
+    snapshot_limit: int = 5
     build_data_reference: bool = True
 
 

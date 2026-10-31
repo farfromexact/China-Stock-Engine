@@ -38,10 +38,10 @@ jobs:
         if: ${{ !inputs.catalog_only }}
         run: |
           git push --dry-run origin HEAD:main
-          test "$(du -sb . | cut -f1)" -lt 900000000
           python -m pip install -r requirements.txt
           python -m pip install --no-deps -e .
           python -m unittest discover -s tests -q
+          python -m china_stock_engine.retention --check-capacity
       - name: Collect verified research facts
         if: ${{ !inputs.catalog_only }}
         id: enrichment
@@ -57,10 +57,11 @@ jobs:
       - name: Publish normalized checkpoints and last valid research pointer
         if: always() && steps.enrichment.outcome != 'skipped' && !inputs.catalog_only
         run: |
-          test "$(du -sb . | cut -f1)" -lt 900000000
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add --all data/facts
+          python -m china_stock_engine.retention --check-capacity
+          git add --all data/facts data/snapshots
+          git add data/storage_status.json
           if [[ -f data/enrichment_last_attempt.json ]]; then git add data/enrichment_last_attempt.json; fi
           if [[ -f data/latest/enrichment_manifest.json ]]; then git add data/latest/enrichment_manifest.json; fi
           if git diff --cached --quiet; then exit 0; fi

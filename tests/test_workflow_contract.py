@@ -26,6 +26,14 @@ class DailyWorkflowContractTests(unittest.TestCase):
             self.workflow,
         )
 
+    def test_retention_runs_before_collection_and_publication(self):
+        first = self.workflow.index("python -m china_stock_engine.retention --check-capacity")
+        self.assertLess(first, self.workflow.index("Collect iFinD A-share snapshot"))
+        publication = self.workflow[self.workflow.index("Publish data to this repository atomically"):]
+        self.assertIn("python -m china_stock_engine.retention --check-capacity", publication)
+        self.assertIn("git add data/storage_status.json", publication)
+        self.assertNotIn("du -sb", self.workflow)
+
     def test_never_uses_ephemeral_data_or_html_artifacts(self) -> None:
         self.assertNotIn("RUNNER_TEMP}/china-stock-engine-data", self.workflow)
         self.assertNotIn("actions/upload-artifact", self.workflow)

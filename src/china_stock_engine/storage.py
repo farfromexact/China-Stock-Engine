@@ -182,6 +182,8 @@ def _update_market_history(
 
 
 def _prune_snapshots(data_dir: Path, snapshot_limit: int) -> None:
+    if snapshot_limit < 1:
+        raise ValueError("snapshot_limit must be positive")
     snapshots_dir = data_dir / "snapshots"
     if not snapshots_dir.exists():
         return
@@ -190,7 +192,10 @@ def _prune_snapshots(data_dir: Path, snapshot_limit: int) -> None:
         for path in snapshots_dir.iterdir()
         if path.is_dir() and SNAPSHOT_DIR_PATTERN.fullmatch(path.name)
     )
+    latest_date = load_manifest(data_dir / "latest" / "manifest.json").get("trade_date")
     for path in snapshots[:-snapshot_limit]:
+        if path.name == latest_date:
+            continue
         resolved = path.resolve()
         if resolved.parent != snapshots_dir.resolve():
             raise RuntimeError(
@@ -200,8 +205,26 @@ def _prune_snapshots(data_dir: Path, snapshot_limit: int) -> None:
         # Upgrade legacy snapshots before removing their only verification
         # evidence. Already-pruned snapshots cannot be retroactively certified.
         manifest = load_manifest(path / "manifest.json")
+        # Only discard duplicate artifacts after verifying durable counterparts.
+        for name in ("daily_quotes.parquet", "daily_security_status.parquet",
+                     "universe.parquet", "security_reference.parquet", "trading_calendar.parquet"):
+            source = path / name
+            if not source.exists():
+                continue
+            partition = (data_dir / "facts" / "market" / f"trade_date={path.name}"
+                         if name in ("daily_quotes.parquet", "daily_security_status.parquet")
+                         else data_dir / "facts" / "reference" / f"as_of_date={path.name}")
+            expected = ((manifest.get("artifacts") or {}).get(name) or {}).get("sha256")
+            if (not expected or sha256_file(source) != expected
+                    or not (partition / name).exists()
+                    or sha256_file(partition / name) != expected):
+                raise ArtifactContractError(f"cannot prune snapshot without matching durable fact: {path.name} {name}")
         if manifest.get("verified") is True:
             _retain_market_receipt(data_dir, path.name, manifest)
+        receipt = data_dir / "facts" / "collection_receipts" / "snapshot_retention" / f"trade_date={path.name}"
+        atomic_write_json(receipt / "manifest.json", manifest)
+        if (path / "market_summary.json").exists():
+            atomic_copy(path / "market_summary.json", receipt / "market_summary.json")
         shutil.rmtree(path)
 
 
@@ -237,7 +260,7 @@ def promote_snapshot(
     manifest: dict[str, Any],
     *,
     history_limit: int = 20,
-    snapshot_limit: int = 60,
+    snapshot_limit: int = 5,
     promote_latest: bool = True,
 ) -> dict[str, Any]:
     snapshot_dir = data_dir / "snapshots" / trade_date

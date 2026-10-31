@@ -46,7 +46,7 @@ China Stock Engine 同时是代码仓和数据仓：它在工作日收盘后通�
 - `data/latest/technical_scan.parquet`：全市场技术规则、排除/待核原因、关键价位与信号历史；
 - `data/latest/technical_signals_latest.json`：全部技术匹配和覆盖统计；
 - `data/latest/research_inputs_latest.json`：全股票池研究事实索引；按哈希前缀读取 `research_*.json` 分片，不限于行情 Top100；
-- `data/snapshots/YYYY-MM-DD/`：按交易日冻结的完整验证快照；
+- `data/snapshots/YYYY-MM-DD/`：最近 5 个日期的完整验证快照（另保护 latest 引用日期）；
 - `data/last_run_status.json`：最近一次采集尝试的状态，失败不会覆盖 `latest`。
 - `data/latest/supplemental_manifest.json`：最后验证成功的真实财务/公告/复权补充采集，包含实际采集日期、有限证券范围、规范化文件路径与哈希；与历史收盘快照的时间边界分开。
 - `data/supplemental_last_attempt.json`：补充采集最近尝试、复用情况和接口报告的提取量。
@@ -249,9 +249,9 @@ python -m china_stock_engine.cli build-report
 
 ## GitHub Actions 与本仓数据留存
 
-工作流在工作日北京时间 18:30 运行测试、采集和校验。它不生成或上传 HTML artifact；成功后的完整标准化数据直接提交到本仓的 `data/` 目录和 `main` 分支，供其他 automation 直接 clone 或读取。`concurrency` 防止两个发布任务同时更新指针。
+工作流由外部 ChatGPT automation 触发，仓库内没有 cron。最近实际触发约为北京时间次日 07:30，并非本文早期记载的 18:30；具体时间取决于外部任务设置。每次运行测试、采集和校验。它不生成或上传 HTML artifact；成功后的完整标准化数据直接提交到本仓的 `data/` 目录和 `main` 分支，供其他 automation 直接 clone 或读取。`concurrency` 防止两个发布任务同时更新指针。
 
-在调用 iFinD 前，工作流会对本仓执行 `git push --dry-run` 并检查仓库容量；没有写入权限或仓库达到 900 MB 容量门槛时会直接失败，不会开始提取。自动化只需要配置加密 Secret `IFIND_REFRESH_TOKEN`；workflow 已请求本仓 `contents: write` 权限用于提交数据。
+在调用 iFinD 前，工作流会对本仓执行 `git push --dry-run`，核验并精简重复快照，然后检查活动数据容量。完整快照默认只保留最近 5 个日期，另保护 latest 引用的快照；历史行情、复权、证券参考、交易日历和技术信号事实不裁剪。被精简日期的 manifest、市场摘要和行情校验凭证继续保存在 facts 中。删除副本前逐个校验基础文件与事实分区的 SHA256，不匹配就停止。容量门槛只统计 `data/`，不把 `.git` 开销混入数据额度；700 MB 预警，900 MB 阻止完整数据发布。`data/storage_status.json` 记录最近容量检查，发布因容量失败时会单独提交这个小状态，避免远端只剩旧成功记录。没有写入权限或活动数据达到门槛时不会开始提取。历史事实继续增长，接近预警时仍需安排长期存储迁移。自动化只需要配置加密 Secret `IFIND_REFRESH_TOKEN`；workflow 已请求本仓 `contents: write` 权限用于提交数据。
 
 工作流会恢复历史、补齐缺失交易日、分层验证，并在全部成功后一次性提交完整 `data/`。失败和休市只更新脱敏尝试状态，不移动最后有效快照。
 
