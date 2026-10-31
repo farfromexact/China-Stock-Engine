@@ -1,248 +1,8 @@
 {
- "research_asof":"2026-10-29T01:27:18+00:00",
- "research_effective_pit_cutoff":"2026-10-29T01:25:40+00:00",
+ "research_asof":"2026-10-31T02:25:25+00:00",
+ "research_effective_pit_cutoff":"2026-10-31T02:23:21+00:00",
  "schema_version":1,
  "securities":[
-  {
-   "availability":{
-    "events":"unknown",
-    "financials":"observed",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[],
-   "events":[],
-   "financials":{
-    "basis_statement_hashes":[
-     "70a4a11b1aa3bb1ab5be1a6757d74b6e821f7b4bf0c99b73c15775a079d6b49e"
-    ],
-    "latest_statement":{
-     "accounting_scope":"consolidated",
-     "currency":"CNY",
-     "document_access":"not_resolved",
-     "document_sha256":null,
-     "first_seen_at":"2026-09-10T15:00:06.674704+00:00",
-     "known_at":"2026-09-10T15:00:06.674704+00:00",
-     "period_basis":"YTD",
-     "period_start":"2026-01-01",
-     "published_at":"2026-08-27T15:59:59+00:00",
-     "report_period":"2026-06-30",
-     "research_availability":{
-      "first_observed_at":"2026-09-10T15:00:06.674704+00:00",
-      "known_at":"2026-09-10T15:00:06.674704+00:00",
-      "source_published_at":"2026-08-27T15:59:59+00:00",
-      "usable_for_current_research":true,
-      "usable_for_historical_replay":true
-     },
-     "revision":"ifind_pit_2026-09-10_ca3a4af2671b1041",
-     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
-     "source_url_kind":"provider_query_documentation",
-     "thscode":"300290.SZ",
-     "unit":"CNY",
-     "values":{
-      "capex":null,
-      "cash":null,
-      "equity_parent":null,
-      "interest_bearing_debt":null,
-      "net_profit_ex_nonrecurring":null,
-      "net_profit_parent":-152086423.02,
-      "operating_cash_flow":null,
-      "revenue":null
-     }
-    },
-    "nonrecurring_profit_share":null,
-    "profit_positive_cashflow_negative":null,
-    "quality_facts":{
-     "accounts_receivable_yoy_pct":null,
-     "cash_definition":"reported_monetary_funds_not_confirmed_unrestricted_cash",
-     "cash_to_interest_bearing_debt":null,
-     "gross_margin_ytd_pct":null,
-     "industry_applicability":"industrial_statement_ratios_require_industry_validation; not a bank/insurer model",
-     "inventory_yoy_pct":null,
-     "liabilities_to_assets":null,
-     "operating_cashflow_to_parent_profit_ytd":null,
-     "quarter_yoy_pct":{
-      "capex":null,
-      "net_profit_ex_nonrecurring":null,
-      "net_profit_parent":null,
-      "operating_cash_flow":null,
-      "operating_costs":null,
-      "revenue":null
-     },
-     "statement_periods":[
-      "2026-06-30"
-     ],
-     "statement_periods_available":1
-    },
-    "quarter_flows":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    },
-    "ttm_flows":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    },
-    "valuation":{
-     "dividend_yield":null,
-     "historical_percentile":null,
-     "pb":null,
-     "pb_denominator":"consolidated_parent_equity_cny",
-     "pb_state":"unknown",
-     "pe_denominator":"consolidated_parent_net_profit_ttm_cny",
-     "pe_state":"unknown",
-     "pe_ttm":null,
-     "peer_percentile":null,
-     "ps_denominator":"consolidated_revenue_ttm_cny",
-     "ps_ttm":null,
-     "unavailable_reason":"dividend_basis_long_history_and_pit_peers_not_integrated"
-    },
-    "yoy_pct":{
-     "capex":null,
-     "net_profit_ex_nonrecurring":null,
-     "net_profit_parent":null,
-     "operating_cash_flow":null,
-     "operating_costs":null,
-     "revenue":null
-    }
-   },
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":"YTD",
-    "published_at":"2026-08-27T15:59:59+00:00",
-    "report_period":"2026-06-30",
-    "state":"partial"
-   },
-   "security_name":"ST荣科",
-   "security_status":{
-    "as_of_trade_date":"2026-10-28",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":163606331.088,
-    "amount_z20":-0.962127,
-    "raw_close":5.61,
-    "raw_return_1d_pct":-1.751313,
-    "raw_return_20d_pct":-27.425614,
-    "raw_return_3d_pct":-2.941176,
-    "raw_return_5d_pct":-8.631922,
-    "total_market_cap":3588899712.09
-   },
-   "thscode":"300290.SZ"
-  },
-  {
-   "availability":{
-    "events":"observed",
-    "financials":"unknown",
-    "forecasts":"not_ready"
-   },
-   "commodity_exposures":[],
-   "discovery_routes":[
-    "event_filing"
-   ],
-   "events":[
-    {
-     "document_access":"authenticated_link_omitted",
-     "document_sha256":null,
-     "event_date":"2026-10-10",
-     "event_id":"ifind_5347625897",
-     "event_type":"filing",
-     "first_seen_at":"2026-10-14T23:35:59.651309+00:00",
-     "known_at":"2026-10-14T23:35:59.651309+00:00",
-     "price_response":{
-      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":13,
-      "first_full_session":"2026-10-12",
-      "return_pct":-24.901185770751244,
-      "state":"observed"
-     },
-     "published_at":"2026-10-09T08:23:06+00:00",
-     "research_availability":{
-      "first_observed_at":"2026-10-14T23:35:59.651309+00:00",
-      "known_at":"2026-10-14T23:35:59.651309+00:00",
-      "source_published_at":"2026-10-09T08:23:06+00:00",
-      "usable_for_current_research":true,
-      "usable_for_historical_replay":true
-     },
-     "revision":"ifind_f4f5f8a93086de61944cf0eade0d66f2",
-     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
-     "source_url_kind":"provider_query_documentation",
-     "status":"unknown",
-     "thscode":"300338.SZ",
-     "title":"*ST开元：关于独立董事取得独立董事资格证书的公告"
-    }
-   ],
-   "financials":null,
-   "forecasts":null,
-   "minimum_financial_evidence":{
-    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
-    "missing_fields":[
-     "revenue",
-     "net_profit_parent",
-     "net_profit_ex_nonrecurring",
-     "operating_cash_flow",
-     "capex",
-     "accounts_receivable",
-     "inventory",
-     "cash",
-     "interest_bearing_debt"
-    ],
-    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
-    "net_debt_cny":null,
-    "net_debt_precision_cny":null,
-    "period_basis":null,
-    "published_at":null,
-    "report_period":null,
-    "state":"missing"
-   },
-   "security_name":"*ST开元",
-   "security_status":{
-    "as_of_trade_date":"2026-10-28",
-    "execution_state":"not_verified_live",
-    "reason_codes":[
-     "provider_tradability_missing",
-     "market_rule_missing"
-    ],
-    "state":"unknown"
-   },
-   "tape":{
-    "adt20":38468190.098,
-    "amount_z20":-0.286547,
-    "raw_close":1.9,
-    "raw_return_1d_pct":-3.061224,
-    "raw_return_20d_pct":-37.704918,
-    "raw_return_3d_pct":-7.76699,
-    "raw_return_5d_pct":-18.103448,
-    "total_market_cap":764986914.8
-   },
-   "thscode":"300338.SZ"
-  },
   {
    "availability":{
     "events":"observed",
@@ -264,9 +24,9 @@
      "known_at":"2026-09-29T23:35:09.761843+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":17,
+      "elapsed_sessions":19,
       "first_full_session":"2026-09-29",
-      "return_pct":-7.1933962264150715,
+      "return_pct":-14.504716981132015,
       "state":"observed"
      },
      "published_at":"2026-09-28T07:49:54+00:00",
@@ -409,7 +169,7 @@
    },
    "security_name":"科恒股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -418,14 +178,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":175536325.5255,
-    "amount_z20":-0.820228,
-    "raw_close":7.87,
-    "raw_return_1d_pct":0.127226,
-    "raw_return_20d_pct":-10.972851,
-    "raw_return_3d_pct":-4.141291,
-    "raw_return_5d_pct":-6.642942,
-    "total_market_cap":2168300807.05
+    "adt20":177251891.7865,
+    "amount_z20":-0.783468,
+    "raw_close":7.25,
+    "raw_return_1d_pct":-4.353562,
+    "raw_return_20d_pct":-15.204678,
+    "raw_return_3d_pct":-7.760814,
+    "raw_return_5d_pct":-11.693057,
+    "total_market_cap":1997481683.75
    },
    "thscode":"300340.SZ"
   },
@@ -463,7 +223,7 @@
    },
    "security_name":"天银机电",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -472,14 +232,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":371609993.5975,
-    "amount_z20":1.744037,
-    "raw_close":26.66,
-    "raw_return_1d_pct":9.621711,
-    "raw_return_20d_pct":-16.661457,
-    "raw_return_3d_pct":3.574204,
-    "raw_return_5d_pct":-5.293073,
-    "total_market_cap":11331436112.58
+    "adt20":428094239.8885,
+    "amount_z20":1.875499,
+    "raw_close":26.43,
+    "raw_return_1d_pct":-6.80536,
+    "raw_return_20d_pct":-16.729679,
+    "raw_return_3d_pct":8.675987,
+    "raw_return_5d_pct":2.680653,
+    "total_market_cap":11233678036.59
    },
    "thscode":"300342.SZ"
   },
@@ -517,7 +277,7 @@
    },
    "security_name":"昆仑万维",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -526,14 +286,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":1984335032.261,
-    "amount_z20":-0.551657,
-    "raw_close":39.97,
-    "raw_return_1d_pct":1.990304,
-    "raw_return_20d_pct":-10.641628,
-    "raw_return_3d_pct":-0.990835,
-    "raw_return_5d_pct":0.326305,
-    "total_market_cap":51362837558.549995
+    "adt20":1958533985.0585,
+    "amount_z20":0.044917,
+    "raw_close":33.25,
+    "raw_return_1d_pct":-12.5,
+    "raw_return_20d_pct":-20.378352,
+    "raw_return_3d_pct":-15.156928,
+    "raw_return_5d_pct":-17.636859,
+    "total_market_cap":42727404273.75
    },
    "thscode":"300418.SZ"
   },
@@ -571,7 +331,7 @@
    },
    "security_name":"广生堂",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -580,14 +340,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":257209763.396,
-    "amount_z20":-0.017649,
-    "raw_close":74.0,
-    "raw_return_1d_pct":4.372355,
-    "raw_return_20d_pct":-15.679125,
-    "raw_return_3d_pct":-4.368054,
-    "raw_return_5d_pct":-7.38423,
-    "total_market_cap":12433952786.0
+    "adt20":257986948.5045,
+    "amount_z20":-0.229592,
+    "raw_close":72.44,
+    "raw_return_1d_pct":-0.835044,
+    "raw_return_20d_pct":-14.454417,
+    "raw_return_3d_pct":2.172073,
+    "raw_return_5d_pct":-6.384079,
+    "total_market_cap":12171831619.16
    },
    "thscode":"300436.SZ"
   },
@@ -625,7 +385,7 @@
    },
    "security_name":"金雷股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -634,14 +394,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":165948275.053,
-    "amount_z20":-0.867118,
-    "raw_close":16.68,
-    "raw_return_1d_pct":-0.358423,
-    "raw_return_20d_pct":-15.114504,
-    "raw_return_3d_pct":-3.472222,
-    "raw_return_5d_pct":-3.972366,
-    "total_market_cap":5339845094.64
+    "adt20":166172590.2895,
+    "amount_z20":-0.172615,
+    "raw_close":17.05,
+    "raw_return_1d_pct":1.73031,
+    "raw_return_20d_pct":-14.536341,
+    "raw_return_3d_pct":1.851852,
+    "raw_return_5d_pct":-1.331019,
+    "total_market_cap":5458294895.900001
    },
    "thscode":"300443.SZ"
   },
@@ -679,7 +439,7 @@
    },
    "security_name":"创业慧康",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -688,14 +448,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":96834314.7045,
-    "amount_z20":0.71472,
-    "raw_close":3.52,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":-1.123596,
-    "raw_return_3d_pct":-2.222222,
-    "raw_return_5d_pct":-3.296703,
-    "total_market_cap":5452918915.84
+    "adt20":100913760.3615,
+    "amount_z20":1.483076,
+    "raw_close":3.23,
+    "raw_return_1d_pct":-5.0,
+    "raw_return_20d_pct":-6.376812,
+    "raw_return_3d_pct":-8.238636,
+    "raw_return_5d_pct":-10.277778,
+    "total_market_cap":5003672755.16
    },
    "thscode":"300451.SZ"
   },
@@ -733,7 +493,7 @@
    },
    "security_name":"润欣科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -742,14 +502,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":169586790.578,
-    "amount_z20":-0.199864,
-    "raw_close":11.71,
-    "raw_return_1d_pct":1.649306,
-    "raw_return_20d_pct":-12.125307,
-    "raw_return_3d_pct":-9.435422,
-    "raw_return_5d_pct":-7.063492,
-    "total_market_cap":6001621460.370001
+    "adt20":176195442.8645,
+    "amount_z20":0.451174,
+    "raw_close":10.22,
+    "raw_return_1d_pct":-6.581353,
+    "raw_return_20d_pct":-22.080937,
+    "raw_return_3d_pct":-11.284722,
+    "raw_return_5d_pct":-20.95901,
+    "total_market_cap":5237965100.34
    },
    "thscode":"300493.SZ"
   },
@@ -787,7 +547,7 @@
    },
    "security_name":"温氏股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -796,14 +556,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":644490084.019,
-    "amount_z20":-0.07249,
-    "raw_close":15.55,
-    "raw_return_1d_pct":-1.457541,
-    "raw_return_20d_pct":4.362416,
-    "raw_return_3d_pct":-1.830808,
-    "raw_return_5d_pct":-1.892744,
-    "total_market_cap":103468602620.95001
+    "adt20":666054977.5145,
+    "amount_z20":-0.646227,
+    "raw_close":15.67,
+    "raw_return_1d_pct":-0.822785,
+    "raw_return_20d_pct":7.994487,
+    "raw_return_3d_pct":-0.697085,
+    "raw_return_5d_pct":-1.073232,
+    "total_market_cap":104267074152.43
    },
    "thscode":"300498.SZ"
   },
@@ -841,7 +601,7 @@
    },
    "security_name":"广信材料",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -850,14 +610,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":103271004.7995,
-    "amount_z20":0.219407,
-    "raw_close":17.31,
-    "raw_return_1d_pct":4.845548,
-    "raw_return_20d_pct":-19.11215,
-    "raw_return_3d_pct":-0.745413,
-    "raw_return_5d_pct":-1.19863,
-    "total_market_cap":3586793917.74
+    "adt20":103843912.5495,
+    "amount_z20":2.056645,
+    "raw_close":16.67,
+    "raw_return_1d_pct":-0.891795,
+    "raw_return_20d_pct":-21.516008,
+    "raw_return_3d_pct":0.96911,
+    "raw_return_5d_pct":-4.415138,
+    "total_market_cap":3454179931.18
    },
    "thscode":"300537.SZ"
   },
@@ -895,7 +655,7 @@
    },
    "security_name":"同益股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -904,14 +664,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":44868619.7375,
-    "amount_z20":-0.274941,
-    "raw_close":12.43,
-    "raw_return_1d_pct":2.642444,
-    "raw_return_20d_pct":-18.43832,
-    "raw_return_3d_pct":-4.311008,
-    "raw_return_5d_pct":-6.259427,
-    "total_market_cap":2261247862.39
+    "adt20":45457912.4825,
+    "amount_z20":2.88268,
+    "raw_close":11.31,
+    "raw_return_1d_pct":-5.355649,
+    "raw_return_20d_pct":-25.592105,
+    "raw_return_3d_pct":-6.606111,
+    "raw_return_5d_pct":-12.933025,
+    "total_market_cap":2057499060.63
    },
    "thscode":"300538.SZ"
   },
@@ -949,7 +709,7 @@
    },
    "security_name":"长芯博创",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -958,14 +718,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":2406373979.098,
-    "amount_z20":0.299275,
-    "raw_close":163.0,
-    "raw_return_1d_pct":4.621309,
-    "raw_return_20d_pct":-30.990686,
-    "raw_return_3d_pct":-2.89527,
-    "raw_return_5d_pct":-9.845133,
-    "total_market_cap":48077058314.0
+    "adt20":2445333509.653,
+    "amount_z20":-0.14964,
+    "raw_close":126.08,
+    "raw_return_1d_pct":-9.865599,
+    "raw_return_20d_pct":-45.424639,
+    "raw_return_3d_pct":-19.075738,
+    "raw_return_5d_pct":-24.889789,
+    "total_market_cap":37187457130.24
    },
    "thscode":"300548.SZ"
   },
@@ -1003,7 +763,7 @@
    },
    "security_name":"海辰药业",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1012,14 +772,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":183188945.489,
-    "amount_z20":0.913738,
-    "raw_close":33.47,
-    "raw_return_1d_pct":-1.991215,
-    "raw_return_20d_pct":6.796426,
-    "raw_return_3d_pct":4.332918,
-    "raw_return_5d_pct":21.092619,
-    "total_market_cap":4016400000.0
+    "adt20":199854027.4705,
+    "amount_z20":0.316597,
+    "raw_close":31.73,
+    "raw_return_1d_pct":-2.519201,
+    "raw_return_20d_pct":4.927249,
+    "raw_return_3d_pct":-7.086384,
+    "raw_return_5d_pct":-1.091022,
+    "total_market_cap":3807600000.0
    },
    "thscode":"300584.SZ"
   },
@@ -1057,7 +817,7 @@
    },
    "security_name":"恒锋信息",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1066,14 +826,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":66196041.1605,
-    "amount_z20":-0.87799,
-    "raw_close":9.69,
-    "raw_return_1d_pct":-0.205973,
-    "raw_return_20d_pct":-6.286267,
-    "raw_return_3d_pct":-4.719764,
-    "raw_return_5d_pct":-6.826923,
-    "total_market_cap":1600269827.25
+    "adt20":67919856.6605,
+    "amount_z20":0.123501,
+    "raw_close":8.67,
+    "raw_return_1d_pct":-8.253968,
+    "raw_return_20d_pct":-15.332031,
+    "raw_return_3d_pct":-10.710608,
+    "raw_return_5d_pct":-14.749263,
+    "total_market_cap":1431820371.75
    },
    "thscode":"300605.SZ"
   },
@@ -1111,7 +871,7 @@
    },
    "security_name":"万兴科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1120,14 +880,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":505004643.761,
-    "amount_z20":0.174872,
-    "raw_close":47.87,
-    "raw_return_1d_pct":-0.270833,
-    "raw_return_20d_pct":-9.251185,
-    "raw_return_3d_pct":-6.503906,
-    "raw_return_5d_pct":-5.767717,
-    "total_market_cap":9255009829.88
+    "adt20":506608454.241,
+    "amount_z20":-0.152609,
+    "raw_close":40.96,
+    "raw_return_1d_pct":-9.500663,
+    "raw_return_20d_pct":-15.962249,
+    "raw_return_3d_pct":-14.666667,
+    "raw_return_5d_pct":-20.0,
+    "total_market_cap":7919055831.04
    },
    "thscode":"300624.SZ"
   },
@@ -1165,7 +925,7 @@
    },
    "security_name":"金陵体育",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1174,14 +934,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":54633692.605,
-    "amount_z20":-0.937914,
-    "raw_close":15.0,
-    "raw_return_1d_pct":0.738751,
-    "raw_return_20d_pct":-9.090909,
-    "raw_return_3d_pct":-0.199601,
-    "raw_return_5d_pct":-1.315789,
-    "total_market_cap":2118145320.0
+    "adt20":54256412.505,
+    "amount_z20":-0.738046,
+    "raw_close":14.04,
+    "raw_return_1d_pct":-4.163823,
+    "raw_return_20d_pct":-13.118812,
+    "raw_return_3d_pct":-5.708529,
+    "raw_return_5d_pct":-6.586826,
+    "total_market_cap":1982584019.52
    },
    "thscode":"300651.SZ"
   },
@@ -1318,7 +1078,7 @@
    },
    "security_name":"民德电子",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1327,14 +1087,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":145155261.59,
-    "amount_z20":-0.595488,
-    "raw_close":23.37,
-    "raw_return_1d_pct":2.996915,
-    "raw_return_20d_pct":-21.471774,
-    "raw_return_3d_pct":-2.543786,
-    "raw_return_5d_pct":-5.422906,
-    "total_market_cap":3999192932.64
+    "adt20":138244298.054,
+    "amount_z20":-0.515233,
+    "raw_close":19.92,
+    "raw_return_1d_pct":-7.132867,
+    "raw_return_20d_pct":-32.657201,
+    "raw_return_3d_pct":-12.208021,
+    "raw_return_5d_pct":-16.930776,
+    "total_market_cap":3408811434.24
    },
    "thscode":"300656.SZ"
   },
@@ -1372,7 +1132,7 @@
    },
    "security_name":"中孚信息",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1381,14 +1141,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":157434539.666,
-    "amount_z20":-1.028476,
-    "raw_close":10.37,
-    "raw_return_1d_pct":0.387222,
-    "raw_return_20d_pct":-7.245081,
-    "raw_return_3d_pct":-5.727273,
-    "raw_return_5d_pct":-5.296804,
-    "total_market_cap":2700268959.86
+    "adt20":156746589.6305,
+    "amount_z20":-1.049767,
+    "raw_close":9.2,
+    "raw_return_1d_pct":-6.882591,
+    "raw_return_20d_pct":-14.098973,
+    "raw_return_3d_pct":-10.939013,
+    "raw_return_5d_pct":-16.363636,
+    "total_market_cap":2395609877.6
    },
    "thscode":"300659.SZ"
   },
@@ -1426,7 +1186,7 @@
    },
    "security_name":"澄天伟业",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1435,14 +1195,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":245057776.0325,
-    "amount_z20":-0.605893,
-    "raw_close":50.21,
-    "raw_return_1d_pct":8.679654,
-    "raw_return_20d_pct":-23.947289,
-    "raw_return_3d_pct":-0.0,
-    "raw_return_5d_pct":-6.672862,
-    "total_market_cap":5804276000.0
+    "adt20":231003893.9565,
+    "amount_z20":-0.923035,
+    "raw_close":42.61,
+    "raw_return_1d_pct":-8.06904,
+    "raw_return_20d_pct":-36.279348,
+    "raw_return_3d_pct":-7.770563,
+    "raw_return_5d_pct":-15.136427,
+    "total_market_cap":4925716000.0
    },
    "thscode":"300689.SZ"
   },
@@ -1480,7 +1240,7 @@
    },
    "security_name":"爱乐达",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1489,14 +1249,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":97852585.414,
-    "amount_z20":-0.904817,
-    "raw_close":17.17,
-    "raw_return_1d_pct":2.568698,
-    "raw_return_20d_pct":-19.728845,
-    "raw_return_3d_pct":-4.078212,
-    "raw_return_5d_pct":-6.53239,
-    "total_market_cap":5052255038.110001
+    "adt20":96867741.0975,
+    "amount_z20":-0.686325,
+    "raw_close":16.05,
+    "raw_return_1d_pct":-6.25,
+    "raw_return_20d_pct":-21.323529,
+    "raw_return_3d_pct":-4.121864,
+    "raw_return_5d_pct":-10.335196,
+    "total_market_cap":4722696177.150001
    },
    "thscode":"300696.SZ"
   },
@@ -1534,7 +1294,7 @@
    },
    "security_name":"岱勒新材",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1543,14 +1303,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":92665369.0515,
-    "amount_z20":0.405373,
-    "raw_close":14.83,
-    "raw_return_1d_pct":6.537356,
-    "raw_return_20d_pct":-13.426737,
-    "raw_return_3d_pct":-0.336022,
-    "raw_return_5d_pct":-1.001335,
-    "total_market_cap":5887937445.09
+    "adt20":93348008.995,
+    "amount_z20":2.933694,
+    "raw_close":14.61,
+    "raw_return_1d_pct":0.619835,
+    "raw_return_20d_pct":-16.130884,
+    "raw_return_3d_pct":4.956897,
+    "raw_return_5d_pct":-1.814516,
+    "total_market_cap":5800591104.03
    },
    "thscode":"300700.SZ"
   },
@@ -1588,7 +1348,7 @@
    },
    "security_name":"精研科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1597,14 +1357,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":321846814.009,
-    "amount_z20":0.410493,
-    "raw_close":37.08,
-    "raw_return_1d_pct":2.657807,
-    "raw_return_20d_pct":-5.238947,
-    "raw_return_3d_pct":-5.840528,
-    "raw_return_5d_pct":5.671131,
-    "total_market_cap":6922419999.48
+    "adt20":335822839.3825,
+    "amount_z20":-0.019958,
+    "raw_close":33.36,
+    "raw_return_1d_pct":-2.59854,
+    "raw_return_20d_pct":-11.605723,
+    "raw_return_3d_pct":-7.641196,
+    "raw_return_5d_pct":-15.286948,
+    "total_market_cap":6227937734.16
    },
    "thscode":"300709.SZ"
   },
@@ -1642,7 +1402,7 @@
    },
    "security_name":"药石科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1651,14 +1411,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":1024129772.656,
-    "amount_z20":-0.597339,
-    "raw_close":43.94,
-    "raw_return_1d_pct":6.237911,
-    "raw_return_20d_pct":-17.869159,
-    "raw_return_3d_pct":-1.919643,
-    "raw_return_5d_pct":-2.916483,
-    "total_market_cap":10273494563.539999
+    "adt20":972965954.5215,
+    "amount_z20":1.473034,
+    "raw_close":44.8,
+    "raw_return_1d_pct":4.918033,
+    "raw_return_20d_pct":-13.978495,
+    "raw_return_3d_pct":8.317215,
+    "raw_return_5d_pct":0.0,
+    "total_market_cap":10474568876.8
    },
    "thscode":"300725.SZ"
   },
@@ -1696,7 +1456,7 @@
    },
    "security_name":"金力永磁",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1705,14 +1465,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":397645760.4845,
-    "amount_z20":0.824864,
-    "raw_close":24.74,
-    "raw_return_1d_pct":3.471351,
-    "raw_return_20d_pct":-4.256966,
-    "raw_return_3d_pct":-3.622906,
-    "raw_return_5d_pct":0.773931,
-    "total_market_cap":34169811735.78
+    "adt20":407225753.482,
+    "amount_z20":-0.289168,
+    "raw_close":23.53,
+    "raw_return_1d_pct":-1.671542,
+    "raw_return_20d_pct":-6.959272,
+    "raw_return_3d_pct":-1.589293,
+    "raw_return_5d_pct":-8.33658,
+    "total_market_cap":32498612374.41
    },
    "thscode":"300748.SZ"
   },
@@ -1750,7 +1510,7 @@
    },
    "security_name":"上海瀚讯",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1759,14 +1519,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":373133969.542,
-    "amount_z20":1.830862,
-    "raw_close":23.13,
-    "raw_return_1d_pct":5.761317,
-    "raw_return_20d_pct":-15.150404,
-    "raw_return_3d_pct":-2.815126,
-    "raw_return_5d_pct":-1.991525,
-    "total_market_cap":15042704835.51
+    "adt20":451804263.907,
+    "amount_z20":1.652877,
+    "raw_close":23.1,
+    "raw_return_1d_pct":-4.859967,
+    "raw_return_20d_pct":-12.5,
+    "raw_return_3d_pct":5.624143,
+    "raw_return_5d_pct":-2.941176,
+    "total_market_cap":15023194193.7
    },
    "thscode":"300762.SZ"
   },
@@ -1804,7 +1564,7 @@
    },
    "security_name":"迪普科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1813,14 +1573,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":120047311.109,
-    "amount_z20":-0.45429,
-    "raw_close":14.46,
-    "raw_return_1d_pct":1.260504,
-    "raw_return_20d_pct":-5.180328,
-    "raw_return_3d_pct":-2.494943,
-    "raw_return_5d_pct":1.473684,
-    "total_market_cap":9309767903.94
+    "adt20":123595554.072,
+    "amount_z20":0.114204,
+    "raw_close":12.86,
+    "raw_return_1d_pct":-6.336489,
+    "raw_return_20d_pct":-14.608234,
+    "raw_return_3d_pct":-9.943978,
+    "raw_return_5d_pct":-13.283884,
+    "total_market_cap":8279641441.54
    },
    "thscode":"300768.SZ"
   },
@@ -1858,7 +1618,7 @@
    },
    "security_name":"新媒股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1867,14 +1627,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":240319991.0135,
-    "amount_z20":-0.29292,
-    "raw_close":36.72,
-    "raw_return_1d_pct":1.268616,
-    "raw_return_20d_pct":4.555809,
-    "raw_return_3d_pct":-2.779984,
-    "raw_return_5d_pct":-4.623377,
-    "total_market_cap":8366233061.52
+    "adt20":257090515.419,
+    "amount_z20":1.186508,
+    "raw_close":37.89,
+    "raw_return_1d_pct":5.01663,
+    "raw_return_20d_pct":7.58092,
+    "raw_return_3d_pct":4.495312,
+    "raw_return_5d_pct":0.317712,
+    "total_market_cap":8632804212.99
    },
    "thscode":"300770.SZ"
   },
@@ -1912,7 +1672,7 @@
    },
    "security_name":"三只松鼠",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1921,14 +1681,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":79347026.6315,
-    "amount_z20":-0.386219,
-    "raw_close":16.56,
-    "raw_return_1d_pct":0.120919,
-    "raw_return_20d_pct":-2.473498,
-    "raw_return_3d_pct":-0.659868,
-    "raw_return_5d_pct":-0.06035,
-    "total_market_cap":6651926783.999999
+    "adt20":85179486.201,
+    "amount_z20":2.48831,
+    "raw_close":16.34,
+    "raw_return_1d_pct":0.0,
+    "raw_return_20d_pct":-1.328502,
+    "raw_return_3d_pct":-1.20919,
+    "raw_return_5d_pct":-1.979604,
+    "total_market_cap":6563555776.0
    },
    "thscode":"300783.SZ"
   },
@@ -1966,7 +1726,7 @@
    },
    "security_name":"锐新科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -1975,14 +1735,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":95722542.637,
-    "amount_z20":-0.164898,
-    "raw_close":14.96,
-    "raw_return_1d_pct":4.835319,
-    "raw_return_20d_pct":-13.174695,
-    "raw_return_3d_pct":1.837985,
-    "raw_return_5d_pct":0.537634,
-    "total_market_cap":2489673120.0
+    "adt20":97758119.787,
+    "amount_z20":-0.466593,
+    "raw_close":13.49,
+    "raw_return_1d_pct":-5.0,
+    "raw_return_20d_pct":-19.1247,
+    "raw_return_3d_pct":-5.466013,
+    "raw_return_5d_pct":-8.168822,
+    "total_market_cap":2245032780.0
    },
    "thscode":"300828.SZ"
   },
@@ -2007,9 +1767,9 @@
      "known_at":"2026-10-13T23:29:44.889398+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":13,
+      "elapsed_sessions":15,
       "first_full_session":"2026-10-12",
-      "return_pct":0.8137044967882812,
+      "return_pct":4.239828693790493,
       "state":"observed"
      },
      "published_at":"2026-10-09T08:01:03+00:00",
@@ -2037,9 +1797,9 @@
      "known_at":"2026-10-13T23:29:44.889398+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":12,
+      "elapsed_sessions":14,
       "first_full_session":"2026-10-13",
-      "return_pct":-15.988579586009743,
+      "return_pct":-13.133476088507912,
       "state":"observed"
      },
      "published_at":"2026-10-12T09:00:03+00:00",
@@ -2182,7 +1942,7 @@
    },
    "security_name":"金丹科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2191,14 +1951,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":714577779.3935,
-    "amount_z20":-0.295849,
-    "raw_close":23.54,
-    "raw_return_1d_pct":6.13165,
-    "raw_return_20d_pct":-14.710145,
-    "raw_return_3d_pct":16.534653,
-    "raw_return_5d_pct":6.41953,
-    "total_market_cap":5350056018.78
+    "adt20":666186174.5525,
+    "amount_z20":0.678115,
+    "raw_close":24.34,
+    "raw_return_1d_pct":13.844715,
+    "raw_return_20d_pct":-11.683599,
+    "raw_return_3d_pct":9.738503,
+    "raw_return_5d_pct":20.49505,
+    "total_market_cap":5531876104.38
    },
    "thscode":"300829.SZ"
   },
@@ -2236,7 +1996,7 @@
    },
    "security_name":"博汇股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2245,14 +2005,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":367289352.76,
-    "amount_z20":1.030208,
-    "raw_close":20.05,
-    "raw_return_1d_pct":0.25,
-    "raw_return_20d_pct":49.626866,
-    "raw_return_3d_pct":4.372723,
-    "raw_return_5d_pct":20.783133,
-    "total_market_cap":5777085517.05
+    "adt20":435181108.7545,
+    "amount_z20":0.781082,
+    "raw_close":17.82,
+    "raw_return_1d_pct":-5.16232,
+    "raw_return_20d_pct":36.238532,
+    "raw_return_3d_pct":-10.9,
+    "raw_return_5d_pct":-7.235815,
+    "total_market_cap":5134546828.62
    },
    "thscode":"300839.SZ"
   },
@@ -2290,7 +2050,7 @@
    },
    "security_name":"交大思诺",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2299,14 +2059,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":26680923.379,
-    "amount_z20":-0.839794,
-    "raw_close":22.28,
-    "raw_return_1d_pct":1.967963,
-    "raw_return_20d_pct":-8.312757,
-    "raw_return_3d_pct":-2.834714,
-    "raw_return_5d_pct":-2.280702,
-    "total_market_cap":1936876152.0
+    "adt20":26990051.629,
+    "amount_z20":0.547353,
+    "raw_close":20.71,
+    "raw_return_1d_pct":-4.650092,
+    "raw_return_20d_pct":-16.119887,
+    "raw_return_3d_pct":-5.217391,
+    "raw_return_5d_pct":-9.68164,
+    "total_market_cap":1800390714.0
    },
    "thscode":"300851.SZ"
   },
@@ -2344,7 +2104,7 @@
    },
    "security_name":"科思股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2353,14 +2113,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":25231446.6485,
-    "amount_z20":-0.647045,
-    "raw_close":9.97,
-    "raw_return_1d_pct":0.201005,
-    "raw_return_20d_pct":-5.228137,
-    "raw_return_3d_pct":-2.158979,
-    "raw_return_5d_pct":-1.966568,
-    "total_market_cap":4742602181.6
+    "adt20":30921052.208,
+    "amount_z20":3.995112,
+    "raw_close":10.38,
+    "raw_return_1d_pct":5.380711,
+    "raw_return_20d_pct":-0.192308,
+    "raw_return_3d_pct":4.321608,
+    "raw_return_5d_pct":1.864573,
+    "total_market_cap":4937633966.400001
    },
    "thscode":"300856.SZ"
   },
@@ -2398,7 +2158,7 @@
    },
    "security_name":"大叶股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2407,14 +2167,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":115312105.6385,
-    "amount_z20":0.586652,
-    "raw_close":16.83,
-    "raw_return_1d_pct":3.888889,
-    "raw_return_20d_pct":-7.476636,
-    "raw_return_3d_pct":-6.603774,
-    "raw_return_5d_pct":8.092486,
-    "total_market_cap":3406372359.39
+    "adt20":122973880.864,
+    "amount_z20":0.293509,
+    "raw_close":15.03,
+    "raw_return_1d_pct":-4.993679,
+    "raw_return_20d_pct":-15.132693,
+    "raw_return_3d_pct":-7.222222,
+    "raw_return_5d_pct":-16.592675,
+    "total_market_cap":3042054459.99
    },
    "thscode":"300879.SZ"
   },
@@ -2452,7 +2212,7 @@
    },
    "security_name":"山科智能",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2461,14 +2221,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":42422315.824,
-    "amount_z20":-0.395466,
-    "raw_close":14.6,
-    "raw_return_1d_pct":3.472714,
-    "raw_return_20d_pct":-11.02986,
-    "raw_return_3d_pct":-2.079142,
-    "raw_return_5d_pct":-2.796272,
-    "total_market_cap":2859355016.4
+    "adt20":36471283.529,
+    "amount_z20":-0.368462,
+    "raw_close":13.73,
+    "raw_return_1d_pct":-4.18702,
+    "raw_return_20d_pct":-21.587664,
+    "raw_return_3d_pct":-2.693125,
+    "raw_return_5d_pct":-7.914152,
+    "total_market_cap":2688968792.82
    },
    "thscode":"300897.SZ"
   },
@@ -2605,7 +2365,7 @@
    },
    "security_name":"兆龙互连",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2614,14 +2374,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":252479145.2795,
-    "amount_z20":-0.655175,
-    "raw_close":29.8,
-    "raw_return_1d_pct":4.013962,
-    "raw_return_20d_pct":-28.861303,
-    "raw_return_3d_pct":-1.779829,
-    "raw_return_5d_pct":-3.870968,
-    "total_market_cap":10214877376.0
+    "adt20":224469863.1625,
+    "amount_z20":0.101085,
+    "raw_close":27.55,
+    "raw_return_1d_pct":-1.957295,
+    "raw_return_20d_pct":-30.270818,
+    "raw_return_3d_pct":-3.839442,
+    "raw_return_5d_pct":-9.195781,
+    "total_market_cap":9443619856.0
    },
    "thscode":"300913.SZ"
   },
@@ -2659,7 +2419,7 @@
    },
    "security_name":"华安鑫创",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2668,14 +2428,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":41236307.5465,
-    "amount_z20":0.674792,
-    "raw_close":21.52,
-    "raw_return_1d_pct":2.868069,
-    "raw_return_20d_pct":-13.988809,
-    "raw_return_3d_pct":-1.73516,
-    "raw_return_5d_pct":-3.411131,
-    "total_market_cap":1721600000.0
+    "adt20":40042283.738,
+    "amount_z20":1.367647,
+    "raw_close":19.24,
+    "raw_return_1d_pct":-6.465727,
+    "raw_return_20d_pct":-22.199757,
+    "raw_return_3d_pct":-8.030593,
+    "raw_return_5d_pct":-12.146119,
+    "total_market_cap":1539200000.0
    },
    "thscode":"300928.SZ"
   },
@@ -2812,7 +2572,7 @@
    },
    "security_name":"通用电梯",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2821,14 +2581,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":254690967.088,
-    "amount_z20":-0.794891,
-    "raw_close":14.62,
-    "raw_return_1d_pct":5.788712,
-    "raw_return_20d_pct":-8.682074,
-    "raw_return_3d_pct":2.740689,
-    "raw_return_5d_pct":-4.256713,
-    "total_market_cap":3555160020.0
+    "adt20":182267371.3785,
+    "amount_z20":-0.849962,
+    "raw_close":12.94,
+    "raw_return_1d_pct":-5.959302,
+    "raw_return_20d_pct":-25.887743,
+    "raw_return_3d_pct":-6.367583,
+    "raw_return_5d_pct":-9.065355,
+    "total_market_cap":3146632740.0
    },
    "thscode":"300931.SZ"
   },
@@ -2866,7 +2626,7 @@
    },
    "security_name":"德固特",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2875,14 +2635,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":48025992.9405,
-    "amount_z20":-1.136305,
-    "raw_close":17.55,
-    "raw_return_1d_pct":5.08982,
-    "raw_return_20d_pct":-17.990654,
-    "raw_return_3d_pct":0.343053,
-    "raw_return_5d_pct":-3.305785,
-    "total_market_cap":2696452200.0
+    "adt20":44446692.7905,
+    "amount_z20":-1.097535,
+    "raw_close":16.05,
+    "raw_return_1d_pct":-4.350417,
+    "raw_return_20d_pct":-21.707317,
+    "raw_return_3d_pct":-3.892216,
+    "raw_return_5d_pct":-8.233276,
+    "total_market_cap":2465986200.0
    },
    "thscode":"300950.SZ"
   },
@@ -2920,7 +2680,7 @@
    },
    "security_name":"嘉亨家化",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2929,14 +2689,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":34239571.2955,
-    "amount_z20":-1.295481,
-    "raw_close":25.5,
-    "raw_return_1d_pct":1.715197,
-    "raw_return_20d_pct":-15.730337,
-    "raw_return_3d_pct":-2.33627,
-    "raw_return_5d_pct":-2.111324,
-    "total_market_cap":2570400000.0
+    "adt20":32570015.3605,
+    "amount_z20":1.589893,
+    "raw_close":22.82,
+    "raw_return_1d_pct":-8.573718,
+    "raw_return_20d_pct":-20.681265,
+    "raw_return_3d_pct":-8.97487,
+    "raw_return_5d_pct":-12.600536,
+    "total_market_cap":2300256000.0
    },
    "thscode":"300955.SZ"
   },
@@ -2974,7 +2734,7 @@
    },
    "security_name":"中金辐照",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -2983,14 +2743,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":41091605.172,
-    "amount_z20":1.723813,
-    "raw_close":13.63,
-    "raw_return_1d_pct":0.368189,
-    "raw_return_20d_pct":3.492787,
-    "raw_return_3d_pct":8.432776,
-    "raw_return_5d_pct":8.00317,
-    "total_market_cap":3598345856.11
+    "adt20":45089909.427,
+    "amount_z20":0.494269,
+    "raw_close":13.06,
+    "raw_return_1d_pct":-0.53313,
+    "raw_return_20d_pct":-0.759878,
+    "raw_return_3d_pct":-3.829161,
+    "raw_return_5d_pct":3.89817,
+    "total_market_cap":3447864774.82
    },
    "thscode":"300962.SZ"
   },
@@ -3028,7 +2788,7 @@
    },
    "security_name":"华利集团",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3037,14 +2797,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":105278618.111,
-    "amount_z20":1.17293,
-    "raw_close":36.31,
-    "raw_return_1d_pct":1.25488,
-    "raw_return_20d_pct":7.904903,
-    "raw_return_3d_pct":3.713225,
-    "raw_return_5d_pct":6.794118,
-    "total_market_cap":42373770000.0
+    "adt20":122313914.2445,
+    "amount_z20":2.671339,
+    "raw_close":40.04,
+    "raw_return_1d_pct":3.86511,
+    "raw_return_20d_pct":17.144529,
+    "raw_return_3d_pct":11.656442,
+    "raw_return_5d_pct":14.367324,
+    "total_market_cap":46726680000.0
    },
    "thscode":"300979.SZ"
   },
@@ -3069,9 +2829,9 @@
      "known_at":"2026-10-09T23:34:45.004868+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":13,
+      "elapsed_sessions":15,
       "first_full_session":"2026-10-12",
-      "return_pct":-32.363013698629864,
+      "return_pct":-36.001712328766864,
       "state":"observed"
      },
      "published_at":"2026-10-09T08:43:03+00:00",
@@ -3099,9 +2859,9 @@
      "known_at":"2026-10-09T23:34:45.004868+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":13,
+      "elapsed_sessions":15,
       "first_full_session":"2026-10-12",
-      "return_pct":-32.363013698629864,
+      "return_pct":-36.001712328766864,
       "state":"observed"
      },
      "published_at":"2026-10-09T10:36:28+00:00",
@@ -3244,7 +3004,7 @@
    },
    "security_name":"中红医疗",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3253,14 +3013,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":560477297.0015,
-    "amount_z20":-1.046995,
-    "raw_close":15.8,
-    "raw_return_1d_pct":3.879027,
-    "raw_return_20d_pct":-15.957447,
-    "raw_return_3d_pct":-7.113463,
-    "raw_return_5d_pct":-15.417559,
-    "total_market_cap":6776066352.200001
+    "adt20":572143894.22,
+    "amount_z20":-0.926733,
+    "raw_close":14.95,
+    "raw_return_1d_pct":-3.548387,
+    "raw_return_20d_pct":-15.105054,
+    "raw_return_3d_pct":-1.709402,
+    "raw_return_5d_pct":-12.110523,
+    "total_market_cap":6411531137.049999
    },
    "thscode":"300981.SZ"
   },
@@ -3298,7 +3058,7 @@
    },
    "security_name":"苏文电能",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3307,14 +3067,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":31295666.182,
-    "amount_z20":0.30083,
-    "raw_close":13.65,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":-5.14246,
-    "raw_return_3d_pct":-5.536332,
-    "raw_return_5d_pct":-4.143258,
-    "total_market_cap":2825074242.9
+    "adt20":32324037.982,
+    "amount_z20":0.76355,
+    "raw_close":12.59,
+    "raw_return_1d_pct":-4.981132,
+    "raw_return_20d_pct":-12.203626,
+    "raw_return_3d_pct":-7.765568,
+    "raw_return_5d_pct":-12.871972,
+    "total_market_cap":2605691188.14
    },
    "thscode":"300982.SZ"
   },
@@ -3352,7 +3112,7 @@
    },
    "security_name":"志特新材",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3361,14 +3121,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":206077064.4975,
-    "amount_z20":3.750798,
-    "raw_close":10.91,
-    "raw_return_1d_pct":10.425101,
-    "raw_return_20d_pct":-7.463953,
-    "raw_return_3d_pct":4.903846,
-    "raw_return_5d_pct":2.345216,
-    "total_market_cap":6281136195.31
+    "adt20":213041923.565,
+    "amount_z20":0.701817,
+    "raw_close":9.34,
+    "raw_return_1d_pct":-7.70751,
+    "raw_return_20d_pct":-19.413287,
+    "raw_return_3d_pct":-5.465587,
+    "raw_return_5d_pct":-10.192308,
+    "total_market_cap":5377251334.94
    },
    "thscode":"300986.SZ"
   },
@@ -3406,7 +3166,7 @@
    },
    "security_name":"川网传媒",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3415,14 +3175,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":157326312.4165,
-    "amount_z20":-0.739642,
-    "raw_close":14.22,
-    "raw_return_1d_pct":1.716738,
-    "raw_return_20d_pct":-6.447368,
-    "raw_return_3d_pct":-0.070274,
-    "raw_return_5d_pct":-5.326232,
-    "total_market_cap":2465292960.0
+    "adt20":152903682.207,
+    "amount_z20":-0.640423,
+    "raw_close":12.52,
+    "raw_return_1d_pct":-8.613139,
+    "raw_return_20d_pct":-12.569832,
+    "raw_return_3d_pct":-10.443491,
+    "raw_return_5d_pct":-12.016866,
+    "total_market_cap":2170567360.0
    },
    "thscode":"300987.SZ"
   },
@@ -3559,7 +3319,7 @@
    },
    "security_name":"泰福泵业",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3568,14 +3328,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":77272851.968,
-    "amount_z20":0.7538,
-    "raw_close":23.65,
-    "raw_return_1d_pct":8.386801,
-    "raw_return_20d_pct":-17.249825,
-    "raw_return_3d_pct":3.275109,
-    "raw_return_5d_pct":-1.86722,
-    "total_market_cap":2253869217.6
+    "adt20":72601424.311,
+    "amount_z20":-0.034046,
+    "raw_close":20.74,
+    "raw_return_1d_pct":-6.828392,
+    "raw_return_20d_pct":-27.074543,
+    "raw_return_3d_pct":-4.949588,
+    "raw_return_5d_pct":-9.432314,
+    "total_market_cap":1976543237.76
    },
    "thscode":"300992.SZ"
   },
@@ -3613,7 +3373,7 @@
    },
    "security_name":"久祺股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3622,14 +3382,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":23393425.2015,
-    "amount_z20":0.889278,
-    "raw_close":10.22,
-    "raw_return_1d_pct":-1.44648,
-    "raw_return_20d_pct":-9.397163,
-    "raw_return_3d_pct":-2.759277,
-    "raw_return_5d_pct":-3.402647,
-    "total_market_cap":2382159360.0
+    "adt20":23143915.2165,
+    "amount_z20":-0.467891,
+    "raw_close":9.59,
+    "raw_return_1d_pct":-3.423968,
+    "raw_return_20d_pct":-14.60374,
+    "raw_return_3d_pct":-7.521697,
+    "raw_return_5d_pct":-8.753568,
+    "total_market_cap":2235313920.0
    },
    "thscode":"300994.SZ"
   },
@@ -3667,7 +3427,7 @@
    },
    "security_name":"可靠股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3676,14 +3436,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":21449785.157,
-    "amount_z20":-1.696864,
-    "raw_close":8.43,
-    "raw_return_1d_pct":2.181818,
-    "raw_return_20d_pct":-9.061489,
-    "raw_return_3d_pct":-1.518692,
-    "raw_return_5d_pct":-1.748252,
-    "total_market_cap":2291779800.0
+    "adt20":20862287.557,
+    "amount_z20":0.464576,
+    "raw_close":7.93,
+    "raw_return_1d_pct":-4.227053,
+    "raw_return_20d_pct":-14.639397,
+    "raw_return_3d_pct":-3.878788,
+    "raw_return_5d_pct":-7.359813,
+    "total_market_cap":2155849800.0
    },
    "thscode":"301009.SZ"
   },
@@ -3721,7 +3481,7 @@
    },
    "security_name":"扬电科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3730,14 +3490,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":75269645.189,
-    "amount_z20":-0.883713,
-    "raw_close":19.53,
-    "raw_return_1d_pct":1.034661,
-    "raw_return_20d_pct":-17.315834,
-    "raw_return_3d_pct":-6.955693,
-    "raw_return_5d_pct":-6.644359,
-    "total_market_cap":3846631963.86
+    "adt20":71443644.928,
+    "amount_z20":1.182617,
+    "raw_close":18.42,
+    "raw_return_1d_pct":-2.796834,
+    "raw_return_20d_pct":-19.738562,
+    "raw_return_3d_pct":-4.707708,
+    "raw_return_5d_pct":-12.243926,
+    "total_market_cap":3628006184.04
    },
    "thscode":"301012.SZ"
   },
@@ -3775,7 +3535,7 @@
    },
    "security_name":"雷尔伟",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3784,14 +3544,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":43458138.6365,
-    "amount_z20":-0.415463,
-    "raw_close":12.59,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":-19.706633,
-    "raw_return_3d_pct":-6.044776,
-    "raw_return_5d_pct":-8.768116,
-    "total_market_cap":3857689637.34
+    "adt20":42684142.8715,
+    "amount_z20":-0.437159,
+    "raw_close":11.55,
+    "raw_return_1d_pct":-5.250205,
+    "raw_return_20d_pct":-24.361493,
+    "raw_return_3d_pct":-8.260524,
+    "raw_return_5d_pct":-13.80597,
+    "total_market_cap":3539024250.3
    },
    "thscode":"301016.SZ"
   },
@@ -3928,7 +3688,7 @@
    },
    "security_name":"华蓝集团",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3937,14 +3697,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":66140999.373,
-    "amount_z20":-0.453963,
-    "raw_close":14.0,
-    "raw_return_1d_pct":2.414045,
-    "raw_return_20d_pct":-28.93401,
-    "raw_return_3d_pct":-5.341447,
-    "raw_return_5d_pct":-8.794788,
-    "total_market_cap":2058000000.0
+    "adt20":63722554.023,
+    "amount_z20":-0.368916,
+    "raw_close":13.25,
+    "raw_return_1d_pct":-3.706395,
+    "raw_return_20d_pct":-31.34715,
+    "raw_return_3d_pct":-3.072421,
+    "raw_return_5d_pct":-10.412441,
+    "total_market_cap":1947750000.0
    },
    "thscode":"301027.SZ"
   },
@@ -3982,7 +3742,7 @@
    },
    "security_name":"安联锐视",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -3991,14 +3751,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":75187243.0935,
-    "amount_z20":2.833046,
-    "raw_close":28.07,
-    "raw_return_1d_pct":5.764883,
-    "raw_return_20d_pct":-10.519605,
-    "raw_return_3d_pct":1.153153,
-    "raw_return_5d_pct":1.666063,
-    "total_market_cap":2716534712.78
+    "adt20":78228337.5315,
+    "amount_z20":1.165647,
+    "raw_close":25.06,
+    "raw_return_1d_pct":-6.840149,
+    "raw_return_20d_pct":-18.636364,
+    "raw_return_3d_pct":-5.576488,
+    "raw_return_5d_pct":-9.693694,
+    "total_market_cap":2425235479.24
    },
    "thscode":"301042.SZ"
   },
@@ -4036,7 +3796,7 @@
    },
    "security_name":"金鹰重工",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4045,14 +3805,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":70000214.2545,
-    "amount_z20":0.94404,
-    "raw_close":9.65,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":6.866002,
-    "raw_return_3d_pct":0.520833,
-    "raw_return_5d_pct":5.695509,
-    "total_market_cap":5146667310.0
+    "adt20":75806447.717,
+    "amount_z20":-0.070203,
+    "raw_close":9.36,
+    "raw_return_1d_pct":-0.319489,
+    "raw_return_20d_pct":4.932735,
+    "raw_return_3d_pct":-3.005181,
+    "raw_return_5d_pct":-2.5,
+    "total_market_cap":4992000624.0
    },
    "thscode":"301048.SZ"
   },
@@ -4090,7 +3850,7 @@
    },
    "security_name":"中捷精工",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4099,14 +3859,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":119724808.7755,
-    "amount_z20":-0.113625,
-    "raw_close":43.62,
-    "raw_return_1d_pct":3.832421,
-    "raw_return_20d_pct":-13.58954,
-    "raw_return_3d_pct":-6.031883,
-    "raw_return_5d_pct":-4.173989,
-    "total_market_cap":4574146655.16
+    "adt20":117284917.42,
+    "amount_z20":0.318178,
+    "raw_close":42.62,
+    "raw_return_1d_pct":0.756501,
+    "raw_return_20d_pct":-10.216979,
+    "raw_return_3d_pct":1.452035,
+    "raw_return_5d_pct":-8.186127,
+    "total_market_cap":4469283137.16
    },
    "thscode":"301072.SZ"
   },
@@ -4144,7 +3904,7 @@
    },
    "security_name":"邵阳液压",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4153,14 +3913,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":145896717.6725,
-    "amount_z20":2.376391,
-    "raw_close":28.33,
-    "raw_return_1d_pct":7.310606,
-    "raw_return_20d_pct":4.077884,
-    "raw_return_3d_pct":5.237741,
-    "raw_return_5d_pct":6.543813,
-    "total_market_cap":3072607604.22
+    "adt20":221285139.1925,
+    "amount_z20":4.036772,
+    "raw_close":36.79,
+    "raw_return_1d_pct":8.205882,
+    "raw_return_20d_pct":33.104197,
+    "raw_return_3d_pct":39.356061,
+    "raw_return_5d_pct":36.66419,
+    "total_market_cap":3990160033.86
    },
    "thscode":"301079.SZ"
   },
@@ -4198,7 +3958,7 @@
    },
    "security_name":"拓新药业",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4207,14 +3967,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":53536083.007,
-    "amount_z20":-0.69633,
-    "raw_close":21.2,
-    "raw_return_1d_pct":2.070294,
-    "raw_return_20d_pct":-12.251656,
-    "raw_return_3d_pct":-3.284672,
-    "raw_return_5d_pct":-5.483727,
-    "total_market_cap":2682743400.0
+    "adt20":51164365.5175,
+    "amount_z20":-0.314742,
+    "raw_close":20.12,
+    "raw_return_1d_pct":-3.315714,
+    "raw_return_20d_pct":-16.026711,
+    "raw_return_3d_pct":-3.129514,
+    "raw_return_5d_pct":-8.211679,
+    "total_market_cap":2546075340.0
    },
    "thscode":"301089.SZ"
   },
@@ -4252,7 +4012,7 @@
    },
    "security_name":"达嘉维康",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4261,14 +4021,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":32235841.3525,
-    "amount_z20":-0.325238,
-    "raw_close":9.02,
-    "raw_return_1d_pct":1.462317,
-    "raw_return_20d_pct":-13.76673,
-    "raw_return_3d_pct":-1.956522,
-    "raw_return_5d_pct":-6.528497,
-    "total_market_cap":1852736864.0
+    "adt20":32146802.4525,
+    "amount_z20":-0.081551,
+    "raw_close":8.69,
+    "raw_return_1d_pct":-2.359551,
+    "raw_return_20d_pct":-16.119691,
+    "raw_return_3d_pct":-2.249719,
+    "raw_return_5d_pct":-5.543478,
+    "total_market_cap":1784953808.0
    },
    "thscode":"301126.SZ"
   },
@@ -4306,7 +4066,7 @@
    },
    "security_name":"美农生物",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4315,14 +4075,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":70402388.287,
-    "amount_z20":-0.520218,
-    "raw_close":10.57,
-    "raw_return_1d_pct":1.634615,
-    "raw_return_20d_pct":-10.95198,
-    "raw_return_3d_pct":-3.909091,
-    "raw_return_5d_pct":-5.877115,
-    "total_market_cap":1946011063.99
+    "adt20":71114056.179,
+    "amount_z20":-0.512666,
+    "raw_close":9.96,
+    "raw_return_1d_pct":-3.0185,
+    "raw_return_20d_pct":-15.664691,
+    "raw_return_3d_pct":-4.230769,
+    "raw_return_5d_pct":-9.454545,
+    "total_market_cap":1833705789.72
    },
    "thscode":"301156.SZ"
   },
@@ -4360,7 +4120,7 @@
    },
    "security_name":"通灵股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4369,14 +4129,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":68063557.2935,
-    "amount_z20":0.02146,
-    "raw_close":42.03,
-    "raw_return_1d_pct":2.387333,
-    "raw_return_20d_pct":5.153865,
-    "raw_return_3d_pct":2.737717,
-    "raw_return_5d_pct":1.693685,
-    "total_market_cap":5043600000.0
+    "adt20":72735866.2835,
+    "amount_z20":-0.075686,
+    "raw_close":41.22,
+    "raw_return_1d_pct":-0.26615,
+    "raw_return_20d_pct":3.515821,
+    "raw_return_3d_pct":0.414129,
+    "raw_return_5d_pct":0.757761,
+    "total_market_cap":4946400000.0
    },
    "thscode":"301168.SZ"
   },
@@ -4401,9 +4161,9 @@
      "known_at":"2026-09-30T23:27:53.893194+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":16,
+      "elapsed_sessions":18,
       "first_full_session":"2026-09-30",
-      "return_pct":24.58249832999182,
+      "return_pct":8.216432865730127,
       "state":"observed"
      },
      "published_at":"2026-09-29T10:13:35+00:00",
@@ -4431,9 +4191,9 @@
      "known_at":"2026-10-14T23:35:59.651309+00:00",
      "price_response":{
       "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":14,
+      "elapsed_sessions":16,
       "first_full_session":"2026-10-09",
-      "return_pct":-5.617408906883725,
+      "return_pct":-18.016194331984813,
       "state":"observed"
      },
      "published_at":"2026-10-08T10:44:28+00:00",
@@ -4576,7 +4336,7 @@
    },
    "security_name":"善水科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4585,14 +4345,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":814614356.7035,
-    "amount_z20":-0.548701,
-    "raw_close":37.3,
-    "raw_return_1d_pct":5.905735,
-    "raw_return_20d_pct":82.30694,
-    "raw_return_3d_pct":-8.533595,
-    "raw_return_5d_pct":-17.129527,
-    "total_market_cap":8005941449.999999
+    "adt20":857212070.4175,
+    "amount_z20":-1.334233,
+    "raw_close":32.4,
+    "raw_return_1d_pct":-4.873752,
+    "raw_return_20d_pct":55.844156,
+    "raw_return_3d_pct":-8.006814,
+    "raw_return_5d_pct":-20.549289,
+    "total_market_cap":6954222600.0
    },
    "thscode":"301190.SZ"
   },
@@ -4630,7 +4390,7 @@
    },
    "security_name":"联盛化学",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4639,14 +4399,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":45452456.946,
-    "amount_z20":-0.776294,
-    "raw_close":23.65,
-    "raw_return_1d_pct":3.184991,
-    "raw_return_20d_pct":-12.407407,
-    "raw_return_3d_pct":-2.110927,
-    "raw_return_5d_pct":-3.508772,
-    "total_market_cap":2554200000.0
+    "adt20":47336903.109,
+    "amount_z20":-0.570789,
+    "raw_close":21.0,
+    "raw_return_1d_pct":-4.021938,
+    "raw_return_20d_pct":-20.152091,
+    "raw_return_3d_pct":-8.376963,
+    "raw_return_5d_pct":-13.07947,
+    "total_market_cap":2268000000.0
    },
    "thscode":"301212.SZ"
   },
@@ -4684,7 +4444,7 @@
    },
    "security_name":"森鹰窗业",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4693,14 +4453,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":132412016.077,
-    "amount_z20":-0.146707,
-    "raw_close":28.2,
-    "raw_return_1d_pct":0.714286,
-    "raw_return_20d_pct":-18.965517,
-    "raw_return_3d_pct":11.111111,
-    "raw_return_5d_pct":-14.02439,
-    "total_market_cap":3707142023.4
+    "adt20":134281350.718,
+    "amount_z20":-0.657947,
+    "raw_close":23.6,
+    "raw_return_1d_pct":-8.527132,
+    "raw_return_20d_pct":-27.317524,
+    "raw_return_3d_pct":-15.714286,
+    "raw_return_5d_pct":-7.013396,
+    "total_market_cap":3102430913.2
    },
    "thscode":"301227.SZ"
   },
@@ -4738,7 +4498,7 @@
    },
    "security_name":"泰恩康",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4747,14 +4507,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":83656198.9995,
-    "amount_z20":0.022305,
-    "raw_close":18.58,
-    "raw_return_1d_pct":3.164908,
-    "raw_return_20d_pct":-12.564706,
-    "raw_return_3d_pct":3.452116,
-    "raw_return_5d_pct":1.088139,
-    "total_market_cap":9486892260.0
+    "adt20":70271896.3095,
+    "amount_z20":1.990559,
+    "raw_close":18.91,
+    "raw_return_1d_pct":2.216216,
+    "raw_return_20d_pct":-4.54316,
+    "raw_return_3d_pct":4.997224,
+    "raw_return_5d_pct":5.289532,
+    "total_market_cap":9655389270.0
    },
    "thscode":"301263.SZ"
   },
@@ -4792,7 +4552,7 @@
    },
    "security_name":"华大九天",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4801,14 +4561,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":783461314.318,
-    "amount_z20":0.52582,
-    "raw_close":101.92,
-    "raw_return_1d_pct":-1.830091,
-    "raw_return_20d_pct":13.711927,
-    "raw_return_3d_pct":-5.804067,
-    "raw_return_5d_pct":1.92,
-    "total_market_cap":55839384124.16
+    "adt20":864822861.187,
+    "amount_z20":1.29891,
+    "raw_close":86.17,
+    "raw_return_1d_pct":-11.801433,
+    "raw_return_20d_pct":-1.587483,
+    "raw_return_3d_pct":-17.000578,
+    "raw_return_5d_pct":-20.360444,
+    "total_market_cap":47210358418.16
    },
    "thscode":"301269.SZ"
   },
@@ -4846,7 +4606,7 @@
    },
    "security_name":"清研环境",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4855,14 +4615,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":22742225.148,
-    "amount_z20":0.298153,
-    "raw_close":14.29,
-    "raw_return_1d_pct":-1.380262,
-    "raw_return_20d_pct":-16.334895,
-    "raw_return_3d_pct":-5.238727,
-    "raw_return_5d_pct":-5.800923,
-    "total_market_cap":1543462900.0
+    "adt20":22330598.448,
+    "amount_z20":-1.090071,
+    "raw_close":13.36,
+    "raw_return_1d_pct":-3.328509,
+    "raw_return_20d_pct":-21.272834,
+    "raw_return_3d_pct":-7.798482,
+    "raw_return_5d_pct":-11.405836,
+    "total_market_cap":1443013600.0
    },
    "thscode":"301288.SZ"
   },
@@ -4900,7 +4660,7 @@
    },
    "security_name":"真兰仪表",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4909,14 +4669,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":37197809.371,
-    "amount_z20":-0.687173,
-    "raw_close":13.08,
-    "raw_return_1d_pct":2.347418,
-    "raw_return_20d_pct":-6.034483,
-    "raw_return_3d_pct":-0.532319,
-    "raw_return_5d_pct":-1.506024,
-    "total_market_cap":5347104000.0
+    "adt20":31331749.771,
+    "amount_z20":-0.806182,
+    "raw_close":12.29,
+    "raw_return_1d_pct":-3.228346,
+    "raw_return_20d_pct":-14.948097,
+    "raw_return_3d_pct":-3.834116,
+    "raw_return_5d_pct":-6.539924,
+    "total_market_cap":5024152000.0
    },
    "thscode":"301303.SZ"
   },
@@ -4954,7 +4714,7 @@
    },
    "security_name":"涛涛车业",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -4963,14 +4723,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":263351681.205,
-    "amount_z20":0.68975,
-    "raw_close":131.95,
-    "raw_return_1d_pct":3.449628,
-    "raw_return_20d_pct":-45.246691,
-    "raw_return_3d_pct":-7.077465,
-    "raw_return_5d_pct":-11.066927,
-    "total_market_cap":14389024918.449999
+    "adt20":292676876.5575,
+    "amount_z20":0.715693,
+    "raw_close":119.51,
+    "raw_return_1d_pct":-7.934674,
+    "raw_return_20d_pct":-49.458682,
+    "raw_return_3d_pct":-6.30341,
+    "raw_return_5d_pct":-15.838028,
+    "total_market_cap":13032454475.210001
    },
    "thscode":"301345.SZ"
   },
@@ -5008,7 +4768,7 @@
    },
    "security_name":"昊帆生物",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5017,14 +4777,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":214939096.8605,
-    "amount_z20":-0.799555,
-    "raw_close":54.98,
-    "raw_return_1d_pct":3.931947,
-    "raw_return_20d_pct":-16.291108,
-    "raw_return_3d_pct":-6.161461,
-    "raw_return_5d_pct":-7.798088,
-    "total_market_cap":5937840000.0
+    "adt20":179352554.3815,
+    "amount_z20":-0.083854,
+    "raw_close":53.54,
+    "raw_return_1d_pct":0.393775,
+    "raw_return_20d_pct":-20.065691,
+    "raw_return_3d_pct":1.20983,
+    "raw_return_5d_pct":-8.619218,
+    "total_market_cap":5782320000.0
    },
    "thscode":"301393.SZ"
   },
@@ -5062,23 +4822,24 @@
    },
    "security_name":"恒鑫生活",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
-     "market_rule_missing"
+     "market_rule_missing",
+     "adt20_below_minimum"
     ],
     "state":"unknown"
    },
    "tape":{
-    "adt20":20501195.301,
-    "amount_z20":-0.753527,
-    "raw_close":24.41,
-    "raw_return_1d_pct":0.205255,
-    "raw_return_20d_pct":-12.821429,
-    "raw_return_3d_pct":-2.749004,
-    "raw_return_5d_pct":-3.057983,
-    "total_market_cap":3610239000.0
+    "adt20":17002833.9895,
+    "amount_z20":0.188609,
+    "raw_close":22.7,
+    "raw_return_1d_pct":-3.404255,
+    "raw_return_20d_pct":-18.433345,
+    "raw_return_3d_pct":-6.81445,
+    "raw_return_5d_pct":-9.561753,
+    "total_market_cap":3357330000.0
    },
    "thscode":"301501.SZ"
   },
@@ -5215,7 +4976,7 @@
    },
    "security_name":"中远通",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5224,14 +4985,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":95306800.1985,
-    "amount_z20":-1.082838,
-    "raw_close":15.08,
-    "raw_return_1d_pct":1.960784,
-    "raw_return_20d_pct":-23.56817,
-    "raw_return_3d_pct":-3.333333,
-    "raw_return_5d_pct":-5.216845,
-    "total_market_cap":4232982465.4
+    "adt20":92825167.8605,
+    "amount_z20":0.019293,
+    "raw_close":14.49,
+    "raw_return_1d_pct":-3.976143,
+    "raw_return_20d_pct":-25.116279,
+    "raw_return_3d_pct":-2.028398,
+    "raw_return_5d_pct":-7.115385,
+    "total_market_cap":4067368429.95
    },
    "thscode":"301516.SZ"
   },
@@ -5368,7 +5129,7 @@
    },
    "security_name":"达利凯普",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5377,14 +5138,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":329758525.4545,
-    "amount_z20":-0.973204,
-    "raw_close":20.34,
-    "raw_return_1d_pct":4.20082,
-    "raw_return_20d_pct":-24.554896,
-    "raw_return_3d_pct":-6.525735,
-    "raw_return_5d_pct":-4.372355,
-    "total_market_cap":8136203400.0
+    "adt20":291437628.8735,
+    "amount_z20":-0.076017,
+    "raw_close":19.53,
+    "raw_return_1d_pct":0.0,
+    "raw_return_20d_pct":-27.0452,
+    "raw_return_3d_pct":0.05123,
+    "raw_return_5d_pct":-10.248162,
+    "total_market_cap":7812195300.0
    },
    "thscode":"301566.SZ"
   },
@@ -5422,7 +5183,7 @@
    },
    "security_name":"诺瓦星云",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5431,14 +5192,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":100746585.045,
-    "amount_z20":0.365229,
-    "raw_close":155.74,
-    "raw_return_1d_pct":0.23169,
-    "raw_return_20d_pct":-1.920776,
-    "raw_return_3d_pct":-7.037546,
-    "raw_return_5d_pct":-1.21781,
-    "total_market_cap":14397851520.0
+    "adt20":100684089.6335,
+    "amount_z20":0.167874,
+    "raw_close":149.91,
+    "raw_return_1d_pct":-1.569271,
+    "raw_return_20d_pct":-5.776241,
+    "raw_return_3d_pct":-3.520402,
+    "raw_return_5d_pct":-10.517519,
+    "total_market_cap":13858879680.0
    },
    "thscode":"301589.SZ"
   },
@@ -5476,7 +5237,7 @@
    },
    "security_name":"珂玛科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5485,14 +5246,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":469061183.638,
-    "amount_z20":-0.383243,
-    "raw_close":65.45,
-    "raw_return_1d_pct":4.803843,
-    "raw_return_20d_pct":-32.309443,
-    "raw_return_3d_pct":-2.993923,
-    "raw_return_5d_pct":-6.111031,
-    "total_market_cap":28536200000.0
+    "adt20":451547974.3545,
+    "amount_z20":-0.642368,
+    "raw_close":57.88,
+    "raw_return_1d_pct":-6.78048,
+    "raw_return_20d_pct":-38.770761,
+    "raw_return_3d_pct":-7.317854,
+    "raw_return_5d_pct":-14.213725,
+    "total_market_cap":25235680000.0
    },
    "thscode":"301611.SZ"
   },
@@ -5530,7 +5291,7 @@
    },
    "security_name":"同宇新材",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5539,14 +5300,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":313056535.101,
-    "amount_z20":-0.431657,
-    "raw_close":171.39,
-    "raw_return_1d_pct":9.731737,
-    "raw_return_20d_pct":-15.182857,
-    "raw_return_3d_pct":0.817647,
-    "raw_return_5d_pct":-3.897051,
-    "total_market_cap":9597840000.0
+    "adt20":292084954.716,
+    "amount_z20":0.333649,
+    "raw_close":164.01,
+    "raw_return_1d_pct":-3.727401,
+    "raw_return_20d_pct":-23.857939,
+    "raw_return_3d_pct":5.006723,
+    "raw_return_5d_pct":-3.523529,
+    "total_market_cap":9184560000.0
    },
    "thscode":"301630.SZ"
   },
@@ -5584,7 +5345,7 @@
    },
    "security_name":"港迪技术",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5593,14 +5354,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":73733453.3125,
-    "amount_z20":0.541226,
-    "raw_close":56.68,
-    "raw_return_1d_pct":-2.039405,
-    "raw_return_20d_pct":-5.800233,
-    "raw_return_3d_pct":4.730229,
-    "raw_return_5d_pct":6.721898,
-    "total_market_cap":3155942400.0
+    "adt20":65188497.0645,
+    "amount_z20":-0.477048,
+    "raw_close":52.4,
+    "raw_return_1d_pct":-6.943704,
+    "raw_return_20d_pct":-18.9983,
+    "raw_return_3d_pct":-9.436571,
+    "raw_return_5d_pct":-3.178123,
+    "total_market_cap":2917632000.0
    },
    "thscode":"301633.SZ"
   },
@@ -5638,7 +5399,7 @@
    },
    "security_name":"首航新能",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5647,14 +5408,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":286858129.6135,
-    "amount_z20":-0.500064,
-    "raw_close":21.49,
-    "raw_return_1d_pct":3.516378,
-    "raw_return_20d_pct":-4.827281,
-    "raw_return_3d_pct":-2.095672,
-    "raw_return_5d_pct":-17.059051,
-    "total_market_cap":8861855691.15
+    "adt20":300606881.44,
+    "amount_z20":-0.555281,
+    "raw_close":19.25,
+    "raw_return_1d_pct":-7.938785,
+    "raw_return_20d_pct":-12.300683,
+    "raw_return_3d_pct":-7.273603,
+    "raw_return_5d_pct":-12.300683,
+    "total_market_cap":7938144348.75
    },
    "thscode":"301658.SZ"
   },
@@ -5692,7 +5453,7 @@
    },
    "security_name":"大普微",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5701,14 +5462,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":1633891373.4605,
-    "amount_z20":0.680507,
-    "raw_close":348.6,
-    "raw_return_1d_pct":3.11169,
-    "raw_return_20d_pct":-13.067332,
-    "raw_return_3d_pct":-10.684089,
-    "raw_return_5d_pct":4.059701,
-    "total_market_cap":152065023096.0
+    "adt20":1771466501.714,
+    "amount_z20":0.845021,
+    "raw_close":316.76,
+    "raw_return_1d_pct":3.182514,
+    "raw_return_20d_pct":-17.912304,
+    "raw_return_3d_pct":-6.3062,
+    "raw_return_5d_pct":-18.841916,
+    "total_market_cap":138175894193.6
    },
    "thscode":"301666.SZ"
   },
@@ -5746,7 +5507,7 @@
    },
    "security_name":"华能国际",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5755,14 +5516,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":778415969.7,
-    "amount_z20":0.754815,
-    "raw_close":7.4,
-    "raw_return_1d_pct":3.351955,
-    "raw_return_20d_pct":8.823529,
-    "raw_return_3d_pct":2.068966,
-    "raw_return_5d_pct":-1.333333,
-    "total_market_cap":116165890856.6
+    "adt20":819411384.8,
+    "amount_z20":-1.472043,
+    "raw_close":7.5,
+    "raw_return_1d_pct":-1.055409,
+    "raw_return_20d_pct":11.275964,
+    "raw_return_3d_pct":4.748603,
+    "raw_return_5d_pct":3.448276,
+    "total_market_cap":117735700192.5
    },
    "thscode":"600011.SH"
   },
@@ -5800,7 +5561,7 @@
    },
    "security_name":"山东钢铁",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5809,14 +5570,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":104687310.9,
-    "amount_z20":-1.118927,
-    "raw_close":1.26,
-    "raw_return_1d_pct":0.8,
-    "raw_return_20d_pct":-3.816794,
-    "raw_return_3d_pct":0.0,
-    "raw_return_5d_pct":-0.787402,
-    "total_market_cap":13480550438.04
+    "adt20":93659386.2,
+    "amount_z20":-0.239274,
+    "raw_close":1.24,
+    "raw_return_1d_pct":-0.8,
+    "raw_return_20d_pct":-3.125,
+    "raw_return_3d_pct":-0.8,
+    "raw_return_5d_pct":-1.587302,
+    "total_market_cap":13266573446.96
    },
    "thscode":"600022.SH"
   },
@@ -5854,7 +5615,7 @@
    },
    "security_name":"中信证券",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5863,14 +5624,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":2520051356.6,
-    "amount_z20":0.452473,
-    "raw_close":24.86,
-    "raw_return_1d_pct":-0.758483,
-    "raw_return_20d_pct":-7.549275,
-    "raw_return_3d_pct":-2.318271,
-    "raw_return_5d_pct":-0.59976,
-    "total_market_cap":388419407190.32
+    "adt20":2630756140.9,
+    "amount_z20":-0.33293,
+    "raw_close":24.3,
+    "raw_return_1d_pct":-0.816327,
+    "raw_return_20d_pct":-7.569418,
+    "raw_return_3d_pct":-2.994012,
+    "raw_return_5d_pct":-4.518664,
+    "total_market_cap":379669814751.60004
    },
    "thscode":"600030.SH"
   },
@@ -5908,7 +5669,7 @@
    },
    "security_name":"南京高科",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5917,14 +5678,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":139309195.95,
-    "amount_z20":-0.831232,
-    "raw_close":7.82,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":1.164295,
-    "raw_return_3d_pct":1.558442,
-    "raw_return_5d_pct":0.903226,
-    "total_market_cap":13531256016.08
+    "adt20":140817725.3,
+    "amount_z20":-0.301156,
+    "raw_close":7.75,
+    "raw_return_1d_pct":-0.513479,
+    "raw_return_20d_pct":1.706037,
+    "raw_return_3d_pct":-0.895141,
+    "raw_return_5d_pct":0.649351,
+    "total_market_cap":13410132241.0
    },
    "thscode":"600064.SH"
   },
@@ -5962,7 +5723,7 @@
    },
    "security_name":"ST人福",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -5971,14 +5732,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":277459291.2,
-    "amount_z20":-0.671444,
-    "raw_close":19.56,
-    "raw_return_1d_pct":0.307692,
-    "raw_return_20d_pct":4.431393,
-    "raw_return_3d_pct":1.452282,
-    "raw_return_5d_pct":0.359159,
-    "total_market_cap":31926339875.399998
+    "adt20":286431107.55,
+    "amount_z20":-0.151618,
+    "raw_close":19.13,
+    "raw_return_1d_pct":-1.645244,
+    "raw_return_20d_pct":1.647184,
+    "raw_return_3d_pct":-1.897436,
+    "raw_return_5d_pct":-0.778008,
+    "total_market_cap":31224482710.449997
    },
    "thscode":"600079.SH"
   },
@@ -6016,7 +5777,7 @@
    },
    "security_name":"云天化",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6025,14 +5786,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":365221577.35,
-    "amount_z20":1.882228,
-    "raw_close":25.81,
-    "raw_return_1d_pct":-2.640513,
-    "raw_return_20d_pct":-8.604816,
-    "raw_return_3d_pct":-3.079234,
-    "raw_return_5d_pct":-3.26087,
-    "total_market_cap":47051390767.11
+    "adt20":401019798.65,
+    "amount_z20":0.567968,
+    "raw_close":24.72,
+    "raw_return_1d_pct":1.311475,
+    "raw_return_20d_pct":-10.30479,
+    "raw_return_3d_pct":-6.752169,
+    "raw_return_5d_pct":-7.172362,
+    "total_market_cap":45064330870.32
    },
    "thscode":"600096.SH"
   },
@@ -6070,7 +5831,7 @@
    },
    "security_name":"三峡水利",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6079,14 +5840,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":83369956.1,
-    "amount_z20":2.216754,
-    "raw_close":5.71,
-    "raw_return_1d_pct":-1.72117,
-    "raw_return_20d_pct":-6.546645,
-    "raw_return_3d_pct":-2.393162,
-    "raw_return_5d_pct":-3.384095,
-    "total_market_cap":10918335981.84
+    "adt20":86192565.6,
+    "amount_z20":-0.298581,
+    "raw_close":5.73,
+    "raw_return_1d_pct":-0.520833,
+    "raw_return_20d_pct":-5.289256,
+    "raw_return_3d_pct":-1.376936,
+    "raw_return_5d_pct":-2.051282,
+    "total_market_cap":10956578839.92
    },
    "thscode":"600116.SH"
   },
@@ -6124,7 +5885,7 @@
    },
    "security_name":"金发科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6133,14 +5894,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":314431423.4,
-    "amount_z20":1.915838,
-    "raw_close":12.81,
-    "raw_return_1d_pct":1.747419,
-    "raw_return_20d_pct":-4.829123,
-    "raw_return_3d_pct":-1.537279,
-    "raw_return_5d_pct":0.0,
-    "total_market_cap":34244952068.460003
+    "adt20":326094282.7,
+    "amount_z20":-0.262494,
+    "raw_close":11.96,
+    "raw_return_1d_pct":-3.157895,
+    "raw_return_20d_pct":-8.492731,
+    "raw_return_3d_pct":-5.003971,
+    "raw_return_5d_pct":-8.070715,
+    "total_market_cap":31972648457.36
    },
    "thscode":"600143.SH"
   },
@@ -6178,7 +5939,7 @@
    },
    "security_name":"维科技术",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6187,14 +5948,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":387263090.95,
-    "amount_z20":-0.924251,
-    "raw_close":6.59,
-    "raw_return_1d_pct":2.808112,
-    "raw_return_20d_pct":-16.370558,
-    "raw_return_3d_pct":-2.514793,
-    "raw_return_5d_pct":-5.991441,
-    "total_market_cap":3486633081.25
+    "adt20":390440447.3,
+    "amount_z20":-0.968539,
+    "raw_close":6.26,
+    "raw_return_1d_pct":-2.492212,
+    "raw_return_20d_pct":-18.276762,
+    "raw_return_3d_pct":-2.340094,
+    "raw_return_5d_pct":-7.39645,
+    "total_market_cap":3312036887.5
    },
    "thscode":"600152.SH"
   },
@@ -6232,7 +5993,7 @@
    },
    "security_name":"*ST国中",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6241,14 +6002,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":27114486.05,
-    "amount_z20":0.267751,
-    "raw_close":1.11,
-    "raw_return_1d_pct":2.777778,
-    "raw_return_20d_pct":-14.615385,
-    "raw_return_3d_pct":-4.310345,
-    "raw_return_5d_pct":-0.892857,
-    "total_market_cap":1791297024.33
+    "adt20":29378446.1,
+    "amount_z20":1.596712,
+    "raw_close":1.15,
+    "raw_return_1d_pct":5.504587,
+    "raw_return_20d_pct":-9.448819,
+    "raw_return_3d_pct":6.481481,
+    "raw_return_5d_pct":-0.862069,
+    "total_market_cap":1855848268.45
    },
    "thscode":"600187.SH"
   },
@@ -6286,7 +6047,7 @@
    },
    "security_name":"哈空调",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6295,14 +6056,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":205168598.85,
-    "amount_z20":0.113016,
-    "raw_close":4.76,
-    "raw_return_1d_pct":-5.367793,
-    "raw_return_20d_pct":-7.572816,
-    "raw_return_3d_pct":-13.768116,
-    "raw_return_5d_pct":-14.54219,
-    "total_market_cap":1824701598.72
+    "adt20":228052812.0,
+    "amount_z20":0.41277,
+    "raw_close":4.78,
+    "raw_return_1d_pct":3.687636,
+    "raw_return_20d_pct":-7.364341,
+    "raw_return_3d_pct":-4.970179,
+    "raw_return_5d_pct":-13.405797,
+    "total_market_cap":1832368412.16
    },
    "thscode":"600202.SH"
   },
@@ -6340,7 +6101,7 @@
    },
    "security_name":"福日电子",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6349,14 +6110,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":110661461.55,
-    "amount_z20":-1.576164,
-    "raw_close":8.42,
-    "raw_return_1d_pct":0.838323,
-    "raw_return_20d_pct":-17.773438,
-    "raw_return_3d_pct":-5.393258,
-    "raw_return_5d_pct":-5.393258,
-    "total_market_cap":4992959650.44
+    "adt20":107651202.85,
+    "amount_z20":-0.131044,
+    "raw_close":7.83,
+    "raw_return_1d_pct":-3.571429,
+    "raw_return_20d_pct":-21.543086,
+    "raw_return_3d_pct":-6.227545,
+    "raw_return_5d_pct":-12.022472,
+    "total_market_cap":4643096682.06
    },
    "thscode":"600203.SH"
   },
@@ -6394,7 +6155,7 @@
    },
    "security_name":"安彩高科",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6403,14 +6164,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":273313275.05,
-    "amount_z20":-1.190763,
-    "raw_close":4.24,
-    "raw_return_1d_pct":1.435407,
-    "raw_return_20d_pct":-12.757202,
-    "raw_return_3d_pct":-2.752294,
-    "raw_return_5d_pct":-6.60793,
-    "total_market_cap":4618685228.96
+    "adt20":245273107.8,
+    "amount_z20":-0.883977,
+    "raw_close":4.07,
+    "raw_return_1d_pct":-2.398082,
+    "raw_return_20d_pct":-21.124031,
+    "raw_return_3d_pct":-2.631579,
+    "raw_return_5d_pct":-6.651376,
+    "total_market_cap":4433502094.780001
    },
    "thscode":"600207.SH"
   },
@@ -6448,7 +6209,7 @@
    },
    "security_name":"城市传媒",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6457,14 +6218,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":136259501.55,
-    "amount_z20":1.918972,
-    "raw_close":6.09,
-    "raw_return_1d_pct":4.819277,
-    "raw_return_20d_pct":2.352941,
-    "raw_return_3d_pct":4.819277,
-    "raw_return_5d_pct":-0.97561,
-    "total_market_cap":4023710404.56
+    "adt20":151727460.3,
+    "amount_z20":0.026623,
+    "raw_close":5.17,
+    "raw_return_1d_pct":-9.457093,
+    "raw_return_20d_pct":-11.168385,
+    "raw_return_3d_pct":-11.015491,
+    "raw_return_5d_pct":-11.015491,
+    "total_market_cap":3415859243.28
    },
    "thscode":"600229.SH"
   },
@@ -6502,7 +6263,7 @@
    },
    "security_name":"ST信通",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6512,14 +6273,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":16712630.9,
-    "amount_z20":-0.529187,
-    "raw_close":4.92,
-    "raw_return_1d_pct":-1.6,
-    "raw_return_20d_pct":11.312217,
-    "raw_return_3d_pct":-1.402806,
-    "raw_return_5d_pct":-3.149606,
-    "total_market_cap":3104776179.48
+    "adt20":18493185.2,
+    "amount_z20":2.16195,
+    "raw_close":5.27,
+    "raw_return_1d_pct":7.991803,
+    "raw_return_20d_pct":21.990741,
+    "raw_return_3d_pct":5.4,
+    "raw_return_5d_pct":5.611222,
+    "total_market_cap":3325644403.63
    },
    "thscode":"600289.SH"
   },
@@ -6557,7 +6318,7 @@
    },
    "security_name":"曙光股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6566,14 +6327,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":187264475.65,
-    "amount_z20":1.71206,
-    "raw_close":2.94,
-    "raw_return_1d_pct":-5.466238,
-    "raw_return_20d_pct":-5.769231,
-    "raw_return_3d_pct":-6.369427,
-    "raw_return_5d_pct":-2.970297,
-    "total_market_cap":2009796380.34
+    "adt20":197584163.65,
+    "amount_z20":-0.367362,
+    "raw_close":2.61,
+    "raw_return_1d_pct":-5.090909,
+    "raw_return_20d_pct":-14.42623,
+    "raw_return_3d_pct":-16.07717,
+    "raw_return_5d_pct":-16.878981,
+    "total_market_cap":1784206990.71
    },
    "thscode":"600303.SH"
   },
@@ -6611,7 +6372,7 @@
    },
    "security_name":"白云山",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6620,14 +6381,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":137526331.25,
-    "amount_z20":0.237231,
-    "raw_close":19.53,
-    "raw_return_1d_pct":-1.06383,
-    "raw_return_20d_pct":-0.762195,
-    "raw_return_3d_pct":-0.255363,
-    "raw_return_5d_pct":-1.013685,
-    "total_market_cap":31751697233.97
+    "adt20":148385276.3,
+    "amount_z20":1.06326,
+    "raw_close":19.61,
+    "raw_return_1d_pct":1.291322,
+    "raw_return_20d_pct":1.134605,
+    "raw_return_3d_pct":-0.658561,
+    "raw_return_5d_pct":0.153218,
+    "total_market_cap":31881760509.89
    },
    "thscode":"600332.SH"
   },
@@ -6665,7 +6426,7 @@
    },
    "security_name":"亚宝药业",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6674,14 +6435,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":173009177.45,
-    "amount_z20":3.90221,
-    "raw_close":7.15,
-    "raw_return_1d_pct":7.843137,
-    "raw_return_20d_pct":4.532164,
-    "raw_return_3d_pct":4.227405,
-    "raw_return_5d_pct":3.924419,
-    "total_market_cap":4947800328.900001
+    "adt20":193564154.85,
+    "amount_z20":0.728969,
+    "raw_close":7.16,
+    "raw_return_1d_pct":0.84507,
+    "raw_return_20d_pct":7.346327,
+    "raw_return_3d_pct":7.993967,
+    "raw_return_5d_pct":4.373178,
+    "total_market_cap":4954720329.36
    },
    "thscode":"600351.SH"
   },
@@ -6719,7 +6480,7 @@
    },
    "security_name":"小商品城",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6728,14 +6489,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":520796131.6,
-    "amount_z20":-0.227831,
-    "raw_close":11.11,
-    "raw_return_1d_pct":-1.941748,
-    "raw_return_20d_pct":-5.379825,
-    "raw_return_3d_pct":-1.681416,
-    "raw_return_5d_pct":2.490775,
-    "total_market_cap":60922343000.86
+    "adt20":447319323.15,
+    "amount_z20":0.896874,
+    "raw_close":11.4,
+    "raw_return_1d_pct":2.333932,
+    "raw_return_20d_pct":6.136218,
+    "raw_return_3d_pct":0.617829,
+    "raw_return_5d_pct":0.884956,
+    "total_market_cap":62512575176.4
    },
    "thscode":"600415.SH"
   },
@@ -6773,7 +6534,7 @@
    },
    "security_name":"冠豪高新",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6782,59 +6543,26 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":64059028.05,
-    "amount_z20":-1.000526,
-    "raw_close":3.06,
-    "raw_return_1d_pct":0.990099,
-    "raw_return_20d_pct":-9.198813,
-    "raw_return_3d_pct":-0.649351,
-    "raw_return_5d_pct":-2.547771,
-    "total_market_cap":5355854452.98
+    "adt20":63972336.25,
+    "amount_z20":-0.126747,
+    "raw_close":2.91,
+    "raw_return_1d_pct":-2.348993,
+    "raw_return_20d_pct":-10.736196,
+    "raw_return_3d_pct":-3.960396,
+    "raw_return_5d_pct":-5.519481,
+    "total_market_cap":5093312568.030001
    },
    "thscode":"600433.SH"
   },
   {
    "availability":{
-    "events":"observed",
+    "events":"unknown",
     "financials":"observed",
     "forecasts":"not_ready"
    },
    "commodity_exposures":[],
-   "discovery_routes":[
-    "event_filing"
-   ],
-   "events":[
-    {
-     "document_access":"authenticated_link_omitted",
-     "document_sha256":null,
-     "event_date":"2026-09-25",
-     "event_id":"ifind_5318378863",
-     "event_type":"filing",
-     "first_seen_at":"2026-09-29T23:35:09.761843+00:00",
-     "known_at":"2026-09-29T23:35:09.761843+00:00",
-     "price_response":{
-      "basis":"first_full_session_after_publication; compounded_provider_change_ratio_not_abnormal_return",
-      "elapsed_sessions":18,
-      "first_full_session":"2026-09-28",
-      "return_pct":-13.684210526315965,
-      "state":"observed"
-     },
-     "published_at":"2026-09-24T07:32:39+00:00",
-     "research_availability":{
-      "first_observed_at":"2026-09-29T23:35:09.761843+00:00",
-      "known_at":"2026-09-29T23:35:09.761843+00:00",
-      "source_published_at":"2026-09-24T07:32:39+00:00",
-      "usable_for_current_research":true,
-      "usable_for_historical_replay":true
-     },
-     "revision":"ifind_eba58d194ddd3f1a49b32884d4ca5b44",
-     "source_url":"https://quantapi.51ifind.com/gwstatic/static/ds_web/quantapi-web/example.html",
-     "source_url_kind":"provider_query_documentation",
-     "status":"unknown",
-     "thscode":"600488.SH",
-     "title":"津药药业：津药药业股份有限公司关于上海上实（集团）有限公司及上海上实投资发展有限公司挂牌转让上海琉璃光医药发展有限公司100%股权的提示性公告"
-    }
-   ],
+   "discovery_routes":[],
+   "events":[],
    "financials":{
     "basis_statement_hashes":[
      "dce5707bf2692110d961a1689e77cb5a069210d8a9f281b65dcdf6e6ddbcd813"
@@ -6959,7 +6687,7 @@
    },
    "security_name":"津药药业",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -6968,14 +6696,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":479795935.45,
-    "amount_z20":-0.93707,
-    "raw_close":4.92,
-    "raw_return_1d_pct":1.863354,
-    "raw_return_20d_pct":-19.738989,
-    "raw_return_3d_pct":-4.83559,
-    "raw_return_5d_pct":-10.054845,
-    "total_market_cap":5372082465.6
+    "adt20":463535807.65,
+    "amount_z20":-0.683997,
+    "raw_close":4.73,
+    "raw_return_1d_pct":-0.838574,
+    "raw_return_20d_pct":-17.017544,
+    "raw_return_3d_pct":-2.070393,
+    "raw_return_5d_pct":-8.510638,
+    "total_market_cap":5164623996.400001
    },
    "thscode":"600488.SH"
   },
@@ -7013,7 +6741,7 @@
    },
    "security_name":"鹏欣资源",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7022,14 +6750,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":175196926.8,
-    "amount_z20":3.592003,
-    "raw_close":5.77,
-    "raw_return_1d_pct":-2.861953,
-    "raw_return_20d_pct":-19.525802,
-    "raw_return_3d_pct":-3.993344,
-    "raw_return_5d_pct":-5.718954,
-    "total_market_cap":12768358445.83
+    "adt20":176929013.0,
+    "amount_z20":0.439587,
+    "raw_close":5.35,
+    "raw_return_1d_pct":-4.80427,
+    "raw_return_20d_pct":-21.207658,
+    "raw_return_3d_pct":-9.93266,
+    "raw_return_5d_pct":-10.981697,
+    "total_market_cap":11838945872.65
    },
    "thscode":"600490.SH"
   },
@@ -7067,7 +6795,7 @@
    },
    "security_name":"安徽建工",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7076,14 +6804,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":121406143.7,
-    "amount_z20":-0.795418,
-    "raw_close":4.18,
-    "raw_return_1d_pct":-0.47619,
-    "raw_return_20d_pct":1.210654,
-    "raw_return_3d_pct":0.239808,
-    "raw_return_5d_pct":-0.238663,
-    "total_market_cap":7175111860.839999
+    "adt20":117730917.65,
+    "amount_z20":-0.266688,
+    "raw_close":4.21,
+    "raw_return_1d_pct":0.959233,
+    "raw_return_20d_pct":1.201923,
+    "raw_return_3d_pct":0.238095,
+    "raw_return_5d_pct":0.959233,
+    "total_market_cap":7226607878.98
    },
    "thscode":"600502.SH"
   },
@@ -7121,7 +6849,7 @@
    },
    "security_name":"海南机场",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7130,14 +6858,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":185553548.2,
-    "amount_z20":-0.528186,
-    "raw_close":2.59,
-    "raw_return_1d_pct":-1.145038,
-    "raw_return_20d_pct":-6.15942,
-    "raw_return_3d_pct":-1.145038,
-    "raw_return_5d_pct":-1.520913,
-    "total_market_cap":29591551869.179996
+    "adt20":179919417.35,
+    "amount_z20":-0.62204,
+    "raw_close":2.57,
+    "raw_return_1d_pct":0.390625,
+    "raw_return_20d_pct":-4.460967,
+    "raw_return_3d_pct":-1.908397,
+    "raw_return_5d_pct":-1.908397,
+    "total_market_cap":29363045677.14
    },
    "thscode":"600515.SH"
   },
@@ -7175,7 +6903,7 @@
    },
    "security_name":"康恩贝",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7184,14 +6912,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":170955258.4,
-    "amount_z20":0.230667,
-    "raw_close":4.16,
-    "raw_return_1d_pct":-0.239808,
-    "raw_return_20d_pct":-3.703704,
-    "raw_return_3d_pct":-1.187648,
-    "raw_return_5d_pct":-3.030303,
-    "total_market_cap":10568605428.16
+    "adt20":174474441.1,
+    "amount_z20":0.697882,
+    "raw_close":4.21,
+    "raw_return_1d_pct":0.959233,
+    "raw_return_20d_pct":-0.0,
+    "raw_return_3d_pct":0.959233,
+    "raw_return_5d_pct":-0.0,
+    "total_market_cap":10695631935.71
    },
    "thscode":"600572.SH"
   },
@@ -7229,7 +6957,7 @@
    },
    "security_name":"广汇物流",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7238,14 +6966,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":74582840.2,
-    "amount_z20":-0.672933,
-    "raw_close":4.7,
-    "raw_return_1d_pct":1.293103,
-    "raw_return_20d_pct":-2.691511,
-    "raw_return_3d_pct":0.21322,
-    "raw_return_5d_pct":-6.0,
-    "total_market_cap":5422859769.7
+    "adt20":75196707.1,
+    "amount_z20":-0.389544,
+    "raw_close":4.58,
+    "raw_return_1d_pct":-1.927195,
+    "raw_return_20d_pct":-0.865801,
+    "raw_return_3d_pct":-1.293103,
+    "raw_return_5d_pct":-2.345416,
+    "total_market_cap":5284403775.58
    },
    "thscode":"600603.SH"
   },
@@ -7283,7 +7011,7 @@
    },
    "security_name":"天宸股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7292,14 +7020,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":26117022.4,
-    "amount_z20":-1.513057,
-    "raw_close":3.97,
-    "raw_return_1d_pct":0.506329,
-    "raw_return_20d_pct":-9.153318,
-    "raw_return_3d_pct":-0.251256,
-    "raw_return_5d_pct":-3.170732,
-    "total_market_cap":2726108138.61
+    "adt20":26712385.85,
+    "amount_z20":1.548855,
+    "raw_close":3.64,
+    "raw_return_1d_pct":-6.666667,
+    "raw_return_20d_pct":-16.321839,
+    "raw_return_3d_pct":-7.848101,
+    "raw_return_5d_pct":-8.542714,
+    "total_market_cap":2499504691.32
    },
    "thscode":"600620.SH"
   },
@@ -7337,7 +7065,7 @@
    },
    "security_name":"外服控股",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7346,14 +7074,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":46695903.75,
-    "amount_z20":-0.378907,
-    "raw_close":4.24,
-    "raw_return_1d_pct":0.952381,
-    "raw_return_20d_pct":-1.165501,
-    "raw_return_3d_pct":2.912621,
-    "raw_return_5d_pct":3.163017,
-    "total_market_cap":9681689920.16
+    "adt20":47556984.4,
+    "amount_z20":-1.107343,
+    "raw_close":4.17,
+    "raw_return_1d_pct":-0.239234,
+    "raw_return_20d_pct":-0.714286,
+    "raw_return_3d_pct":-0.714286,
+    "raw_return_5d_pct":1.213592,
+    "total_market_cap":9521850699.78
    },
    "thscode":"600662.SH"
   },
@@ -7391,7 +7119,7 @@
    },
    "security_name":"上海三毛",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7400,14 +7128,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":54495548.5,
-    "amount_z20":1.053505,
-    "raw_close":11.15,
-    "raw_return_1d_pct":-1.762115,
-    "raw_return_20d_pct":-7.083333,
-    "raw_return_3d_pct":-1.848592,
-    "raw_return_5d_pct":-4.127257,
-    "total_market_cap":2241053474.45
+    "adt20":56514818.7,
+    "amount_z20":-0.344411,
+    "raw_close":10.4,
+    "raw_return_1d_pct":-3.703704,
+    "raw_return_20d_pct":-13.621262,
+    "raw_return_3d_pct":-8.370044,
+    "raw_return_5d_pct":-8.450704,
+    "total_market_cap":2090309967.2
    },
    "thscode":"600689.SH"
   },
@@ -7544,7 +7272,7 @@
    },
    "security_name":"丽尚国潮",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7553,14 +7281,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":43945291.85,
-    "amount_z20":-0.530521,
-    "raw_close":4.04,
-    "raw_return_1d_pct":0.497512,
-    "raw_return_20d_pct":-5.386417,
-    "raw_return_3d_pct":1.253133,
-    "raw_return_5d_pct":-0.492611,
-    "total_market_cap":3075794353.44
+    "adt20":42707425.35,
+    "amount_z20":-0.306333,
+    "raw_close":3.83,
+    "raw_return_1d_pct":-2.046036,
+    "raw_return_20d_pct":-8.809524,
+    "raw_return_3d_pct":-4.726368,
+    "raw_return_5d_pct":-4.010025,
+    "total_market_cap":2915913953.88
    },
    "thscode":"600738.SH"
   },
@@ -7598,7 +7326,7 @@
    },
    "security_name":"辽宁成大",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7607,14 +7335,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":100785690.25,
-    "amount_z20":-0.92244,
-    "raw_close":9.75,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":-6.965649,
-    "raw_return_3d_pct":-1.115619,
-    "raw_return_5d_pct":-1.71371,
-    "total_market_cap":14842580298.0
+    "adt20":105404028.15,
+    "amount_z20":1.249049,
+    "raw_close":9.68,
+    "raw_return_1d_pct":1.361257,
+    "raw_return_20d_pct":-5.744888,
+    "raw_return_3d_pct":-0.717949,
+    "raw_return_5d_pct":-1.825558,
+    "total_market_cap":14736018183.039999
    },
    "thscode":"600739.SH"
   },
@@ -7652,7 +7380,7 @@
    },
    "security_name":"锦江酒店",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7661,14 +7389,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":121029110.45,
-    "amount_z20":1.859473,
-    "raw_close":17.71,
-    "raw_return_1d_pct":-1.720311,
-    "raw_return_20d_pct":-4.579741,
-    "raw_return_3d_pct":-0.673023,
-    "raw_return_5d_pct":-0.839866,
-    "total_market_cap":18844829562.02
+    "adt20":131185532.25,
+    "amount_z20":3.921373,
+    "raw_close":18.7,
+    "raw_return_1d_pct":5.829089,
+    "raw_return_20d_pct":3.716029,
+    "raw_return_3d_pct":3.773585,
+    "raw_return_5d_pct":4.879417,
+    "total_market_cap":19898267239.399998
    },
    "thscode":"600754.SH"
   },
@@ -7706,7 +7434,7 @@
    },
    "security_name":"长江传媒",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7715,14 +7443,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":95340681.1,
-    "amount_z20":-0.711907,
-    "raw_close":7.97,
-    "raw_return_1d_pct":-1.116625,
-    "raw_return_20d_pct":6.266667,
-    "raw_return_3d_pct":0.631313,
-    "raw_return_5d_pct":-0.623441,
-    "total_market_cap":9672792675.81
+    "adt20":116456704.35,
+    "amount_z20":1.262062,
+    "raw_close":8.57,
+    "raw_return_1d_pct":-0.348837,
+    "raw_return_20d_pct":16.124661,
+    "raw_return_3d_pct":6.327543,
+    "raw_return_5d_pct":8.207071,
+    "total_market_cap":10400982839.61
    },
    "thscode":"600757.SH"
   },
@@ -7760,7 +7488,7 @@
    },
    "security_name":"轻纺城",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7769,14 +7497,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":114891724.5,
-    "amount_z20":-0.906255,
-    "raw_close":3.35,
-    "raw_return_1d_pct":1.208459,
-    "raw_return_20d_pct":-5.633803,
-    "raw_return_3d_pct":0.0,
-    "raw_return_5d_pct":-0.887574,
-    "total_market_cap":4549016610.1
+    "adt20":90143470.35,
+    "amount_z20":-0.529644,
+    "raw_close":3.18,
+    "raw_return_1d_pct":-3.04878,
+    "raw_return_20d_pct":-12.154696,
+    "raw_return_3d_pct":-3.927492,
+    "raw_return_5d_pct":-5.074627,
+    "total_market_cap":4318170991.08
    },
    "thscode":"600790.SH"
   },
@@ -7814,7 +7542,7 @@
    },
    "security_name":"上海九百",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7823,14 +7551,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":285326633.15,
-    "amount_z20":4.154379,
-    "raw_close":13.99,
-    "raw_return_1d_pct":5.108941,
-    "raw_return_20d_pct":62.674419,
-    "raw_return_3d_pct":27.181818,
-    "raw_return_5d_pct":53.905391,
-    "total_market_cap":5608338914.190001
+    "adt20":448721897.4,
+    "amount_z20":1.675014,
+    "raw_close":12.27,
+    "raw_return_1d_pct":-9.97799,
+    "raw_return_20d_pct":47.65343,
+    "raw_return_3d_pct":-7.813674,
+    "raw_return_5d_pct":11.545455,
+    "total_market_cap":4918821906.87
    },
    "thscode":"600838.SH"
   },
@@ -7868,7 +7596,7 @@
    },
    "security_name":"中炬高新",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7877,14 +7605,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":181619724.05,
-    "amount_z20":3.448698,
-    "raw_close":18.77,
-    "raw_return_1d_pct":3.98892,
-    "raw_return_20d_pct":8.184438,
-    "raw_return_3d_pct":4.277778,
-    "raw_return_5d_pct":4.977629,
-    "total_market_cap":14471443821.5
+    "adt20":199349528.15,
+    "amount_z20":1.431709,
+    "raw_close":19.47,
+    "raw_return_1d_pct":1.300728,
+    "raw_return_20d_pct":13.527697,
+    "raw_return_3d_pct":7.867036,
+    "raw_return_5d_pct":8.166667,
+    "total_market_cap":15011135386.5
    },
    "thscode":"600872.SH"
   },
@@ -7922,7 +7650,7 @@
    },
    "security_name":"梅花生物",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7931,14 +7659,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":137443686.95,
-    "amount_z20":-0.94481,
-    "raw_close":7.28,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":-3.062583,
-    "raw_return_3d_pct":-0.952381,
-    "raw_return_5d_pct":-0.273973,
-    "total_market_cap":20414879212.0
+    "adt20":137435754.9,
+    "amount_z20":-0.262897,
+    "raw_close":7.33,
+    "raw_return_1d_pct":1.103448,
+    "raw_return_20d_pct":-0.407609,
+    "raw_return_3d_pct":0.686813,
+    "raw_return_5d_pct":-0.272109,
+    "total_market_cap":20555091294.5
    },
    "thscode":"600873.SH"
   },
@@ -7976,7 +7704,7 @@
    },
    "security_name":"创业环保",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -7985,14 +7713,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":42413715.0,
-    "amount_z20":0.380981,
-    "raw_close":5.63,
-    "raw_return_1d_pct":0.535714,
-    "raw_return_20d_pct":1.808318,
-    "raw_return_3d_pct":3.874539,
-    "raw_return_5d_pct":3.302752,
-    "total_market_cap":8841453818.55
+    "adt20":42969431.75,
+    "amount_z20":-0.704701,
+    "raw_close":5.59,
+    "raw_return_1d_pct":0.179211,
+    "raw_return_20d_pct":2.757353,
+    "raw_return_3d_pct":-0.178571,
+    "raw_return_5d_pct":3.136531,
+    "total_market_cap":8778637095.15
    },
    "thscode":"600874.SH"
   },
@@ -8030,7 +7758,7 @@
    },
    "security_name":"电科芯片",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8039,14 +7767,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":103249534.15,
-    "amount_z20":1.430493,
-    "raw_close":10.57,
-    "raw_return_1d_pct":3.729146,
-    "raw_return_20d_pct":-12.932455,
-    "raw_return_3d_pct":-1.674419,
-    "raw_return_5d_pct":-0.844278,
-    "total_market_cap":12515508830.44
+    "adt20":110138144.2,
+    "amount_z20":1.644606,
+    "raw_close":10.06,
+    "raw_return_1d_pct":-4.914934,
+    "raw_return_20d_pct":-15.462185,
+    "raw_return_3d_pct":-1.275761,
+    "raw_return_5d_pct":-6.418605,
+    "total_market_cap":11911638489.52
    },
    "thscode":"600877.SH"
   },
@@ -8084,7 +7812,7 @@
    },
    "security_name":"财达证券",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8093,14 +7821,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":117909346.85,
-    "amount_z20":-0.802527,
-    "raw_close":5.9,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":-8.221569,
-    "raw_return_3d_pct":-3.908795,
-    "raw_return_5d_pct":-3.119869,
-    "total_market_cap":19145500000.0
+    "adt20":131524151.1,
+    "amount_z20":0.497946,
+    "raw_close":5.46,
+    "raw_return_1d_pct":-2.325581,
+    "raw_return_20d_pct":-13.597079,
+    "raw_return_3d_pct":-7.457627,
+    "raw_return_5d_pct":-11.074919,
+    "total_market_cap":17717700000.0
    },
    "thscode":"600906.SH"
   },
@@ -8138,7 +7866,7 @@
    },
    "security_name":"无锡银行",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8147,14 +7875,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":123691138.65,
-    "amount_z20":1.453139,
-    "raw_close":5.87,
-    "raw_return_1d_pct":0.170648,
-    "raw_return_20d_pct":1.733102,
-    "raw_return_3d_pct":2.443281,
-    "raw_return_5d_pct":1.032702,
-    "total_market_cap":12882781549.65
+    "adt20":138906025.35,
+    "amount_z20":2.170887,
+    "raw_close":5.99,
+    "raw_return_1d_pct":0.167224,
+    "raw_return_20d_pct":2.744425,
+    "raw_return_3d_pct":2.21843,
+    "raw_return_5d_pct":4.537522,
+    "total_market_cap":13146143353.050001
    },
    "thscode":"600908.SH"
   },
@@ -8192,7 +7920,7 @@
    },
    "security_name":"重庆建工",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8201,14 +7929,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":44771660.55,
-    "amount_z20":-0.128632,
-    "raw_close":2.74,
-    "raw_return_1d_pct":1.858736,
-    "raw_return_20d_pct":4.18251,
-    "raw_return_3d_pct":-0.724638,
-    "raw_return_5d_pct":1.481481,
-    "total_market_cap":5212781346.56
+    "adt20":43850915.5,
+    "amount_z20":-0.318091,
+    "raw_close":2.6,
+    "raw_return_1d_pct":-2.621723,
+    "raw_return_20d_pct":-0.0,
+    "raw_return_3d_pct":-3.345725,
+    "raw_return_5d_pct":-5.797101,
+    "total_market_cap":4946434854.400001
    },
    "thscode":"600939.SH"
   },
@@ -8246,7 +7974,7 @@
    },
    "security_name":"渤海汽车",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8255,14 +7983,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":33198380.65,
-    "amount_z20":0.185768,
-    "raw_close":3.89,
-    "raw_return_1d_pct":1.302083,
-    "raw_return_20d_pct":-1.269036,
-    "raw_return_3d_pct":-0.0,
-    "raw_return_5d_pct":2.910053,
-    "total_market_cap":6302710151.08
+    "adt20":34550882.95,
+    "amount_z20":1.204405,
+    "raw_close":3.73,
+    "raw_return_1d_pct":-1.583113,
+    "raw_return_20d_pct":-4.358974,
+    "raw_return_3d_pct":-2.864583,
+    "raw_return_5d_pct":-4.113111,
+    "total_market_cap":6043472715.56
    },
    "thscode":"600960.SH"
   },
@@ -8300,7 +8028,7 @@
    },
    "security_name":"国投中鲁",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8309,14 +8037,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":88081892.9,
-    "amount_z20":-0.837136,
-    "raw_close":21.94,
-    "raw_return_1d_pct":0.0,
-    "raw_return_20d_pct":-19.6337,
-    "raw_return_3d_pct":0.182648,
-    "raw_return_5d_pct":-6.279368,
-    "total_market_cap":17793532128.58
+    "adt20":75164968.7,
+    "amount_z20":-0.323481,
+    "raw_close":21.8,
+    "raw_return_1d_pct":-0.773782,
+    "raw_return_20d_pct":-16.634799,
+    "raw_return_3d_pct":-0.638104,
+    "raw_return_5d_pct":-0.456621,
+    "total_market_cap":17679990902.600002
    },
    "thscode":"600962.SH"
   },
@@ -8354,7 +8082,7 @@
    },
    "security_name":"航民股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8363,14 +8091,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":31399188.55,
-    "amount_z20":0.323988,
-    "raw_close":6.46,
-    "raw_return_1d_pct":-0.920245,
-    "raw_return_20d_pct":1.732283,
-    "raw_return_3d_pct":2.377179,
-    "raw_return_5d_pct":3.36,
-    "total_market_cap":6594489919.58
+    "adt20":32325207.7,
+    "amount_z20":-0.401269,
+    "raw_close":6.48,
+    "raw_return_1d_pct":0.0,
+    "raw_return_20d_pct":2.694136,
+    "raw_return_3d_pct":-0.613497,
+    "raw_return_5d_pct":2.694136,
+    "total_market_cap":6614906297.04
    },
    "thscode":"600987.SH"
   },
@@ -8408,7 +8136,7 @@
    },
    "security_name":"连云港",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8417,14 +8145,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":41800401.65,
-    "amount_z20":-0.63838,
-    "raw_close":4.11,
-    "raw_return_1d_pct":-1.438849,
-    "raw_return_20d_pct":-7.223476,
-    "raw_return_3d_pct":-0.963855,
-    "raw_return_5d_pct":-3.971963,
-    "total_market_cap":5099022204.660001
+    "adt20":40865394.05,
+    "amount_z20":-0.475978,
+    "raw_close":4.07,
+    "raw_return_1d_pct":-0.245098,
+    "raw_return_20d_pct":-7.5,
+    "raw_return_3d_pct":-2.398082,
+    "raw_return_5d_pct":-1.927711,
+    "total_market_cap":5049396684.42
    },
    "thscode":"601008.SH"
   },
@@ -8561,7 +8289,7 @@
    },
    "security_name":"陕西黑猫",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8570,14 +8298,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":227832683.85,
-    "amount_z20":-1.118101,
-    "raw_close":3.17,
-    "raw_return_1d_pct":1.277955,
-    "raw_return_20d_pct":-15.466667,
-    "raw_return_3d_pct":-0.0,
-    "raw_return_5d_pct":-1.246106,
-    "total_market_cap":6474717515.63
+    "adt20":209250884.1,
+    "amount_z20":-0.932127,
+    "raw_close":3.08,
+    "raw_return_1d_pct":-2.839117,
+    "raw_return_20d_pct":-13.239437,
+    "raw_return_3d_pct":-1.597444,
+    "raw_return_5d_pct":-2.839117,
+    "total_market_cap":6290892728.12
    },
    "thscode":"601015.SH"
   },
@@ -8615,7 +8343,7 @@
    },
    "security_name":"东航物流",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8624,14 +8352,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":116961893.05,
-    "amount_z20":0.045372,
-    "raw_close":18.62,
-    "raw_return_1d_pct":0.377358,
-    "raw_return_20d_pct":2.702703,
-    "raw_return_3d_pct":4.196978,
-    "raw_return_5d_pct":3.444444,
-    "total_market_cap":29560284452.72
+    "adt20":124733491.6,
+    "amount_z20":0.928449,
+    "raw_close":18.6,
+    "raw_return_1d_pct":2.08562,
+    "raw_return_20d_pct":2.14168,
+    "raw_return_3d_pct":0.269542,
+    "raw_return_5d_pct":4.085059,
+    "total_market_cap":29528533341.600002
    },
    "thscode":"601156.SH"
   },
@@ -8669,7 +8397,7 @@
    },
    "security_name":"中国铁建",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8678,14 +8406,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":243745224.3,
-    "amount_z20":-0.44655,
-    "raw_close":6.1,
-    "raw_return_1d_pct":-0.163666,
-    "raw_return_20d_pct":0.993377,
-    "raw_return_3d_pct":1.497504,
-    "raw_return_5d_pct":0.494234,
-    "total_market_cap":82835203150.0
+    "adt20":245492950.2,
+    "amount_z20":-0.472418,
+    "raw_close":6.08,
+    "raw_return_1d_pct":-0.164204,
+    "raw_return_20d_pct":1.672241,
+    "raw_return_3d_pct":-0.490998,
+    "raw_return_5d_pct":1.164725,
+    "total_market_cap":82563612320.0
    },
    "thscode":"601186.SH"
   },
@@ -8822,7 +8550,7 @@
    },
    "security_name":"白银有色",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8831,14 +8559,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":565970025.05,
-    "amount_z20":-0.97397,
-    "raw_close":4.74,
-    "raw_return_1d_pct":0.211416,
-    "raw_return_20d_pct":-22.167488,
-    "raw_return_3d_pct":-4.819277,
-    "raw_return_5d_pct":-8.846154,
-    "total_market_cap":35098631182.14
+    "adt20":513169667.1,
+    "amount_z20":0.343842,
+    "raw_close":4.56,
+    "raw_return_1d_pct":-1.084599,
+    "raw_return_20d_pct":-21.243523,
+    "raw_return_3d_pct":-3.59408,
+    "raw_return_5d_pct":-8.433735,
+    "total_market_cap":33765771770.159996
    },
    "thscode":"601212.SH"
   },
@@ -8876,7 +8604,7 @@
    },
    "security_name":"中国平安",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -8885,14 +8613,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":3569774994.85,
-    "amount_z20":-0.14597,
-    "raw_close":52.31,
-    "raw_return_1d_pct":-0.570234,
-    "raw_return_20d_pct":-3.947852,
-    "raw_return_3d_pct":1.062597,
-    "raw_return_5d_pct":2.167969,
-    "total_market_cap":947210752758.4501
+    "adt20":3768154636.15,
+    "amount_z20":-0.032036,
+    "raw_close":52.8,
+    "raw_return_1d_pct":-0.75188,
+    "raw_return_20d_pct":-0.84507,
+    "raw_return_3d_pct":0.361148,
+    "raw_return_5d_pct":2.009274,
+    "total_market_cap":956083497336.0
    },
    "thscode":"601318.SH"
   },
@@ -9029,7 +8757,7 @@
    },
    "security_name":"会稽山",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -9038,14 +8766,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":1191666374.9,
-    "amount_z20":-1.062822,
-    "raw_close":23.37,
-    "raw_return_1d_pct":1.037613,
-    "raw_return_20d_pct":-37.613454,
-    "raw_return_3d_pct":-7.077535,
-    "raw_return_5d_pct":-12.241833,
-    "total_market_cap":11205059868.33
+    "adt20":1010845878.65,
+    "amount_z20":-0.466088,
+    "raw_close":21.84,
+    "raw_return_1d_pct":0.645161,
+    "raw_return_20d_pct":-42.586751,
+    "raw_return_3d_pct":-5.577173,
+    "raw_return_5d_pct":-13.161034,
+    "total_market_cap":10471480852.56
    },
    "thscode":"601579.SH"
   },
@@ -9083,7 +8811,7 @@
    },
    "security_name":"皖新传媒",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -9092,14 +8820,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":147420954.6,
-    "amount_z20":-1.443146,
-    "raw_close":5.6,
-    "raw_return_1d_pct":0.5386,
-    "raw_return_20d_pct":-3.945111,
-    "raw_return_3d_pct":2.189781,
-    "raw_return_5d_pct":0.178891,
-    "total_market_cap":10964414927.199999
+    "adt20":131469703.05,
+    "amount_z20":0.215759,
+    "raw_close":5.24,
+    "raw_return_1d_pct":-5.585586,
+    "raw_return_20d_pct":-5.244123,
+    "raw_return_3d_pct":-5.924596,
+    "raw_return_5d_pct":-4.379562,
+    "total_market_cap":10259559681.880001
    },
    "thscode":"601801.SH"
   },
@@ -9236,7 +8964,7 @@
    },
    "security_name":"长飞光纤",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -9245,14 +8973,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":3394395449.9,
-    "amount_z20":-0.753863,
-    "raw_close":300.35,
-    "raw_return_1d_pct":3.744258,
-    "raw_return_20d_pct":-34.220324,
-    "raw_return_3d_pct":-6.940356,
-    "raw_return_5d_pct":-14.381414,
-    "total_market_cap":248661299187.80002
+    "adt20":3228513324.8,
+    "amount_z20":-0.830436,
+    "raw_close":252.88,
+    "raw_return_1d_pct":-7.573099,
+    "raw_return_20d_pct":-42.26484,
+    "raw_return_3d_pct":-12.652413,
+    "raw_return_5d_pct":-21.648335,
+    "total_market_cap":209360643711.04
    },
    "thscode":"601869.SH"
   },
@@ -9290,7 +9018,7 @@
    },
    "security_name":"中国银河",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -9299,14 +9027,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":277313351.2,
-    "amount_z20":-1.093184,
-    "raw_close":11.49,
-    "raw_return_1d_pct":-0.948276,
-    "raw_return_20d_pct":-5.665025,
-    "raw_return_3d_pct":-1.203783,
-    "raw_return_5d_pct":-1.373391,
-    "total_market_cap":125636281921.44
+    "adt20":286956324.95,
+    "amount_z20":0.070172,
+    "raw_close":11.11,
+    "raw_return_1d_pct":-1.244444,
+    "raw_return_20d_pct":-6.323777,
+    "raw_return_3d_pct":-4.224138,
+    "raw_return_5d_pct":-4.471195,
+    "total_market_cap":121481209064.15999
    },
    "thscode":"601881.SH"
   },
@@ -9344,7 +9072,7 @@
    },
    "security_name":"吉视传媒",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -9353,14 +9081,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":549237308.5,
-    "amount_z20":-0.653399,
-    "raw_close":2.25,
-    "raw_return_1d_pct":1.809955,
-    "raw_return_20d_pct":-11.417323,
-    "raw_return_3d_pct":-0.442478,
-    "raw_return_5d_pct":-8.906883,
-    "total_market_cap":7852023378.0
+    "adt20":545845966.15,
+    "amount_z20":-0.492497,
+    "raw_close":2.1,
+    "raw_return_1d_pct":-7.079646,
+    "raw_return_20d_pct":-11.392405,
+    "raw_return_3d_pct":-4.977376,
+    "raw_return_5d_pct":-7.079646,
+    "total_market_cap":7328555152.8
    },
    "thscode":"601929.SH"
   },
@@ -9398,7 +9126,7 @@
    },
    "security_name":"金钼股份",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -9407,14 +9135,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":380915432.3,
-    "amount_z20":-0.115618,
-    "raw_close":16.83,
-    "raw_return_1d_pct":0.417661,
-    "raw_return_20d_pct":-19.818961,
-    "raw_return_3d_pct":-3.497706,
-    "raw_return_5d_pct":-5.343082,
-    "total_market_cap":54303752051.99999
+    "adt20":372251140.0,
+    "amount_z20":0.104154,
+    "raw_close":15.72,
+    "raw_return_1d_pct":-2.843016,
+    "raw_return_20d_pct":-20.203046,
+    "raw_return_3d_pct":-6.205251,
+    "raw_return_5d_pct":-9.862385,
+    "total_market_cap":50722221168.0
    },
    "thscode":"601958.SH"
   },
@@ -9452,7 +9180,7 @@
    },
    "security_name":"鼎龙科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -9461,14 +9189,14 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":63744960.65,
-    "amount_z20":-0.885519,
-    "raw_close":17.5,
-    "raw_return_1d_pct":3.062426,
-    "raw_return_20d_pct":-8.136483,
-    "raw_return_3d_pct":-1.960784,
-    "raw_return_5d_pct":-3.368305,
-    "total_market_cap":4121600000.0
+    "adt20":64835529.8,
+    "amount_z20":-0.657277,
+    "raw_close":16.24,
+    "raw_return_1d_pct":-4.918033,
+    "raw_return_20d_pct":-14.074074,
+    "raw_return_3d_pct":-4.358068,
+    "raw_return_5d_pct":-9.019608,
+    "total_market_cap":3824844800.0
    },
    "thscode":"603004.SH"
   },
@@ -9506,7 +9234,7 @@
    },
    "security_name":"晶方科技",
    "security_status":{
-    "as_of_trade_date":"2026-10-28",
+    "as_of_trade_date":"2026-10-30",
     "execution_state":"not_verified_live",
     "reason_codes":[
      "provider_tradability_missing",
@@ -9515,18 +9243,234 @@
     "state":"unknown"
    },
    "tape":{
-    "adt20":576917819.25,
-    "amount_z20":-0.022968,
-    "raw_close":22.47,
-    "raw_return_1d_pct":3.931545,
-    "raw_return_20d_pct":-25.890501,
-    "raw_return_3d_pct":-3.768737,
-    "raw_return_5d_pct":-1.706037,
-    "total_market_cap":14654298233.82
+    "adt20":566969258.85,
+    "amount_z20":-0.203339,
+    "raw_close":20.22,
+    "raw_return_1d_pct":-5.114969,
+    "raw_return_20d_pct":-31.480854,
+    "raw_return_3d_pct":-6.475486,
+    "raw_return_5d_pct":-13.404711,
+    "total_market_cap":13186911895.32
    },
    "thscode":"603005.SH"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"北特科技",
+   "security_status":{
+    "as_of_trade_date":"2026-10-30",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "provider_tradability_missing",
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":376739552.6,
+    "amount_z20":0.438632,
+    "raw_close":48.51,
+    "raw_return_1d_pct":-3.921569,
+    "raw_return_20d_pct":2.906237,
+    "raw_return_3d_pct":-1.0,
+    "raw_return_5d_pct":-2.512058,
+    "total_market_cap":16803369925.65
+   },
+   "thscode":"603009.SH"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"中衡设计",
+   "security_status":{
+    "as_of_trade_date":"2026-10-30",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "provider_tradability_missing",
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":49962764.8,
+    "amount_z20":0.561982,
+    "raw_close":8.14,
+    "raw_return_1d_pct":-4.906542,
+    "raw_return_20d_pct":-18.190955,
+    "raw_return_3d_pct":-8.539326,
+    "raw_return_5d_pct":-12.754555,
+    "total_market_cap":2248188985.02
+   },
+   "thscode":"603017.SH"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"凯众股份",
+   "security_status":{
+    "as_of_trade_date":"2026-10-30",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "provider_tradability_missing",
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":149248922.5,
+    "amount_z20":1.294063,
+    "raw_close":11.49,
+    "raw_return_1d_pct":-10.023493,
+    "raw_return_20d_pct":12.426614,
+    "raw_return_3d_pct":-3.201348,
+    "raw_return_5d_pct":9.952153,
+    "total_market_cap":3062523423.93
+   },
+   "thscode":"603037.SH"
+  },
+  {
+   "availability":{
+    "events":"unknown",
+    "financials":"unknown",
+    "forecasts":"not_ready"
+   },
+   "commodity_exposures":[],
+   "discovery_routes":[],
+   "events":[],
+   "financials":null,
+   "forecasts":null,
+   "minimum_financial_evidence":{
+    "applicability":"business_model_review_required; not_a_bank_or_insurer_quality_score",
+    "missing_fields":[
+     "revenue",
+     "net_profit_parent",
+     "net_profit_ex_nonrecurring",
+     "operating_cash_flow",
+     "capex",
+     "accounts_receivable",
+     "inventory",
+     "cash",
+     "interest_bearing_debt"
+    ],
+    "net_debt_basis":"interest_bearing_debt_minus_reported_cash; restricted_cash_unknown",
+    "net_debt_cny":null,
+    "net_debt_precision_cny":null,
+    "period_basis":null,
+    "published_at":null,
+    "report_period":null,
+    "state":"missing"
+   },
+   "security_name":"国检集团",
+   "security_status":{
+    "as_of_trade_date":"2026-10-30",
+    "execution_state":"not_verified_live",
+    "reason_codes":[
+     "provider_tradability_missing",
+     "market_rule_missing"
+    ],
+    "state":"unknown"
+   },
+   "tape":{
+    "adt20":31560152.6,
+    "amount_z20":1.016191,
+    "raw_close":4.76,
+    "raw_return_1d_pct":-6.666667,
+    "raw_return_20d_pct":-12.66055,
+    "raw_return_3d_pct":-7.03125,
+    "raw_return_5d_pct":-9.160305,
+    "total_market_cap":3826884395.6
+   },
+   "thscode":"603060.SH"
   }
  ],
- "source_snapshot_sha256":"3e4b9b0066da2fd709e4f01d9ef22b97607bf48b9ec1dd86343bddad1715bdb1",
- "trade_date":"2026-10-28"
+ "source_snapshot_sha256":"d2f920823d46de24d081cccc6ed550c39dcbf1dcfa2861c421bd1c6d079614c9",
+ "trade_date":"2026-10-30"
 }
