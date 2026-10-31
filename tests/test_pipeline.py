@@ -125,6 +125,32 @@ class FakeClient:
 
 
 class PipelineTests(unittest.TestCase):
+    def test_same_date_recollection_uses_new_calendar_manifest_before_publication(self):
+        class RefreshedCalendarClient(FakeClient):
+            def fetch_trade_calendar(self, trade_date, *, offset):
+                calendar = super().fetch_trade_calendar(trade_date, offset=offset)
+                calendar["source_endpoint"] = "get_trade_dates_refreshed"
+                return calendar
+
+        root = make_test_workspace("same_date_calendar_refresh")
+        config = self.config(root)
+        day = "2026-08-18"
+        first = collect_and_publish(FakeClient(), day, config=config)
+        self.assertTrue(first.ok, first.status)
+        old_manifest = json.loads((config.data_dir / "latest/manifest.json").read_text())
+        second = collect_and_publish(RefreshedCalendarClient(), day, config=config)
+        self.assertTrue(second.ok, second.status)
+        self.assertEqual(second.status["state"], "success")
+        new_manifest = json.loads((config.data_dir / "latest/manifest.json").read_text())
+        self.assertNotEqual(old_manifest["artifacts"]["trading_calendar.parquet"]["sha256"],
+                            new_manifest["artifacts"]["trading_calendar.parquet"]["sha256"])
+        valid, details = validate_latest(
+            data_dir=config.data_dir,
+            policy_min_universe_size=4,
+            policy_min_quote_coverage=0.75,
+        )
+        self.assertTrue(valid, details)
+
     def config(self, root: Path) -> CollectionConfig:
         return CollectionConfig(
             data_dir=root / "data",

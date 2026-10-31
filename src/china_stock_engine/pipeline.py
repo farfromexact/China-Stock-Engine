@@ -411,7 +411,7 @@ def collect_and_publish(
         if promote_latest and config.build_data_reference:
             try:
                 data_reference = build_data_reference_outputs(
-                    config.data_dir, trade_date
+                    config.data_dir, trade_date, source_manifest=final_manifest
                 )
                 final_manifest = promote_verified_snapshot_to_latest(
                     config.data_dir, trade_date

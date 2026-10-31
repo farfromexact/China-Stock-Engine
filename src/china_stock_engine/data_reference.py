@@ -1556,6 +1556,7 @@ def build_data_reference_outputs(
     research_asof: str | None = None,
     exposure_path: Path | None = None,
     technical_config_path: Path | None = None,
+    source_manifest: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     from .technical_signals import (load_technical_config, scan_technical_signals,
         technical_candidates, attach_signal_history, STRATEGY_VERSION)
@@ -1568,7 +1569,14 @@ def build_data_reference_outputs(
     if not selected_date:
         raise FileNotFoundError("latest manifest does not exist")
     publish_latest = selected_date == latest_trade_date
-    if publish_latest:
+    if source_manifest is not None:
+        if source_manifest.get("trade_date") != selected_date:
+            raise ArtifactContractError("source manifest trade date does not match selected date")
+        # A same-date recollection may replace source files while latest still
+        # identifies the last valid publication. Verify against the new source
+        # manifest without exposing it as latest before derived validation.
+        manifest = source_manifest
+    elif publish_latest:
         manifest = latest_manifest
     else:
         snapshot_manifest = load_manifest(
