@@ -181,7 +181,7 @@
   "reference_facts":"facts/reference/as_of_date=2026-10-30/security_reference.parquet",
   "stock_state":"features/stock_state/trade_date=2026-10-30/stock_state.parquet"
  },
- "feature_input_sha256":"a3775adea21f7113fcc2a6d1c1cf2483191db2845a8b9ece09e47683d8913f24",
+ "feature_input_sha256":"701187b0627335a2b4f9e91cc4fe602b5302d9293b3a3e54aab5a9e77c6fe2da",
  "field_coverage":{
   "adt20":{
    "coverage_ratio":0.993538,
@@ -394,7 +394,7 @@
    "row_count":5571
   }
  },
- "generated_at":"2026-10-31T02:23:21+00:00",
+ "generated_at":"2026-10-31T02:37:29+00:00",
  "legacy_rankings":{
   "candidate_union":[
    {
@@ -54816,8 +54816,8 @@
   "unknown_count":0
  },
  "pit_timing":{
-  "collection_completed_at":"2026-10-31T02:23:21+00:00",
-  "collection_started_at":"2026-10-31T02:22:43+00:00",
+  "collection_completed_at":"2026-10-31T02:37:29+00:00",
+  "collection_started_at":"2026-10-31T02:35:43+00:00",
   "configured_decision_cutoff":"2026-10-30T20:15:00+08:00",
   "effective_pit_cutoff":"2026-10-30T12:15:00+00:00"
  },
@@ -54930,9 +54930,9 @@
  },
  "research_context":{
   "availability_scope":"market_snapshot_only; inspect_each_fact_and_capability",
-  "first_observed_at":"2026-10-31T02:23:21+00:00",
+  "first_observed_at":"2026-10-31T02:37:29+00:00",
   "historical_decision_cutoff":"2026-10-30T20:15:00+08:00",
-  "known_at":"2026-10-31T02:23:21+00:00",
+  "known_at":"2026-10-31T02:37:29+00:00",
   "mode":"historical_cutoff",
   "research_asof":"2026-10-30T12:15:00+00:00",
   "source_published_at":null,
@@ -55253,18 +55253,18 @@
   },
   "selection_policy_version":"family_round_robin_v1"
  },
- "source_snapshot_sha256":"d2f920823d46de24d081cccc6ed550c39dcbf1dcfa2861c421bd1c6d079614c9",
+ "source_snapshot_sha256":"c9f5c04d951769581629a9bf3d624469a10eba531a2327e545e9351484faf04c",
  "technical_signals":{
   "candidates":[],
   "document_type":"a_share_price_volume_signals",
-  "feature_input_sha256":"a3775adea21f7113fcc2a6d1c1cf2483191db2845a8b9ece09e47683d8913f24",
-  "generated_at":"2026-10-31T02:23:21+00:00",
+  "feature_input_sha256":"701187b0627335a2b4f9e91cc4fe602b5302d9293b3a3e54aab5a9e77c6fe2da",
+  "generated_at":"2026-10-31T02:37:29+00:00",
   "ordering_policy":"next_session_review, WATCH, pending_verification, extended_wait; thscode within group; no score",
   "research_policy":"optional catalyst verification and risk checks; missing financials do not block technical publication",
   "review_log_path":"facts/technical_reviews/*.json",
   "schema_version":1,
   "series_command":"china-stock-engine inspect-series --code CODE --sessions 120 --research-asof CUTOFF",
-  "source_snapshot_sha256":"d2f920823d46de24d081cccc6ed550c39dcbf1dcfa2861c421bd1c6d079614c9",
+  "source_snapshot_sha256":"c9f5c04d951769581629a9bf3d624469a10eba531a2327e545e9351484faf04c",
   "summary":{
    "all_results_path":"features/technical_signals/trade_date=2026-10-30/technical_scan.parquet",
    "atr_method":"simple_mean_true_range_adjusted_ohlc; previous_close_required",
