@@ -18,47 +18,47 @@
  },
  "document_type":"a_share_opportunity_radar_inputs",
  "drilldown":{
-  "market_facts":"facts/market/trade_date=2026-10-30/daily_quotes.parquet",
-  "reference_facts":"facts/reference/as_of_date=2026-10-30/security_reference.parquet",
+  "market_facts":"facts/market/trade_date=2026-11-05/daily_quotes.parquet",
+  "reference_facts":"facts/reference/as_of_date=2026-11-05/security_reference.parquet",
   "series_command":"china-stock-engine inspect-series --code CODE --sessions 120 --research-asof CUTOFF",
   "stock_state":"latest/stock_state.parquet",
   "technical_scan":"latest/technical_scan.parquet"
  },
- "feature_input_sha256":"f547267aea2d29fbc1be5e7a3d119a6fb6bfa438dc660b43da4b26f04344519d",
+ "feature_input_sha256":"1769103332e730ea2449ca64ae8b266b491f0a6a99357e08607165ea8fc44adf",
  "full_inputs":{
   "path":"opportunity_inputs_latest.json",
   "schema_version":4
  },
- "generated_at":"2026-10-31T02:37:29+00:00",
+ "generated_at":"2026-11-06T00:29:46+00:00",
  "generated_at_semantics":"source_collection_completed_at",
  "market":{
   "breadth":{
-   "advancers":893,
-   "decliners":4602,
-   "equal_weight_change_pct":-3.036287439190656,
-   "median_change_pct":-3.1293463143255,
-   "unchanged":76
+   "advancers":4869,
+   "decliners":625,
+   "equal_weight_change_pct":2.3021051991382477,
+   "median_change_pct":2.018093249826,
+   "unchanged":77
   },
   "changes":{
    "1D":{
     "coverage_ratio":1.0,
-    "equal_weight_mean_pct":-3.036287,
-    "median_pct":-3.129346,
-    "negative_count":4602,
+    "equal_weight_mean_pct":2.302105,
+    "median_pct":2.018093,
+    "negative_count":625,
     "observations":5571,
-    "positive_count":893,
+    "positive_count":4869,
     "return_basis":"compounded_provider_daily_change_ratio",
     "return_field":"raw_return_1d_pct",
     "state":"ready",
-    "unchanged_count":76
+    "unchanged_count":77
    },
    "20D":{
-    "coverage_ratio":0.993538,
-    "equal_weight_mean_pct":-13.678764,
-    "median_pct":-13.347609,
-    "negative_count":4861,
-    "observations":5535,
-    "positive_count":673,
+    "coverage_ratio":0.994435,
+    "equal_weight_mean_pct":-5.840747,
+    "median_pct":-6.614095,
+    "negative_count":4059,
+    "observations":5540,
+    "positive_count":1480,
     "return_basis":"compounded_provider_daily_change_ratio",
     "return_field":"raw_return_20d_pct",
     "state":"ready",
@@ -66,47 +66,47 @@
    },
    "3D":{
     "coverage_ratio":0.999641,
-    "equal_weight_mean_pct":-3.852101,
-    "median_pct":-4.076087,
-    "negative_count":4494,
+    "equal_weight_mean_pct":4.039763,
+    "median_pct":3.461538,
+    "negative_count":520,
     "observations":5569,
-    "positive_count":1067,
+    "positive_count":5046,
     "return_basis":"compounded_provider_daily_change_ratio",
     "return_field":"raw_return_3d_pct",
     "state":"ready",
-    "unchanged_count":8
+    "unchanged_count":3
    },
    "5D":{
-    "coverage_ratio":0.999461,
-    "equal_weight_mean_pct":-7.058377,
-    "median_pct":-7.344617,
-    "negative_count":4743,
-    "observations":5568,
-    "positive_count":822,
+    "coverage_ratio":0.999102,
+    "equal_weight_mean_pct":3.225616,
+    "median_pct":2.745941,
+    "negative_count":1270,
+    "observations":5566,
+    "positive_count":4289,
     "return_basis":"compounded_provider_daily_change_ratio",
     "return_field":"raw_return_5d_pct",
     "state":"ready",
-    "unchanged_count":3
+    "unchanged_count":7
    }
   },
   "extreme_moves":{
-   "moves_ge_9_5pct":60,
-   "moves_le_minus_9_5pct":213
+   "moves_ge_9_5pct":138,
+   "moves_le_minus_9_5pct":6
   },
   "observation_state_counts":{
-   "no_quote_observed":6,
+   "no_quote_observed":7,
    "traded":5571
   },
   "turnover":{
    "quoted_securities":5571,
-   "total_amount":1687710160982.29
+   "total_amount":2135096085315.4302
   }
  },
  "pit_timing":{
-  "collection_completed_at":"2026-10-31T02:37:29+00:00",
-  "collection_started_at":"2026-10-31T02:35:43+00:00",
-  "configured_decision_cutoff":"2026-10-31T02:40:26+00:00",
-  "effective_pit_cutoff":"2026-10-31T02:37:29+00:00"
+  "collection_completed_at":"2026-11-06T00:29:46+00:00",
+  "collection_started_at":"2026-11-06T00:28:52+00:00",
+  "configured_decision_cutoff":"2026-11-06T00:32:40+00:00",
+  "effective_pit_cutoff":"2026-11-06T00:29:46+00:00"
  },
  "readiness":{
   "adjustment":{
@@ -137,7 +137,7 @@
      "adjusted_price_points_required":21,
      "adjusted_return_field":"return_20d_pct",
      "adjusted_state":"missing",
-     "coverage":0.993538,
+     "coverage":0.994435,
      "raw_return_basis":"compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
      "raw_return_field":"raw_return_20d_pct",
      "sessions_required":20,
@@ -159,7 +159,7 @@
      "adjusted_price_points_required":6,
      "adjusted_return_field":"return_5d_pct",
      "adjusted_state":"missing",
-     "coverage":0.999461,
+     "coverage":0.999102,
      "raw_return_basis":"compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
      "raw_return_field":"raw_return_5d_pct",
      "sessions_required":5,
@@ -167,7 +167,7 @@
     }
    },
    "price_points_loaded":300,
-   "scope_end":"2026-10-30",
+   "scope_end":"2026-11-05",
    "sessions":300,
    "state":"ready",
    "target_sessions":300,
@@ -211,20 +211,20 @@
    "coverage":0.0,
    "restricted_count":0,
    "state":"missing",
-   "unknown_count":5581,
+   "unknown_count":5582,
    "unknown_is_not_suspension":true
   }
  },
- "research_asof":"2026-10-31T02:40:26+00:00",
+ "research_asof":"2026-11-06T00:32:40+00:00",
  "research_context":{
   "availability_scope":"market_snapshot_only; inspect_each_fact_and_capability",
-  "first_observed_at":"2026-10-31T02:37:29+00:00",
-  "historical_decision_cutoff":"2026-10-30T20:15:00+08:00",
-  "known_at":"2026-10-31T02:37:29+00:00",
+  "first_observed_at":"2026-11-06T00:29:46+00:00",
+  "historical_decision_cutoff":"2026-11-05T20:15:00+08:00",
+  "known_at":"2026-11-06T00:29:46+00:00",
   "mode":"current_research",
-  "research_asof":"2026-10-31T02:40:26+00:00",
+  "research_asof":"2026-11-06T00:32:40+00:00",
   "source_published_at":null,
-  "trade_date":"2026-10-30",
+  "trade_date":"2026-11-05",
   "usable_for_current_research":true,
   "usable_for_historical_replay":false
  },
@@ -254,7 +254,7 @@
    "evidence_domain":"TAPE"
   }
  },
- "source_snapshot_sha256":"c9f5c04d951769581629a9bf3d624469a10eba531a2327e545e9351484faf04c",
+ "source_snapshot_sha256":"59f2acd891543bfd5929c876e78230ddefa2e85e37bd7ac1b3ca0dba06398e11",
  "technical_signals":{
   "all_results_path":"latest/technical_scan.parquet",
   "atr_method":"simple_mean_true_range_adjusted_ohlc; previous_close_required",
@@ -276,33 +276,33 @@
    "min_prior_adt20":50000000
   },
   "eligibility_counts":{
-   "excluded":5577
+   "excluded":5578
   },
   "exclusion_reason_counts":{
    "current_bar_invalid_or_unverified":5571,
-   "current_quote_missing":6,
+   "current_quote_missing":7,
    "delisting_security":1,
-   "history_or_adjustment_gap_61_sessions":5577,
-   "listing_age_below_minimum":82,
-   "prior_adt20_below_minimum":1362,
-   "prior_adt20_missing":43,
-   "st_security":197
+   "history_or_adjustment_gap_61_sessions":5578,
+   "listing_age_below_minimum":81,
+   "prior_adt20_below_minimum":1327,
+   "prior_adt20_missing":39,
+   "st_security":198
   },
   "execution_policy":"end_of_day_signal; next_session_execution_unverified; WATCH_is_observation_only",
-  "historical_results_path":"features/technical_signals/trade_date=2026-10-30/technical_scan.parquet",
+  "historical_results_path":"features/technical_signals/trade_date=2026-11-05/technical_scan.parquet",
   "pending_reason_counts":{
-   "delisting_status_unknown":5576,
-   "is_st_unknown":5577,
-   "is_suspended_unknown":5577
+   "delisting_status_unknown":5577,
+   "is_st_unknown":5578,
+   "is_suspended_unknown":5578
   },
   "price_basis":"single_PIT_native_adjusted_OHLC_or_factor_vintage; raw_level=(adjusted_level-offset)/multiplier",
-  "scanned_count":5577,
+  "scanned_count":5578,
   "signal_counts":{
-   "NONE":5577
+   "NONE":5578
   },
   "strategy_version":"price-volume-v1",
-  "universe_count":5577,
+  "universe_count":5578,
   "window_policy":"prior_high60 and prior_adt20 exclude today; WATCH ATR/MA include today; entry ATR excludes today"
  },
- "trade_date":"2026-10-30"
+ "trade_date":"2026-11-05"
 }
