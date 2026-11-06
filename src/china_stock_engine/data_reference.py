@@ -228,13 +228,19 @@ def _as_utc_timestamp(value: str) -> pd.Timestamp:
     return parsed.tz_convert("UTC")
 
 
+def _utc_observations(values: pd.Series) -> pd.Series:
+    # ISO observations can mix whole seconds, fractional seconds and offsets
+    # in the same partition. Inferring one format silently drops valid rows.
+    return pd.to_datetime(values, format="ISO8601", utc=True, errors="coerce")
+
+
 def _known_by(frame: pd.DataFrame, decision_time: str) -> pd.Series:
     if "known_at" not in frame.columns:
         return pd.Series(False, index=frame.index, dtype=bool)
-    values = pd.to_datetime(frame["known_at"], errors="coerce", utc=True)
+    values = _utc_observations(frame["known_at"])
     mask = values.notna() & values.le(_as_utc_timestamp(decision_time))
     if "collection_completed_at" in frame:
-        completed = pd.to_datetime(frame["collection_completed_at"], errors="coerce", utc=True)
+        completed = _utc_observations(frame["collection_completed_at"])
         mask &= values.le(completed) & completed.le(_as_utc_timestamp(decision_time))
     return mask
 
@@ -558,8 +564,8 @@ def feature_pit_timing(market_timing: dict[str, str], adjustments: pd.DataFrame,
         return timing
     if adjustments.empty or "collection_completed_at" not in adjustments:
         return timing
-    completed = pd.to_datetime(adjustments["collection_completed_at"], utc=True, errors="coerce")
-    known = pd.to_datetime(adjustments["known_at"], utc=True, errors="coerce")
+    completed = _utc_observations(adjustments["collection_completed_at"])
+    known = _utc_observations(adjustments["known_at"])
     configured = _as_utc_timestamp(timing["configured_decision_cutoff"])
     eligible = completed.loc[known.le(completed) & completed.le(configured)]
     if not eligible.empty:
@@ -615,7 +621,7 @@ def apply_adjustments(
 ) -> pd.DataFrame:
     output = history.copy()
     if "history_verified" in output and "first_observed_at" in output:
-        observed = pd.to_datetime(output["first_observed_at"], errors="coerce", utc=True)
+        observed = _utc_observations(output["first_observed_at"])
         output["history_verified"] = output["history_verified"].fillna(False) & observed.le(_as_utc_timestamp(decision_time))
     output["raw_close"] = pd.to_numeric(output["close"], errors="coerce")
     if adjustments.empty:
@@ -623,6 +629,7 @@ def apply_adjustments(
     else:
         normalized = normalize_adjustments(adjustments)
         normalized = normalized.loc[_known_by(normalized, decision_time)].copy()
+        normalized["known_at"] = _utc_observations(normalized["known_at"])
         if "base_date" in normalized:
             # Do not splice an older normalization base into a newer vintage.
             vintage = normalized.groupby("thscode")["known_at"].transform("max")
@@ -1660,7 +1667,7 @@ def build_data_reference_outputs(
         for frame in (history, adjustments, corporate_actions, industry, indexes, index_history, provider_tradability):
             for field in ("collection_completed_at", "known_at", "first_observed_at"):
                 if field in frame:
-                    stamps = pd.to_datetime(frame[field], errors="coerce", utc=True)
+                    stamps = _utc_observations(frame[field])
                     eligible = stamps.loc[stamps.le(timestamp(research_asof))]
                     if not eligible.empty:
                         completed = max(completed, eligible.max())

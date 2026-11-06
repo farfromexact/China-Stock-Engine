@@ -150,6 +150,30 @@ class SupplementalTests(unittest.TestCase):
         self.assertEqual(result.iloc[0]["adjusted_close"], 10.)
         self.assertEqual(feature_pit_timing(timing, factors.iloc[1:]), timing)
 
+    def test_mixed_iso_precision_selects_latest_vintage_only_after_completion(self):
+        old = "2026-11-06T21:41:10+08:00"
+        new = "2026-11-06T13:41:10.446509+00:00"
+        next_instant = "2026-11-06T13:41:10.446510Z"
+        factors = pd.DataFrame({
+            "thscode": ["600000.SH"] * 4, "trade_date": ["2026-11-05"] * 4,
+            "base_date": ["2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05"],
+            "adj_factor": [1., 1.1, 1.2, 1.3], "known_at": [old, new, new, "invalid"],
+            "collection_completed_at": [old, new, next_instant, "invalid"],
+        })
+        raw = pd.DataFrame({"trade_date": ["2026-11-04", "2026-11-05"], "thscode": ["600000.SH"] * 2,
+                            "close": [10., 10.], "history_verified": [True, True],
+                            "first_observed_at": [old, new]})
+        for ordered in (factors, factors.iloc[::-1]):
+            timing = feature_pit_timing({"collection_completed_at": old,
+                                        "configured_decision_cutoff": new}, ordered)
+            self.assertEqual(pd.Timestamp(timing["effective_pit_cutoff"]), pd.Timestamp(new))
+            early = apply_adjustments(raw, ordered, old)
+            self.assertEqual(early.iloc[-1]["adjusted_close"], 10.)
+            self.assertFalse(early.iloc[-1]["history_verified"])
+            current = apply_adjustments(raw, ordered, new)
+            self.assertEqual(current.iloc[-1]["adjusted_close"], 11.)
+            self.assertTrue(current["history_verified"].all())
+
     def test_adjustment_vintage_date_not_backdated_to_price_date(self):
         with tempfile.TemporaryDirectory() as directory:
             data_dir = Path(directory)

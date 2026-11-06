@@ -9,20 +9,20 @@
       "sha256": "271d97749420dcd24e61d6a9291d144b4f85889f08a9d216f97ab2f3be56b2c2"
     },
     "data_reference_latest.json": {
-      "sha256": "73c9a7b771b6ebe2f31f2c833e077ee2d4e81297aba18bd0f32dd478bc8374a1"
+      "sha256": "538ed7ad57188f693f67775f43409cee770987bd02ae8ea2f460a8ddf088d5c7"
     },
     "market_summary.json": {
       "sha256": "a7f90955b089a5e3a19f125622af41d3227acd58469131ecaefc7741b801421b"
     },
     "opportunity_inputs_latest.json": {
-      "sha256": "c4e8477151d8ce85b02abff20bf370e148a2ccc8d7ea8aa32c2a5dfa1c6d9ba5"
+      "sha256": "b3dd0950032a6c30027e59275e4a738f11006781b5d634f9ae4bfea6abe318c5"
     },
     "opportunity_radar_latest.json": {
-      "bytes": 9633,
+      "bytes": 84012,
       "hard_max_bytes": 307200,
-      "rows": 0,
+      "rows": 33,
       "schema_version": 3,
-      "sha256": "6f18bdbae34b742cd15ad4c805f6c35768365e0b5601945f947863f704ae7569"
+      "sha256": "5eb255e0e788e0d14ded406db37f427f3190ab9653aa65e7347853e4880e233f"
     },
     "research_0_001.json": {
       "bytes": 264750,
@@ -330,14 +330,14 @@
     },
     "stock_state.parquet": {
       "rows": 5571,
-      "sha256": "891f180f61088dc47ae68370fffd9ad00c384303b8bd5a911d04159955e0a8d9"
+      "sha256": "a8acdffd58cce829224b3e739676b5e86074109f097ec11bc9053ce2b0dfaf06"
     },
     "technical_scan.parquet": {
       "rows": 5578,
-      "sha256": "52163e9dff7fb90f025a11a8d949e25b495ea9d3c522c2af136fa3da257ddb0a"
+      "sha256": "398f14f8c3564fb22cf5031221fd1589758f1bfd2282114fbea6eea8960a041f"
     },
     "technical_signals_latest.json": {
-      "sha256": "0878aae00e7b4e85bf24c9392d4b2e37454a97c56d6d765e65259cf44097a303"
+      "sha256": "484ca24e1820e04bf25051be931ed14e17da182bfda04d6eca24dfae051e29a9"
     },
     "trading_calendar.parquet": {
       "rows": 61,
@@ -359,9 +359,9 @@
     "opportunity_radar_schema_version": 3,
     "readiness": {
       "adjustment": {
-        "coverage": 0.0,
+        "coverage": 1.0,
         "method": "point_in_time_native_adjusted_OHLC_or_factor_input",
-        "state": "missing"
+        "state": "ready"
       },
       "corporate_actions": {
         "events_effective_today": 0,
@@ -371,10 +371,10 @@
         "calendar_basis": "cached_exchange_calendar_with_unknown_weekday_gaps",
         "horizons": {
           "1D": {
-            "adjusted_coverage": 0.0,
+            "adjusted_coverage": 1.0,
             "adjusted_price_points_required": 2,
             "adjusted_return_field": "return_1d_pct",
-            "adjusted_state": "missing",
+            "adjusted_state": "ready",
             "coverage": 1.0,
             "raw_return_basis": "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
             "raw_return_field": "raw_return_1d_pct",
@@ -382,10 +382,10 @@
             "state": "ready"
           },
           "20D": {
-            "adjusted_coverage": 0.0,
+            "adjusted_coverage": 0.994256,
             "adjusted_price_points_required": 21,
             "adjusted_return_field": "return_20d_pct",
-            "adjusted_state": "missing",
+            "adjusted_state": "ready",
             "coverage": 0.994435,
             "raw_return_basis": "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
             "raw_return_field": "raw_return_20d_pct",
@@ -393,10 +393,10 @@
             "state": "ready"
           },
           "3D": {
-            "adjusted_coverage": 0.0,
+            "adjusted_coverage": 0.999461,
             "adjusted_price_points_required": 4,
             "adjusted_return_field": "return_3d_pct",
-            "adjusted_state": "missing",
+            "adjusted_state": "ready",
             "coverage": 0.999641,
             "raw_return_basis": "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
             "raw_return_field": "raw_return_3d_pct",
@@ -404,10 +404,10 @@
             "state": "ready"
           },
           "5D": {
-            "adjusted_coverage": 0.0,
+            "adjusted_coverage": 0.998923,
             "adjusted_price_points_required": 6,
             "adjusted_return_field": "return_5d_pct",
-            "adjusted_state": "missing",
+            "adjusted_state": "ready",
             "coverage": 0.999102,
             "raw_return_basis": "compounded_daily_change_ratio; AKShare_history_uses_previous_observed_raw_close; latest_native_previous_close_when_available",
             "raw_return_field": "raw_return_5d_pct",
@@ -421,9 +421,6 @@
         "state": "ready",
         "target_sessions": 300,
         "unavailable_fields": [
-          "return_60d_pct",
-          "rv60_pct",
-          "distance_from_high_60_pct",
           "drawdown_from_high_252_pct"
         ],
         "unconfirmed_calendar_dates": []
@@ -446,7 +443,6 @@
       },
       "stock_state": {
         "partial_modules": [
-          "adjustment",
           "tradability"
         ],
         "rows": 5571,
