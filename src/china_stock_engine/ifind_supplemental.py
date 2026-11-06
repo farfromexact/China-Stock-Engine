@@ -20,6 +20,7 @@ import pandas as pd
 
 from .ifind_http import IFindHTTPClient, IFindHTTPError, _tables_frame, _raise_api_error
 from .research_inputs import normalize_research_batch
+from .technical_signals import scan_coverage
 from .storage import (
     read_parquet_file,
     ArtifactContractError, atomic_write_json, atomic_write_parquet,
@@ -379,12 +380,32 @@ def main(argv=None):
     args = parser.parse_args(argv)
     manifest = load_manifest(args.data_dir / "latest" / "manifest.json", missing_ok=False)
     codes = CANARY_CODES
-    if args.scope == "radar":
-        radar = load_json_object(args.data_dir / "latest" / "opportunity_radar_latest.json", missing_ok=False)
-        codes = [row["thscode"] for row in radar["candidate_union"]]
     modules = args.modules.split(",")
     if not modules or len(set(modules)) != len(modules) or set(modules) - {"financials", "events", "adjustment"}:
         raise ValueError("invalid modules")
+    if args.scope == "radar" and not args.auth_only:
+        path = args.data_dir / "latest" / "opportunity_radar_latest.json"
+        expected = manifest.get("artifacts", {}).get(path.name, {}).get("sha256")
+        if (manifest.get("verified") is not True or manifest.get("data_fresh") is not True
+                or not expected or not path.is_file() or sha256_file(path) != expected):
+            raise ArtifactContractError("supplemental radar is not bound to a verified manifest")
+        radar = load_json_object(path, missing_ok=False)
+        source = manifest.get("source_snapshot_sha256") or manifest.get("data_reference", {}).get("source_snapshot_sha256")
+        if not source or radar.get("trade_date") != manifest["trade_date"] or radar.get("source_snapshot_sha256") != source:
+            raise ArtifactContractError("supplemental radar and market snapshot do not match")
+        if not isinstance(radar.get("candidate_union"), list):
+            raise ArtifactContractError("supplemental radar candidate_union must be a list")
+        codes = [row["thscode"] for row in radar["candidate_union"]]
+        if not codes:
+            status = {"schema_version": 1, "ok": True, "state": "skipped_empty_radar_scope",
+                      "market_trade_date": manifest["trade_date"], "radar_sha256": expected,
+                      "scan_coverage": scan_coverage(radar["technical_signals"]) if "technical_signals" in radar else None,
+                      "as_of_date": datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat(),
+                      "scope_codes": [], "modules": {}, "requests": [], "raw_payload_persisted": False}
+            atomic_write_json(args.data_dir / "supplemental_last_attempt.json", status)
+            print(json.dumps(status))
+            if not args.renew_access_token:
+                return 0
     client = BoundedClient(max_requests=args.max_requests)
     if args.renew_access_token:
         try:
@@ -396,6 +417,8 @@ def main(argv=None):
         print(json.dumps(renewal))
         if not renewal["ok"]:
             return 1
+        if not codes and not args.auth_only:
+            return 0
     if args.auth_only:
         try:
             client.get_access_token()

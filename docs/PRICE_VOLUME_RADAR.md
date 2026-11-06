@@ -81,3 +81,7 @@ python -m china_stock_engine.cli record-technical-review --code 600000.SH --date
 
 
 2026-10-15 已完成 AKShare 全市场真实历史补齐和正式筛选，最新实际覆盖/候选/缺口见 [AKSHARE_HISTORY.md](AKSHARE_HISTORY.md) 的实际验收；之前 44 日缓存的限制已由本轮补齐解决。
+
+技术摘要的 `scan_coverage` 记录全市场扫描的有效覆盖。候选为空时，先核对
+`valid_window_count`（有完整 61 日窗口的证券数）和 `evaluable_count`
+（可以计算信号的证券数，含交易状态待核实者）。后者为零时，全市场机会情况仍待核实。

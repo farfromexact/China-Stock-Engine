@@ -159,6 +159,19 @@ class CLIBackfillTests(unittest.TestCase):
         )
         self.assertEqual(status["state"], "success_backfill")
 
+    def test_adjustment_refresh_on_single_day_uses_last_61_open_sessions(self) -> None:
+        client = RangeFakeClient()
+        client.dates = pd.bdate_range(end="2026-08-20", periods=65).strftime("%Y-%m-%d").tolist()
+        # A missing weekday in the provider's calendar is not an open session.
+        client.dates.pop(-12)
+        data_dir = TEST_ROOT / "data"
+        argv = ["backfill", "--start", client.dates[-1], "--end", client.dates[-1],
+                "--data-dir", str(data_dir), "--min-universe-size", "4", "--with-adjustment-snapshot"]
+        with patch("china_stock_engine.cli._client", return_value=client), redirect_stdout(io.StringIO()):
+            with patch("china_stock_engine.cli._refresh_adjustments", return_value={"ok": True}) as refresh:
+                self.assertEqual(main(argv), 0)
+        self.assertEqual(refresh.call_args.args[2:4], (client.dates[-61], client.dates[-1]))
+
     def test_backfill_reuses_normalized_reference_and_quote_partitions(self) -> None:
         data_dir = TEST_ROOT / "data"
         argv = [

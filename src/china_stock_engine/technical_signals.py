@@ -122,6 +122,20 @@ def boolean(value: Any) -> bool | None:
     return None if value is None or pd.isna(value) else bool(value)
 
 
+def scan_coverage(summary: dict) -> dict:
+    scanned = summary["scanned_count"]
+    windows = scanned - summary["exclusion_reason_counts"].get("history_or_adjustment_gap_61_sessions", 0)
+    eligible = scanned - summary["eligibility_counts"].get("excluded", 0)
+    if not windows:
+        state = "insufficient_verified_history"
+    elif not eligible:
+        state = "no_eligible_securities"
+    else:
+        state = "evaluated"
+    return {"state": state, "scanned_count": scanned, "valid_window_count": windows,
+            "evaluable_count": eligible}
+
+
 def scan_technical_signals(state: pd.DataFrame, reference: pd.DataFrame, sessions: list[str],
                            trade_date: str, config: TechnicalConfig) -> tuple[pd.DataFrame, dict]:
     """Scan every PIT reference security, including missing-quote exclusions."""
@@ -257,6 +271,7 @@ def scan_technical_signals(state: pd.DataFrame, reference: pd.DataFrame, session
         "price_basis": "single_PIT_native_adjusted_OHLC_or_factor_vintage; raw_level=(adjusted_level-offset)/multiplier",
         "all_results_path": f"features/technical_signals/trade_date={trade_date}/technical_scan.parquet",
     }
+    summary["scan_coverage"] = scan_coverage(summary)
     return scan, summary
 
 

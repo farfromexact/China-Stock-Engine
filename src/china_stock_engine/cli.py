@@ -645,7 +645,7 @@ class _PreparedBackfillClient:
 
 def _resolve_backfill_dates(
     client: IFindHTTPClient, args: argparse.Namespace
-) -> tuple[list[str], list[str], str]:
+) -> tuple[list[str], list[str], str, str]:
     if args.sessions is not None and args.sessions < 1:
         raise ValueError("backfill sessions must be positive")
     if args.start and args.start > args.end:
@@ -684,7 +684,10 @@ def _resolve_backfill_dates(
         non_trading_dates = sorted(requested_weekdays.difference(dates))
     if not dates:
         raise ValueError("backfill range contains no SSE trading sessions")
-    return dates, non_trading_dates, requested_start
+    # A refreshed CPS vintage must span the technical screen even when the raw
+    # quote catch-up covers a single day. Use the open sessions from iFinD.
+    adjustment_start = min(requested_start, available[-61:][0])
+    return dates, non_trading_dates, requested_start, adjustment_start
 
 
 def _prepare_backfill_client(
@@ -944,7 +947,7 @@ def _backfill(args: argparse.Namespace) -> int:
         return 1
 
     try:
-        dates, non_trading_dates, requested_start = _resolve_backfill_dates(
+        dates, non_trading_dates, requested_start, adjustment_start = _resolve_backfill_dates(
             client, args
         )
         collection_started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -977,7 +980,7 @@ def _backfill(args: argparse.Namespace) -> int:
             adjustment = _refresh_adjustments(
                 client,
                 args.data_dir,
-                requested_start,
+                adjustment_start,
                 completed[-1],
                 args.adjustment_batch_size,
             )

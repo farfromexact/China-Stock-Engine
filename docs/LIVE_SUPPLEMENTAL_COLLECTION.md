@@ -85,3 +85,10 @@ its artifact hashes were unchanged and verified. The new facts are known on
 
 This verifies the bounded adapters, **not** complete financial statements,
 full-market coverage, announcement PDF access, or a corporate-action ledger.
+
+With `--scope radar`, a verified empty candidate list writes
+`skipped_empty_radar_scope` to `supplemental_last_attempt.json` with zero
+data requests. The last successful supplemental manifest still identifies the
+last collected facts. An opt-in backfill with `--with-adjustment-snapshot`
+includes the latest 61 available open sessions in the requested adjustment
+window and reuses the cached raw closes.

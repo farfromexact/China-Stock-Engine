@@ -42,6 +42,19 @@ def scan_fixture(history, factors, reference, dates):
 
 
 class TechnicalSignalsTests(unittest.TestCase):
+    def test_empty_signals_distinguish_evaluated_from_missing_adjustments(self):
+        history, factors, reference, dates = fixture()
+        history.loc[history.index[-1], ["low", "close", "amount"]] = [9.6, 9.9, 150_000_000.]
+        for observations, expected, count in (
+            (factors, "evaluated", 1),
+            (factors.iloc[:-1], "insufficient_verified_history", 0),
+        ):
+            _, scan, summary = scan_fixture(history, observations, reference, dates)
+            self.assertEqual(scan.iloc[0]["signal"], "NONE")
+            self.assertEqual(summary["scan_coverage"], {
+                "state": expected, "scanned_count": 1, "valid_window_count": count, "evaluable_count": count,
+            })
+
     def test_exact_breakout_example_and_today_excluded(self):
         h, f, ref, dates = fixture()
         panel, scan, summary = scan_fixture(h, f, ref, dates)

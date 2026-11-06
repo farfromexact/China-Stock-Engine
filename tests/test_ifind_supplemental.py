@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -8,15 +9,43 @@ import pandas as pd
 from china_stock_engine.ifind_supplemental import (
     BoundedClient, FINANCIAL_INDICATOR, PUBLICATION_INDICATOR,
     collect_financials, collect_events, run_collection, safe_failure,
-    _document_link,
+    _document_link, main,
     collect_financials_incremental, _save_batch,
 )
 from china_stock_engine.ifind_http import IFindHTTPError
-from china_stock_engine.storage import read_parquet_file, ArtifactContractError, atomic_write_parquet
+from china_stock_engine.storage import read_parquet_file, ArtifactContractError, atomic_write_parquet, atomic_write_json, sha256_file
 from china_stock_engine.data_reference import feature_pit_timing, apply_adjustments, load_adjustment_snapshot
 
 
 class SupplementalTests(unittest.TestCase):
+    def test_verified_empty_radar_records_skip_without_provider_or_pointer_change(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            radar = root / "latest/opportunity_radar_latest.json"
+            pointer = root / "latest/supplemental_manifest.json"
+            manifest = root / "latest/manifest.json"
+            source = "a" * 64
+            atomic_write_json(pointer, {"previous": True})
+            atomic_write_json(radar, {"trade_date": "2026-11-05", "candidate_union": [],
+                                      "source_snapshot_sha256": source})
+            meta = {"schema_version": 3, "verified": True, "data_fresh": True,
+                    "trade_date": "2026-11-05", "data_reference": {"source_snapshot_sha256": source},
+                    "artifacts": {radar.name: {"sha256": sha256_file(radar)}}}
+            atomic_write_json(manifest, meta)
+            argv = ["--scope", "radar", "--data-dir", str(root)]
+            with patch("china_stock_engine.ifind_supplemental.BoundedClient") as client:
+                self.assertEqual(main(argv), 0)
+                status = json.loads((root / "supplemental_last_attempt.json").read_bytes())
+                self.assertEqual(status["state"], "skipped_empty_radar_scope")
+                self.assertEqual(status["requests"], [])
+                self.assertEqual(json.loads(pointer.read_bytes()), {"previous": True})
+                for field, value in (("trade_date", "2026-11-04"), ("data_fresh", False),
+                                     ("artifacts", {radar.name: {"sha256": "0" * 64}})):
+                    atomic_write_json(manifest, {**meta, field: value})
+                    with self.assertRaises(ArtifactContractError):
+                        main(argv)
+                client.assert_not_called()
+
     def transport(self, url, headers, payload, timeout):
         endpoint = url.rsplit("/", 1)[-1]
         codes = payload["codes"].split(",")

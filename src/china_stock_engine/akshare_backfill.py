@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 import json
 import math
+import os
 from pathlib import Path
 import threading
 import time
@@ -528,7 +529,13 @@ def publish(data_dir: Path, cache: Path, result: dict) -> dict:
     with tempfile.TemporaryDirectory(prefix=".akshare-publish-", dir=data_dir) as temporary:
         staging = Path(temporary)
         shutil.copytree(source_store, staging / "snapshots" / day)
-        (staging / "facts").symlink_to((data_dir / "facts").resolve(), target_is_directory=True)
+        facts_root = (data_dir / "facts").resolve()
+        if os.name == "nt":
+            # A directory junction on the same volume requires no symlink privilege.
+            import _winapi
+            _winapi.CreateJunction(str(facts_root), str(staging / "facts"))
+        else:
+            (staging / "facts").symlink_to(facts_root, target_is_directory=True)
         previous_signals = data_dir / "features/technical_signals"
         if previous_signals.exists():
             shutil.copytree(previous_signals, staging / "features/technical_signals")
