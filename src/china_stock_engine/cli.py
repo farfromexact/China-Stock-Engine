@@ -120,6 +120,10 @@ def _parser() -> argparse.ArgumentParser:
     backfill.add_argument("--with-adjustment-snapshot", action="store_true")
     backfill.add_argument("--adjustment-batch-size", type=int, default=100)
 
+    refresh = subparsers.add_parser("refresh-technical-adjustments", help="collect the 61-session technical adjustment window")
+    refresh.add_argument("--data-dir", type=Path, default=Path("data"))
+    refresh.add_argument("--prompt-token", action="store_true")
+
     ak_backfill = subparsers.add_parser("backfill-akshare", help="resume full-market raw/adjusted AKShare history and publish verified technical signals")
     ak_backfill.add_argument("--end", default=default_trade_date())
     ak_backfill.add_argument("--sessions", type=int, default=300)
@@ -556,6 +560,49 @@ def _refresh_adjustments(
         **metadata,
         "data_reference": data_reference,
     }
+
+
+def _refresh_technical_adjustments(args: argparse.Namespace) -> int:
+    from .ifind_supplemental import _cached_closes, collect_adjustments, safe_failure
+
+    client = _client(args)
+    try:
+        manifest = load_manifest(args.data_dir / "latest/manifest.json", missing_ok=False)
+        if manifest.get("verified") is not True or manifest.get("data_fresh") is not True:
+            raise ValueError("a verified and fresh market snapshot is required")
+        day = manifest["trade_date"]
+        calendar = client.fetch_trade_calendar(day, offset=-65)
+        sessions = sorted(set(calendar.loc[calendar["is_open"].eq(True) & calendar["trade_date"].le(day), "trade_date"]))[-61:]
+        if len(sessions) != 61 or sessions[-1] != day:
+            raise ValueError("61 certified open sessions ending on the target date are required")
+
+        universe = read_parquet_file(args.data_dir / "latest/universe.parquet")
+        codes = sorted(set(universe["thscode"].dropna().astype(str)))
+        raw = _cached_closes(args.data_dir, day, codes, start_date=sessions[0])
+        complete = raw.loc[raw["trade_date"].isin(sessions)].groupby("thscode")["trade_date"].nunique()
+        complete_codes = complete.index[complete.eq(len(sessions))]
+        samples = [next((code for code in complete_codes if code.endswith(suffix)), None)
+                   for suffix in (".SH", ".SZ", ".BJ")]
+        if any(code is None for code in samples):
+            raise ValueError("the cached window lacks a complete sample for each exchange")
+        sample_raw = raw.loc[raw["thscode"].isin(samples)]
+        probe = client.fetch_adjustment_factors(samples, sessions[0], day, raw_prices=sample_raw,
+                                                batch_size=len(samples), request_interval_seconds=0)
+        if (len(probe) != len(sample_raw) or not probe["adj_factor"].between(0, float("inf"), inclusive="neither").all()
+                or set(probe[["trade_date", "thscode"]].itertuples(index=False, name=None))
+                != set(sample_raw[["trade_date", "thscode"]].itertuples(index=False, name=None))):
+            raise ValueError("the CPS=2 sample did not match the cached adjustment window")
+        metadata = collect_adjustments(client, args.data_dir, codes, day, start_date=sessions[0])
+        print(json.dumps({"ok": True, "trade_date": day, **metadata}, ensure_ascii=False))
+        return 0
+    except Exception as exc:
+        status = safe_failure(exc)
+        if _is_entitlement_error(str(exc)):
+            status["state"] = "not_entitled"
+        if isinstance(exc, ValueError) and status.get("api_error_code") is None:
+            status["reason"] = _safe_client_error(exc, client)
+        print(json.dumps({"ok": False, **status}, ensure_ascii=False))
+        return 1
 
 
 class _PreparedBackfillClient:
@@ -1052,20 +1099,24 @@ def _inspect_series(args: argparse.Namespace) -> int:
     if not 1 <= args.sessions <= 300:
         raise ValueError("series sessions must be between 1 and 300")
     cutoff = args.research_asof or (manifest.get("research_context") or {}).get("research_asof") or manifest_pit_timing(manifest, day)["effective_pit_cutoff"]
-    history = load_market_history(args.data_dir, day, limit=args.sessions, research_asof=cutoff)
+    history = load_market_history(args.data_dir, day, limit=max(61, args.sessions), research_asof=cutoff)
     code = args.code.strip().upper()
     if history.empty or code not in set(history["thscode"]):
         raise ValueError(f"no verified history for {code}")
     scoped = history.loc[history["thscode"].eq(code)].copy()
     factor_date = pd.Timestamp(cutoff).tz_convert("Asia/Shanghai").date().isoformat()
-    adjusted = apply_adjustments(scoped, load_adjustment_snapshot(args.data_dir, factor_date), cutoff)
+    sessions = history.attrs.get("session_dates") or sorted(history["trade_date"].unique())
+    adjusted = apply_adjustments(scoped, load_adjustment_snapshot(args.data_dir, factor_date), cutoff,
+                                 technical_sessions=sessions)
+    display_sessions = sessions[-args.sessions:]
+    adjusted = adjusted.loc[adjusted["trade_date"].isin(display_sessions)]
     fields = ("open", "high", "low", "close", "volume", "amount", "adj_factor",
               "adjusted_open", "adjusted_high", "adjusted_low", "adjusted_close", "adj_multiplier", "adj_offset")
     rows = [{"trade_date": row["trade_date"], "first_observed_at": row.get("first_observed_at"),
              **{key: number(row.get(key)) for key in fields}} for row in adjusted.to_dict("records")]
     print(json.dumps({"thscode": code, "trade_date": day, "research_asof": cutoff,
         "sessions_requested": args.sessions, "rows": rows,
-        "missing_session_dates": sorted(set(history.attrs.get("session_dates") or history["trade_date"]) - set(scoped["trade_date"])),
+        "missing_session_dates": sorted(set(display_sessions) - set(scoped["trade_date"])),
         "price_basis": "raw prices and native PIT-adjusted OHLC or factor; affine inverse mapping; missing adjustments remain null"}, ensure_ascii=False, allow_nan=False, indent=2))
     return 0
 
@@ -1174,6 +1225,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run(args)
     if args.command == "backfill":
         return _backfill(args)
+    if args.command == "refresh-technical-adjustments":
+        return _refresh_technical_adjustments(args)
     if args.command == "validate":
         ok, payload = validate_latest(data_dir=args.data_dir)
         print(json.dumps(payload, ensure_ascii=False, indent=2))
