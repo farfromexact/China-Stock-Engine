@@ -61,6 +61,19 @@ class DailyWorkflowContractTests(unittest.TestCase):
         self.assertIn("--company-exposures config/company_commodity_exposures.json", refresh)
         self.assertIn("vars.IFIND_ENRICHMENT_ENABLED == 'true'", self.workflow)
 
+    def test_technical_refresh_is_independent_of_candidates_and_market_success(self):
+        validate = self.workflow.index("Validate promoted snapshot")
+        refresh = self.workflow.index("Refresh technical adjustments before screening")
+        supplemental = self.workflow.index("Collect bounded supplemental facts when enabled")
+        self.assertLess(validate, refresh)
+        self.assertLess(refresh, supplemental)
+        step = self.workflow[refresh:supplemental]
+        self.assertIn("steps.validate.outcome == 'success'", step)
+        self.assertIn("continue-on-error: true", step)
+        self.assertIn("refresh-technical-adjustments", step)
+        self.assertIn("--research-asof", step)
+        self.assertNotIn("candidate_union", step)
+
 
 if __name__ == "__main__":
     unittest.main()

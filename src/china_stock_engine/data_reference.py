@@ -526,6 +526,8 @@ def _latest_partition_frame(
     category: str,
     file_name: str,
     as_of_date: str,
+    *,
+    keep_batches: bool = False,
 ) -> pd.DataFrame:
     paths = sorted((data_dir / "facts" / category).glob(f"as_of_date=*/{file_name}"))
     eligible = [
@@ -535,18 +537,26 @@ def _latest_partition_frame(
     ]
     vintages = [path for path in (data_dir / "facts" / category).glob(f"as_of_date=*/vintage=*/{file_name}")
                 if path.parent.parent.name.removeprefix("as_of_date=") <= as_of_date]
-    if eligible or vintages:
-        frames = [read_parquet_file(eligible[-1])] if eligible else []
-        frames.extend(read_parquet_file(path) for path in sorted(vintages))
-        return pd.concat(frames, ignore_index=True).drop_duplicates()
     latest_path = data_dir / "latest" / file_name
-    return read_parquet_file(latest_path) if latest_path.exists() else pd.DataFrame()
+    selected = (eligible if keep_batches else eligible[-1:]) + sorted(vintages)
+    if not selected and latest_path.exists():
+        if not keep_batches:
+            return read_parquet_file(latest_path)
+        selected = [latest_path]
+    if not selected:
+        return pd.DataFrame()
+    frames = [
+        read_parquet_file(path).assign(adjustment_batch=path.relative_to(data_dir).as_posix())
+        if keep_batches else read_parquet_file(path)
+        for path in selected
+    ]
+    return pd.concat(frames, ignore_index=True).drop_duplicates()
 
 
 def load_adjustment_snapshot(data_dir: Path, as_of_date: str) -> pd.DataFrame:
-    """Load the newest adjustment snapshot that existed by ``as_of_date``."""
+    """Load adjustment batches available by partition date for PIT selection."""
     return _latest_partition_frame(
-        data_dir, "adjustment", "adjustment_factors.parquet", as_of_date
+        data_dir, "adjustment", "adjustment_factors.parquet", as_of_date, keep_batches=True
     )
 
 
@@ -614,31 +624,59 @@ def _safe_ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
     return numerator / denominator.where(denominator.ne(0))
 
 
+def _select_adjustment_batches(
+    factors: pd.DataFrame, history: pd.DataFrame, sessions: list[str]
+) -> pd.DataFrame:
+    keys = ["trade_date", "thscode"]
+    target = sessions[-1]
+    if "base_date" in factors:
+        factors = factors.loc[factors["base_date"].isna() | factors["base_date"].le(target)]
+    factors = factors.loc[factors["adj_factor"].lt(float("inf"))].copy()
+    if "raw_close" in factors:
+        factors = factors.merge(history[keys + ["raw_close"]].rename(columns={"raw_close": "_quote_close"}),
+                                on=keys, validate="many_to_one")
+        stored_close = pd.to_numeric(factors["raw_close"], errors="coerce")
+        factors = factors.loc[factors["raw_close"].isna()
+                              | stored_close.sub(factors["_quote_close"]).abs().le(1e-6)].copy()
+
+    batch_fields = ["thscode", "known_at", *(field for field in (
+        "adjustment_batch", "source_provider", "adjustment_method", "base_date"
+    ) if field in factors)]
+    factors["_batch"] = factors.groupby(batch_fields, dropna=False).ngroup()
+    factors = factors.drop_duplicates()
+    factors = factors.drop_duplicates([*keys, "_batch"], keep=False)
+    window = factors.loc[factors["trade_date"].isin(sessions)]
+    coverage = window.groupby(["thscode", "_batch"], as_index=False).agg(
+        sessions=("trade_date", "size"), last_date=("trade_date", "max"), known_at=("known_at", "max")
+    )
+    coverage["complete"] = coverage["sessions"].eq(len(sessions))
+    coverage["has_target"] = coverage["last_date"].eq(target)
+    selected = coverage.sort_values(["complete", "has_target", "known_at", "_batch"]).drop_duplicates(
+        "thscode", keep="last"
+    )
+    return factors.loc[factors["_batch"].isin(selected["_batch"])]
+
+
 def apply_adjustments(
     history: pd.DataFrame,
     adjustments: pd.DataFrame,
     decision_time: str,
+    *,
+    technical_sessions: list[str] | None = None,
 ) -> pd.DataFrame:
     output = history.copy()
     if "history_verified" in output and "first_observed_at" in output:
         observed = _utc_observations(output["first_observed_at"])
         output["history_verified"] = output["history_verified"].fillna(False) & observed.le(_as_utc_timestamp(decision_time))
     output["raw_close"] = pd.to_numeric(output["close"], errors="coerce")
-    if adjustments.empty:
+    if adjustments.empty or output.empty:
         output["adj_factor"] = float("nan")
     else:
         normalized = normalize_adjustments(adjustments)
         normalized = normalized.loc[_known_by(normalized, decision_time)].copy()
         normalized["known_at"] = _utc_observations(normalized["known_at"])
-        if "base_date" in normalized:
-            # Do not splice an older normalization base into a newer vintage.
-            vintage = normalized.groupby("thscode")["known_at"].transform("max")
-            normalized = normalized.loc[
-                normalized["base_date"].isna() | normalized["known_at"].eq(vintage)
-            ]
-        normalized = normalized.sort_values("known_at").drop_duplicates(
-            ["trade_date", "thscode"], keep="last"
-        )
+        sessions = (technical_sessions or sorted(output["trade_date"].unique()))[-61:]
+        normalized = _select_adjustment_batches(normalized, output, sessions)
         output = output.merge(
             normalized.loc[:, ["trade_date", "thscode", "adj_factor", *(field for field in (
                 "provider_adj_open", "provider_adj_high", "provider_adj_low", "provider_adj_close",
@@ -924,7 +962,7 @@ def build_stock_state(
     )
     scoped = scoped.set_index(["thscode", "trade_date"]).reindex(grid).reset_index()
     scoped = scoped.sort_values(["thscode", "trade_date"]).reset_index(drop=True)
-    adjusted = apply_adjustments(scoped, adjustments, decision_time)
+    adjusted = apply_adjustments(scoped, adjustments, decision_time, technical_sessions=slots)
     grouped = adjusted.groupby("thscode", group_keys=False)
     adjusted["history_sessions"] = grouped["close"].transform(
         lambda values: values.notna().cumsum()
@@ -1727,7 +1765,8 @@ def build_data_reference_outputs(
     sessions = history.attrs.get("listing_session_dates") or history.attrs.get("session_dates") or sorted(history["trade_date"].unique())
     technical_scan, technical_summary = scan_technical_signals(
         stock_state, reference, sessions, selected_date, technical_config)
-    anchor_history = apply_adjustments(history, adjustments, pit_timing["effective_pit_cutoff"])
+    anchor_history = apply_adjustments(history, adjustments, pit_timing["effective_pit_cutoff"],
+                                       technical_sessions=history.attrs.get("session_dates"))
     technical_scan = attach_signal_history(data_dir, technical_scan, anchor_history,
         selected_date, pit_timing["effective_pit_cutoff"], technical_config)
     if research_asof:

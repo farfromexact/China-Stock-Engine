@@ -6,7 +6,7 @@ import unittest
 
 import pandas as pd
 
-from china_stock_engine.data_reference import apply_adjustments, build_stock_state, load_market_history
+from china_stock_engine.data_reference import apply_adjustments, build_stock_state, load_adjustment_snapshot, load_market_history
 from china_stock_engine.technical_signals import (
     TechnicalConfig, add_technical_metrics, scan_technical_signals, technical_candidates,
     attach_signal_history,
@@ -42,6 +42,81 @@ def scan_fixture(history, factors, reference, dates):
 
 
 class TechnicalSignalsTests(unittest.TestCase):
+    def test_short_new_batch_cannot_replace_or_splice_a_complete_window(self):
+        history, factors, reference, dates = fixture()
+        day = dates[-1]
+        short = factors.tail(1).assign(base_date=day, adj_factor=2., known_at=day + "T19:00:00+08:00")
+        for base in (day, None):
+            with self.subTest(base=base):
+                complete = factors.assign(base_date=base)
+                _, scan, summary = scan_fixture(history, pd.concat([complete, short]), reference, dates)
+                self.assertEqual(summary["scan_coverage"]["valid_window_count"], 1)
+                self.assertEqual(scan.iloc[0]["signal"], "BREAKOUT")
+                self.assertEqual(scan.iloc[0]["adjusted_close"], 10.3)
+
+                stale = complete.iloc[:-1]
+                _, scan, summary = scan_fixture(history, pd.concat([stale, short]), reference, dates)
+                self.assertEqual(summary["scan_coverage"]["evaluable_count"], 0)
+                self.assertEqual(scan.iloc[0]["signal"], "NONE")
+
+    def test_refresh_uses_verified_market_universe_then_recovers_only_research_scan(self):
+        from contextlib import redirect_stdout
+        import io
+        from unittest.mock import Mock, patch
+        from china_stock_engine.cli import main
+
+        history, _, reference, dates = fixture()
+        day = dates[-1]
+        codes = ["000001.SZ", "600000.SH", "600001.SH", "920001.BJ"]
+        market = pd.concat([history.assign(thscode=code) for code in codes], ignore_index=True)
+        client = Mock()
+        client.fetch_trade_calendar.return_value = pd.DataFrame({"trade_date": dates, "is_open": True})
+        known = (pd.Timestamp(day) + pd.Timedelta(days=1)).date().isoformat() + "T08:00:00.100001+08:00"
+        history["first_observed_at"] = known
+        historical_cutoff = day + "T20:15:00+08:00"
+
+        def vendor(codes, start, end, *, raw_prices, **kwargs):
+            self.assertEqual(set(codes), set(raw_prices["thscode"]))
+            self.assertEqual((start, end), (dates[-61], day))
+            self.assertEqual(len(raw_prices), 61 * len(codes))
+            return raw_prices.rename(columns={"close": "raw_close"}).assign(
+                adj_factor=1., known_at=known, collection_completed_at=known, base_date=day)
+
+        client.fetch_adjustment_factors.side_effect = vendor
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            latest = root / "latest"
+            atomic_write_json(latest / "manifest.json", {"schema_version": 3, "trade_date": day,
+                                                        "verified": True, "data_fresh": True})
+            atomic_write_parquet(latest / "universe.parquet", pd.DataFrame({"thscode": codes}))
+            for date, quotes in market.groupby("trade_date"):
+                atomic_write_parquet(root / f"facts/market/trade_date={date}/daily_quotes.parquet", quotes)
+            _, _, missing = scan_fixture(history, pd.DataFrame(), reference, dates)
+            self.assertEqual(missing["scan_coverage"]["evaluable_count"], 0)
+            with patch("china_stock_engine.cli._client", return_value=client), redirect_stdout(io.StringIO()) as output:
+                result = main(["refresh-technical-adjustments", "--data-dir", str(root)])
+            self.assertEqual(result, 0, output.getvalue())
+            self.assertEqual(client.fetch_adjustment_factors.call_count, 2)
+            self.assertEqual(set(client.fetch_adjustment_factors.call_args_list[0].args[0]),
+                             {"000001.SZ", "600000.SH", "920001.BJ"})
+            self.assertEqual(set(client.fetch_adjustment_factors.call_args_list[1].args[0]), set(codes))
+            stored = load_adjustment_snapshot(root, pd.Timestamp(known).date().isoformat())
+            self.assertEqual(len(stored), 61 * len(codes))
+            for cutoff, expected in ((historical_cutoff, "NONE"), (known, "BREAKOUT")):
+                panel = add_technical_metrics(apply_adjustments(history, stored, cutoff))
+                scan, summary = scan_technical_signals(panel.tail(1), reference, dates, day, TechnicalConfig())
+                self.assertEqual(scan.iloc[0]["signal"], expected)
+                self.assertEqual(summary["scan_coverage"]["evaluable_count"], int(expected == "BREAKOUT"))
+                if expected == "BREAKOUT":
+                    self.assertEqual(scan.iloc[0]["entry_state"], "pending_verification")
+            client.reset_mock()
+            client.fetch_adjustment_factors.side_effect = None
+            client.fetch_adjustment_factors.return_value = stored.iloc[:0]
+            with patch("china_stock_engine.cli._client", return_value=client), redirect_stdout(io.StringIO()):
+                self.assertEqual(main(["refresh-technical-adjustments", "--data-dir", str(root)]), 1)
+            self.assertEqual(client.fetch_adjustment_factors.call_count, 1)
+            self.assertEqual(len(list(root.glob("facts/adjustment/**/adjustment_factors.parquet"))), 1)
+
     def test_empty_signals_distinguish_evaluated_from_missing_adjustments(self):
         history, factors, reference, dates = fixture()
         history.loc[history.index[-1], ["low", "close", "amount"]] = [9.6, 9.9, 150_000_000.]
