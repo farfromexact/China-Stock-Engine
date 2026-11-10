@@ -1,14 +1,14 @@
 {
  "candidates":[],
  "document_type":"a_share_price_volume_signals",
- "feature_input_sha256":"7d5410ff719394d20e645f3d5628bd8c15b691ba28f9214cced89c0e56957c2d",
- "generated_at":"2026-11-07T00:30:52+00:00",
+ "feature_input_sha256":"e4102cf82ad8868b53e19eed6fd2838ce1df14d86f13d6a8839cbd30cb69c0f1",
+ "generated_at":"2026-11-10T00:36:41+00:00",
  "ordering_policy":"next_session_review, WATCH, pending_verification, extended_wait; thscode within group; no score",
  "research_policy":"optional catalyst verification and risk checks; missing financials do not block technical publication",
  "review_log_path":"facts/technical_reviews/*.json",
  "schema_version":1,
  "series_command":"china-stock-engine inspect-series --code CODE --sessions 120 --research-asof CUTOFF",
- "source_snapshot_sha256":"740180ac08da60fe4c0a68a06262d26b216010a7955163e74a0973c36f698f44",
+ "source_snapshot_sha256":"4709a0789b3d163c8d1b6e66b667a355a176ecc085a8df04006c17cbfbe3fcd6",
  "summary":{
   "all_results_path":"latest/technical_scan.parquet",
   "atr_method":"simple_mean_true_range_adjusted_ohlc; previous_close_required",
@@ -37,13 +37,13 @@
    "current_quote_missing":6,
    "delisting_security":1,
    "history_or_adjustment_gap_61_sessions":5579,
-   "listing_age_below_minimum":82,
-   "prior_adt20_below_minimum":1329,
-   "prior_adt20_missing":38,
+   "listing_age_below_minimum":80,
+   "prior_adt20_below_minimum":1368,
+   "prior_adt20_missing":36,
    "st_security":197
   },
   "execution_policy":"end_of_day_signal; next_session_execution_unverified; WATCH_is_observation_only",
-  "historical_results_path":"features/technical_signals/trade_date=2026-11-06/technical_scan.parquet",
+  "historical_results_path":"features/technical_signals/trade_date=2026-11-09/technical_scan.parquet",
   "pending_reason_counts":{
    "delisting_status_unknown":5578,
    "is_st_unknown":5579,
@@ -64,5 +64,5 @@
   "universe_count":5579,
   "window_policy":"prior_high60 and prior_adt20 exclude today; WATCH ATR/MA include today; entry ATR excludes today"
  },
- "trade_date":"2026-11-06"
+ "trade_date":"2026-11-09"
 }
