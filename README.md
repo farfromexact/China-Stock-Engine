@@ -1,5 +1,7 @@
 # China Stock Engine
 
+Wind Mac 迁移已提供离线适配、SDK 安全检查及独立候选采集入口，尚未启用真实 Wind 生产切换；运行中的 Wind 看板会阻止本项目建立新会话。配置、验收边界和后续切换条件见 [Wind 迁移说明](docs/WIND_MIGRATION.md)。
+
 AKShare 全市场历史补齐入口已加入，使用 `backfill-akshare --sessions 300`；数据源、复权口径、断点恢复和验收见 [AKShare 历史说明](docs/AKSHARE_HISTORY.md)。
 
 主用途已改为量价机会发现：默认 300 交易日日线、60 日放量收盘突破与临界收敛 WATCH。规则、数据缺口、台账和命令见 [价量雷达契约](docs/PRICE_VOLUME_RADAR.md)。基本面模块仅供少量候选核实催化与风险。

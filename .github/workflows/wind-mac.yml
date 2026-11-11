@@ -1,0 +1,60 @@
+name: Wind Mac Candidate Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      trade_date:
+        description: "Completed trade date (YYYY-MM-DD)"
+        required: true
+        type: string
+      mode:
+        description: "Canary first; full 300-session collection only after field/unit review"
+        required: true
+        default: canary
+        type: choice
+        options: [canary, collect]
+      exclusive_window:
+        description: "Confirmed: no dashboard or other client is using Wind for this entire run"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wind-mac-native-session
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    # Deliberately opt-in. Never silently start a native SDK on a hosted runner
+    # or compete with the desktop's existing Wind session.
+    if: vars.WIND_MAC_CANDIDATE_ENABLED == 'true' && inputs.exclusive_window
+    runs-on: [self-hosted, macOS, ARM64, wind-stock]
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Configure this checkout without loading native Wind
+        run: |
+          python3.12 -m venv .venv
+          .venv/bin/python -m pip install -r requirements.txt
+          .venv/bin/python -m pip install --no-deps -e .
+          .venv/bin/python scripts/configure_wind.py
+      - name: Test offline
+        run: .venv/bin/python -m unittest discover -s tests -v
+      - name: Collect isolated candidate only in a reserved exclusive window
+        env:
+          TRADE_DATE: ${{ inputs.trade_date }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          WIND_WORKSPACE="$HOME/Library/Application Support/ChinaStockEngine/wind"
+          PROFILE="$WIND_WORKSPACE/profile.json"
+          if [[ ! -f "$PROFILE" ]]; then PROFILE="config/wind_profile.example.json"; fi
+          .venv/bin/python -m china_stock_engine.wind_collect "$MODE" \
+            --end "$TRADE_DATE" --sessions 300 \
+            --workspace "$WIND_WORKSPACE" --profile "$PROFILE" --exclusive-window
+      # No push, no publication, and no iFinD fallback. A native canary plus
+      # field/unit acceptance is required before a separate cutover change.
