@@ -1,0 +1,59 @@
+name: Wind Windows Candidate Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      trade_date:
+        description: "Completed trade date (YYYY-MM-DD)"
+        required: true
+        type: string
+      mode:
+        description: "Windows canary before full-market collection"
+        required: true
+        default: canary
+        type: choice
+        options: [canary, collect]
+      exclusive_window:
+        description: "No dashboard, other client or Mac collection is using this Wind account"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wind-native-session
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    if: vars.WIND_WINDOWS_CANDIDATE_ENABLED == 'true' && inputs.exclusive_window
+    runs-on: [self-hosted, Windows, X64, wind-stock]
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Configure Windows checkout without connecting Wind
+        shell: pwsh
+        run: .\scripts\setup-wind-windows.ps1
+      - name: Test offline
+        shell: pwsh
+        run: |
+          .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Collect isolated candidate
+        shell: pwsh
+        env:
+          TRADE_DATE: ${{ inputs.trade_date }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          $WindWorkspace = Join-Path $env:LOCALAPPDATA 'ChinaStockEngine\wind'
+          $ProfilePath = Join-Path $WindWorkspace 'profile.json'
+          if (!(Test-Path $ProfilePath)) { $ProfilePath = 'config/wind_profile.example.json' }
+          .\.venv\Scripts\python.exe -m china_stock_engine.wind_collect $env:MODE `
+            --end $env:TRADE_DATE --sessions 300 --batch-size 100 `
+            --workspace $WindWorkspace --profile $ProfilePath --exclusive-window
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # Candidate only: Windows native data and desktop login need real validation.

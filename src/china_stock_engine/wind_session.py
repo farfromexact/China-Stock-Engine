@@ -1,10 +1,11 @@
-"""Mac Wind session isolation. Importing this module never imports WindPy."""
+"""Mac/Windows Wind isolation. Importing this module never imports WindPy."""
 from __future__ import annotations
 
 from contextlib import contextmanager
 from datetime import date, datetime
 import importlib
 import multiprocessing as mp
+import os
 from pathlib import Path
 import socket
 import threading
@@ -38,17 +39,27 @@ def require_exclusive_window(authorized: bool) -> None:
 
 @contextmanager
 def collector_lock(path: Path):
-    import fcntl
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a+") as handle:
+    with path.open("a+b") as handle:
+        if os.name == "nt":
+            import msvcrt
+            if handle.seek(0, 2) == 0:
+                handle.write(b"0"); handle.flush()
+            handle.seek(0)
+            acquire = lambda: msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            release = lambda: (handle.seek(0), msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1))
+        else:
+            import fcntl
+            acquire = lambda: fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            release = lambda: fcntl.flock(handle, fcntl.LOCK_UN)
         try:
-            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as exc:
+            acquire()
+        except OSError as exc:
             raise WindBusyError("Another stock collector owns the session lock") from exc
         try:
             yield
         finally:
-            fcntl.flock(handle, fcntl.LOCK_UN)
+            release()
 
 
 def _wire(value):

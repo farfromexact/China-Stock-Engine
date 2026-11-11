@@ -1,7 +1,7 @@
 """Read-only WindPy adapter. Field/unit profile requires live canary acceptance."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, timezone
 import re
 import math
@@ -73,6 +73,7 @@ class WindProvider:
         self.provenance = {"universe_sector": self.profile.sector_id,
                            "calendar": self.profile.calendar,
                            "units_verified": self.profile.units_verified,
+                           "profile": asdict(self.profile),
                            "adapter_version": "windpy-v1"}
 
     def request(self, operation, *args):
@@ -152,6 +153,40 @@ class WindProvider:
             raise WindError("Wind history returned a different code")
         frame = frame.rename(columns={v: k for k, v in mapping.items()})
         frame["trade_date"] = date_values(pd.Series(result["times"]))
+        return self._normalize_history(frame, code, start, end, adjusted=adjusted)
+
+    def history_many(self, codes, start, end, *, adjusted=False):
+        """Wind supports many-code/one-field matrices; preserve both axes."""
+        if not codes or len(set(codes)) != len(codes) or any(not CODE.fullmatch(c) for c in codes):
+            raise ValueError("invalid/duplicate Wind batch codes")
+        mapping = ({key: self.profile.quote_fields[key] for key in ("open", "high", "low", "close")}
+                   if adjusted else self.profile.quote_fields)
+        frames = {code: pd.DataFrame() for code in codes}
+        expected_times = None
+        options = self.profile.adjusted_options if adjusted else self.profile.raw_options
+        for name, vendor_field in mapping.items():
+            result = self.request("wsd", ",".join(codes), vendor_field, start, end, options)
+            returned = [str(code).upper() for code in result["codes"]]
+            times = result["times"]
+            if ([str(v).lower() for v in result["fields"]] != [vendor_field.lower()]
+                    or len(returned) != len(codes) or set(returned) != set(codes)
+                    or len(result["data"]) != len(returned)
+                    or any(len(column) != len(times) for column in result["data"])):
+                raise WindError("Wind matrix code/field/time axes do not match request")
+            if expected_times is None:
+                expected_times = times
+            elif times != expected_times:
+                raise WindError("Wind matrix time axes differ across fields")
+            for code, values in zip(returned, result["data"]):
+                frames[code][name] = values
+        for code, frame in frames.items():
+            frame["trade_date"] = date_values(pd.Series(expected_times))
+            frames[code] = self._normalize_history(frame, code, start, end, adjusted=adjusted)
+        return frames
+
+    def _normalize_history(self, frame, code, start, end, *, adjusted=False):
+        mapping = ({key: self.profile.quote_fields[key] for key in ("open", "high", "low", "close")}
+                   if adjusted else self.profile.quote_fields)
         if frame.trade_date.isna().any() or frame.trade_date.duplicated().any() or not frame.trade_date.between(start, end).all():
             raise WindError("Wind history has duplicate, invalid or out-of-range dates")
         for name in mapping:
@@ -210,6 +245,9 @@ def adjustment_pair(raw, adjusted, *, known_at=None):
     # A caller cannot backdate knowledge of newly fetched corporate actions.
     output = joined[keys].copy()
     output["adj_factor"] = factor
+    output["raw_close"] = joined.close
+    output["forward_adj_close"] = joined.close_adjusted
+    output["base_date"] = str(joined.trade_date.max()) if not joined.empty else pd.NA
     output["known_at"] = observed
     output["collection_completed_at"] = observed
     output["effective_at"] = output.trade_date

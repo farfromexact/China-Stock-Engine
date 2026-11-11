@@ -10,6 +10,7 @@ from pathlib import Path
 import platform
 import site
 import sys
+import sysconfig
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -49,13 +50,19 @@ def main():
     try:
         if sys.prefix == sys.base_prefix or Path(sys.prefix).resolve() != (ROOT / '.venv').resolve():
             raise ValueError('Run with this repository\'s .venv Python; system Python will not be modified.')
-        pth = Path(site.getsitepackages()[0]) / 'WindPy.pth'
+        # Windows may list the environment root before Lib/site-packages.
+        # Use the interpreter's install scheme rather than assuming index zero.
+        pth = Path(sysconfig.get_path('purelib')) / 'WindPy.pth'
+        existing = pth
+        if not existing.is_file():
+            existing = next((Path(directory) / 'WindPy.pth' for directory in site.getsitepackages()
+                             if (Path(directory) / 'WindPy.pth').is_file()), pth)
         sdk = resolve_sdk(args.wind_python_dir or os.environ.get('WIND_PYTHON_DIR'),
-                          pth, platform.system(), Path.home())
+                          existing, platform.system(), Path.home())
         print(f'Python: {sys.executable}\nPlatform: {platform.system()} {platform.machine()}\nSDK: {sdk}\nPath file: {pth}')
         if not args.check:
             pth.write_text(str(sdk) + '\n', encoding='utf-8')
-            print('Configured without loading SDK. Run: .venv/bin/python -m china_stock_engine.wind_collect doctor')
+            print(f'Configured without loading SDK. Run with {sys.executable}: -m china_stock_engine.wind_collect doctor')
         else:
             print('SDK path exists. Native loading, architecture and login are NOT tested.')
         return 0

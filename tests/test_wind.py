@@ -3,6 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch, MagicMock
+from types import SimpleNamespace
 
 import pandas as pd
 
@@ -46,7 +47,35 @@ def provider(fake=None):
     return WindProvider(fake or FakeWind(), WindProfile(min_interval=0))
 
 
+class MatrixFakeWind(FakeWind):
+    def __call__(self, op, *args):
+        if op != "wsd" or "," not in args[0]:
+            return super().__call__(op, *args)
+        codes = args[0].split(",")
+        columns = [super(MatrixFakeWind, self).__call__(op, code, *args[1:]) for code in codes]
+        return dict(fields=columns[0]["fields"], codes=codes, times=columns[0]["times"],
+                    data=[item["data"][0] for item in columns])
+
+
 class WindAdapterTests(unittest.TestCase):
+    def test_many_code_one_field_matrices_match_single_code_history(self):
+        client = provider(MatrixFakeWind())
+        for adjusted in [False, True]:
+            many = client.history_many(CODES, DAYS[0], DAYS[-1], adjusted=adjusted)
+            for code in CODES:
+                pd.testing.assert_frame_equal(many[code], client.history(code, DAYS[0], DAYS[-1], adjusted=adjusted))
+
+    def test_matrix_rejects_reordered_time_axis_and_unexpected_codes(self):
+        fake = MatrixFakeWind()
+        for error in ["times", "codes"]:
+            def request(op, *args):
+                result = fake(op, *args)
+                if op == "wsd" and args[1] == "high":
+                    if error == "times": result["times"] = list(reversed(result["times"]))
+                    else: result["codes"] = ["999999.SH"] + result["codes"][1:]
+                return result
+            with self.subTest(error=error), self.assertRaises(WindError):
+                provider(request).history_many(CODES, DAYS[0], DAYS[-1])
     def test_stock_calendar_units_and_reference_axes(self):
         client = provider()
         self.assertEqual(client.fetch_universe(DAYS[-1]).thscode.tolist(), CODES)
@@ -134,6 +163,17 @@ class WindIsolationTests(unittest.TestCase):
                     with collector_lock(path):
                         self.fail("second owner")
 
+    def test_windows_lock_branch_locks_and_releases_one_byte(self):
+        fake = SimpleNamespace(LK_NBLCK=1, LK_UNLCK=2, locking=MagicMock())
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "wind.lock"
+            with patch.dict("sys.modules", {"msvcrt": fake}), \
+                 patch("china_stock_engine.wind_session.os.name", "nt"):
+                with collector_lock(path):
+                    self.assertEqual(fake.locking.call_args.args[1:], (1, 1))
+            self.assertEqual(fake.locking.call_args.args[1:], (2, 1))
+            self.assertEqual(path.read_bytes(), b"0")
+
     def test_timed_out_request_closes_only_owned_child_and_cannot_reuse_late_reply(self):
         session = WindSession(exclusive_window=True)
         connection = MagicMock()
@@ -158,6 +198,12 @@ class WindIsolationTests(unittest.TestCase):
 
 
 class WindCandidateTests(unittest.TestCase):
+    def test_batched_checkpoint_collection_has_same_validated_rows(self):
+        with tempfile.TemporaryDirectory() as temp:
+            status = collect_candidate(provider(MatrixFakeWind()), Path(temp), end=DAYS[-1],
+                                       sessions=5, codes=CODES, batch_size=3, build_report=False)
+            self.assertEqual(status["rows"], 15)
+            self.assertFalse(status["production_changed"])
     def test_300_session_candidate_builds_screen_and_validates_without_native_sdk(self):
         from china_stock_engine.data_reference import load_market_history
         days = pd.bdate_range("2025-01-02", periods=300).strftime("%Y-%m-%d").tolist()

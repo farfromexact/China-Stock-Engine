@@ -63,13 +63,15 @@ class CachedWind:
 def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
                       sessions: int = 300, codes: list[str] | None = None,
                       min_universe: int = 5000, build_report: bool = True,
-                      refresh: bool = False) -> dict:
+                      refresh: bool = False, batch_size: int = 1) -> dict:
     """Collect one normalization vintage. Partial samples can never be promoted."""
     workspace = workspace.resolve()
     if workspace == ROOT / "data" or (ROOT / "data") in workspace.parents:
         raise ValueError("Wind candidate workspace must be outside production data/")
     if sessions < 1 or sessions > 300:
         raise ValueError("Wind candidate requires 1..300 sessions")
+    if not 1 <= batch_size <= 100:
+        raise ValueError("Wind batch_size must be 1..100")
     if codes is None and not provider.profile.units_verified:
         raise WindError("Full-market collection requires a reviewed unit profile; run canary first")
     started = now()
@@ -91,6 +93,42 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
     reference = provider.fetch_security_reference(universe.thscode.tolist(), end)
     cache = workspace / "cache" / profile_hash
     cache.mkdir(parents=True, exist_ok=True)
+    if batch_size > 1:
+        all_codes = universe.thscode.tolist()
+        for start_index in range(0, len(all_codes), batch_size):
+            batch = all_codes[start_index:start_index + batch_size]
+            missing = []
+            for code in batch:
+                directory = cache / code
+                receipt = directory / "receipt.json"
+                metadata = json.loads(receipt.read_text()) if receipt.exists() else {}
+                paths = {name: directory / filename for name, filename in
+                         (("raw", "raw.parquet"), ("factors", "factors.parquet"))}
+                reusable = (not refresh and metadata.get("start") == days[0]
+                    and metadata.get("end") == end and metadata.get("profile_hash") == profile_hash
+                    and all(p.exists() and metadata.get(name + "_sha256") == sha256_file(p)
+                            for name, p in paths.items()))
+                if not reusable:
+                    missing.append(code)
+            if missing:
+                raw_batch = provider.history_many(missing, days[0], end)
+                adjusted_batch = provider.history_many(missing, days[0], end, adjusted=True)
+                for code in missing:
+                    directory = cache / code
+                    raw = raw_batch[code]
+                    if not set(raw.trade_date) <= set(days):
+                        raise WindError(f"Wind returned bars on uncertified sessions: {code}")
+                    factors = adjustment_pair(raw, adjusted_batch[code])
+                    atomic_write_parquet(directory / "raw.parquet", raw)
+                    atomic_write_parquet(directory / "factors.parquet", factors)
+                    atomic_write_json(directory / "receipt.json", {
+                        "start": days[0], "end": end, "profile_hash": profile_hash,
+                        "thscode": code, "observed_at": now(),
+                        "raw_sha256": sha256_file(directory / "raw.parquet"),
+                        "factors_sha256": sha256_file(directory / "factors.parquet")})
+            print(json.dumps({"phase": "wind_batch_download", "done": min(start_index + batch_size, len(all_codes)),
+                              "total": len(all_codes), "downloaded": len(missing)}), flush=True)
+        refresh = False  # Every requested refresh is now in a verified checkpoint.
     raw_frames, factor_frames = [], []
     gaps = []
     for index, code in enumerate(universe.thscode, 1):
@@ -180,6 +218,7 @@ def main(argv=None):
     parser.add_argument("mode", choices=("doctor", "canary", "collect"))
     parser.add_argument("--end")
     parser.add_argument("--sessions", type=int, default=300)
+    parser.add_argument("--batch-size", type=int, default=100)
     parser.add_argument("--profile", type=Path)
     parser.add_argument("--workspace", type=Path, default=PRIVATE)
     parser.add_argument("--exclusive-window", action="store_true")
@@ -205,7 +244,7 @@ def main(argv=None):
             result = collect_candidate(WindProvider(session.request, profile), args.workspace,
                 end=args.end, sessions=5 if args.mode == "canary" else args.sessions,
                 codes=args.codes.split(",") if args.mode == "canary" else None,
-                build_report=args.mode != "canary", refresh=args.refresh)
+                build_report=args.mode != "canary", refresh=args.refresh, batch_size=args.batch_size)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except (WindError, ValueError, OSError) as exc:

@@ -2,13 +2,11 @@
 
 ## 当前状态
 
-2026-11-11 用户确认：看板会持续运行，本轮仅保留离线改造，不执行真实 Wind 连接，不启用 runner 或生产切换。
+2026-11-11 夜间已在用户确认看板关闭的独占窗口完成真实 Wind 小样本与扩展验证：沪深京、科创板、创业板、CDR 共 6 只、300 个交易日；原始/复权 OHLC 配对、成交量和成交额单位通过。100 代码单字段 × 300 日矩阵已在 Mac 实测。当前全市场发布结果以 `data/wind_publication_status.json` 为准。
 
-已实现供应商无关的行情接口、WindPy 适配器、独立子进程与串行请求、Mac SDK 路径配置、带 SHA 校验的断点采集和独立候选数据构建。现有 iFinD 日常工作流和生产 `data/` 未切换；不把离线测试当作真实 Wind 权限或全市场验收。
+实现包括供应商无关接口、单个隔离子进程、串行原生请求、Mac/Windows SDK 路径配置、跨平台文件锁、带 SHA 的断点采集，以及独立 Wind 版本的验证与提升。Windows 原生 SDK 尚未在本仓库实机验收，见 [Windows 接手说明](WINDOWS_WIND_HANDOFF.md)。
 
-当前看板仍使用自己的 Wind 会话。本项目没有通用会话代理可复用，也没有修改另一个仓库或看板。**只要 8765 端口有监听者，Wind 采集就会在导入 SDK 之前失败。** 无法判断端口状态也会失败。`--exclusive-window` 是操作者对独占时间窗口的确认，不会绕过端口检查。
-
-此检查及 stock collector 文件锁并不能证明机器上所有其他 Wind 客户端都已退出。真实采集必须安排在看板和其他客户端不使用 Wind 的独占窗口；不要仅因页面显示“收盘”就运行。看板运行期间不要执行连接探测脚本、另开 `w.start()` 或调用 `w.stop()`。
+本项目不启动或停止另一个仓库的看板。**只要 8765 端口有监听者，Wind 采集就在导入 SDK 前失败。** 无法判断端口状态也失败。`--exclusive-window` 是操作者对完整采集窗口的确认，不绕过端口检查。文件锁不能证明所有其他机器/账号会话都空闲；同账号 Mac/Windows 不要并发取数。
 
 ## 环境与无连接检查
 
@@ -27,7 +25,7 @@ python3.12 -m venv .venv
 
 ## 小样本先行
 
-示例 profile 的字段及单位仍是**待实测配置**，`units_verified=false`。请求保留空值，不向前填充停牌或缺失行情。成交量规范单位为股，成交额为元，股本为股；必须根据官方字段说明和实测标的确认三种倍率，不能靠请求成功就认定单位正确。
+示例 profile 默认 `units_verified=false`，每台新机器仍必须先实测、审核字段与单位；Mac 已验证的结论不自动变成 Windows 验收。请求保留空值，不向前填充停牌或缺失行情。成交量规范单位为股，成交额为元，股本为股；必须根据官方字段说明和实测标的确认三种倍率，不能靠请求成功就认定单位正确。
 
 在已确认的独占窗口，取沪深京三只标的最近 5 个交易日：
 
@@ -54,18 +52,38 @@ python3.12 -m venv .venv
 
 全市场模式要求至少 5000 只且涵盖沪深京；小样本永远标记 `canary_only=true`，不能冒充全市场。观察到的 K 线单独保存，上市前不要求补线，上市后缺失日期记录为未确认，不猜测为停牌、不造 K 线。候选通过现有市场质量门、报告/筛选生成及最终 hash 校验；后补历史只用于明确研究截点，不冒充历史日终信息。每次构建有独立目录，失败不会更新生产 latest。
 
-单代码 WSD 请求是初始保守实现，不声称已验证全市场耗时、频率和账户额度。下一轮按真实 canary 结果再优化批量矩阵；不要套用期权批量大小。新窗口当前会完整重取，而非已优化的每日增量。
+已实测 Mac 的多代码、单字段矩阵，最多每批 100 代码，严格校验代码/时间/字段轴；原生请求仍串行。`--batch-size 1` 可回到逐代码请求。实际额度和 Windows 批量能力仍需各机验收，不能套用看板期权批量。新窗口当前完整重取，未声称已实现每日增量优化。
 
 ## 自动化和切换条件
 
 新增 `Wind Mac Candidate Validation` 工作流，仅手动 dispatch，且默认因 `WIND_MAC_CANDIDATE_ENABLED` 未设置而跳过；每次还必须显式确认 `exclusive_window`，默认 false。需要专用标签 `wind-stock` 的 Mac ARM64 self-hosted runner，使用自己的 checkout/.venv；当前未安装或启动 runner、launchd 任务，也未更改 ChatGPT 调度桥。runner 检查点放在用户目录的 `Library/Application Support/ChinaStockEngine/wind`，避免 checkout 清理掉断点；审核后的本机 profile 也放在那里。候选工作流无仓库写权限，不发布、不回退调用 iFinD。
 
-**尚未启用生产 Wind 发布。** 切换前必须完成：
+## 经过验证再提升生产
 
-1. 独占窗口真实连接及字段/单位验收；完成沪深京、缺失/分红边界验证。
-2. 全市场 300 日候选完成，并与原数据在重叠区间做差异分析。
-3. 建立生产 Wind 数据版本的归档/提升事务，保留原 iFinD/AKShare 历史文件与旧因子来源；不得直接覆盖已有历史日期分区。
-4. 实测增量追赶、重复运行、复权更新、失败保留旧 latest、容量检查及远端发布。
-5. 切换 ChatGPT 调度桥与数据源选择，同时停用 iFinD 的行情和补充模块调用。映射未完成的财务/事件字段保持未知，不冒充 Wind 数据。
+```bash
+.venv/bin/python -m china_stock_engine.wind_publish \
+  --candidate .private-stock-data/wind/candidates/CANDIDATE_ID --data-dir data
+.venv/bin/python -m china_stock_engine.cli validate --data-dir data
+```
 
-目前这些是后续切换准入条件，不能因为代码能离线运行就把现有 iFinD 定时采集关闭，否则会制造新的停更。
+发布器拒绝样本、未审核单位、不完整 300 日历史、质量或哈希失败的候选。在独立暂存目录复制现有数据并重建研究报告，通过后才提升；失败保留旧 latest。新行情、参考与复权保存为 `facts/wind/vintage=...`，最新 manifest 的 `source_snapshot_path` 明确指向对应 Wind 快照。旧 iFinD/AKShare 事实、快照和技术台账逐文件校验未变。
+
+当前 Wind 研究与序列检查只选择 Wind 的复权批次，不隐式回退其他供应商因子。`known_at` 为实际观察时间，历史研究仍受截点限制。重复提升同一候选幂等。全量版本仍需容量监测，未来增量和 Wind 版本留存策略应在正式无人值守部署时验收，不能关闭容量门后无限累积。
+
+## 后续自动采集切源
+
+本轮可手动生成并提升完整 Wind 数据，**不等于已部署无人值守 Wind 自动采集**。Mac/Windows self-hosted workflow 都默认关闭、手动 dispatch、候选只读，未安装 runner/launchd/Windows service。两个 workflow 共用原生会话 concurrency group，防止 GitHub 同仓重复任务并发；本机与跨机器账号占用仍需独占窗口协调。
+
+旧 iFinD 日常与补充任务暂时保留，避免 runner 和登录尚未就绪时停更。正式停用需先验收本机 SDK 登录、独占窗口、重启恢复、增量追赶、版本留存/容量以及 commit/push 发布，再切换 ChatGPT 调度桥。财务/事件等尚未映射的可选模块明确保持原来源或未知，不冒充 Wind 数据。
+
+## 2026-11-11 全市场实测结果
+
+- 交易日范围：2025-08-14 至 2026-11-11，共 300 个交易日。
+- 当前全 A 股票池 5580 只，与原 iFinD 当日池代码集合一致。
+- 日线 1,643,988 条；5393 只具备完整 300 日，187 只上市较晚；按上市日核对，未确认的上市后缺失日期为 0。
+- 最新 5574 只正常成交，6 只为供应商返回的无成交价格观察（成交量/额为 0），保留 `quote_without_turnover`，不伪装成成交。
+- 与原 iFinD 当日可比的 5574 只收盘价全部一致，成交量差异仅浮点精度级别。
+- 全市场扫描 5580 行：25 个 BREAKOUT、11 个 WATCH。它们是待核验研究候选，不代表执行许可。
+- 发布后 1634 个既有历史事实、快照和特征文件 SHA 未变，活动数据约 529.5 MB，低于 900 MB 容量门槛。
+- 完成市场质量、派生产物大小/hash、完整 300 日历史读取与生产 CLI validate。详情见 `data/wind_publication_status.json` 与 `data/storage_status.json`。
+- 本轮本机测试 173 项通过；新增 GitHub Windows/Ubuntu 离线 CI 用于验证代码与 Windows PowerShell 语法，仍不等于 Windows 原生 Wind SDK 实测。

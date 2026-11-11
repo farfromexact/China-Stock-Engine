@@ -123,29 +123,31 @@ def _pit_timing(
 def _previous_quality_context(
     data_dir: Path, trade_date: str
 ) -> dict[str, pd.DataFrame] | None:
-    market_root = data_dir / "facts" / "market"
-    dates = sorted(
-        path.name.split("=", 1)[1]
-        for path in market_root.glob("trade_date=*")
-        if path.is_dir()
-        and "=" in path.name
-        and path.name.split("=", 1)[1] < trade_date
-    )
-    if not dates:
+    roots = [data_dir / "facts"] + sorted((data_dir / "facts/wind").glob("vintage=*"))
+    candidates = []
+    for root in roots:
+        for market_dir in (root / "market").glob("trade_date=*"):
+            day = market_dir.name.removeprefix("trade_date=")
+            if day >= trade_date:
+                continue
+            reference_dir = root / "reference" / f"as_of_date={day}"
+            paths = {
+                "universe": reference_dir / "universe.parquet",
+                "security_reference": reference_dir / "security_reference.parquet",
+                "quotes": market_dir / "daily_quotes.parquet",
+                "daily_status": market_dir / "daily_security_status.parquet",
+            }
+            if not all(path.exists() for path in paths.values()):
+                continue
+            receipt = load_json_object(market_dir / "market_receipt.json")
+            if root != data_dir / "facts" and receipt.get("verified") is not True:
+                continue
+            observed = receipt.get("collection_completed_at") or receipt.get("collected_at_utc")
+            priority = pd.Timestamp(observed).value if observed else -1
+            candidates.append(((day, priority, str(root)), paths))
+    if not candidates:
         return None
-    previous_date = dates[-1]
-    market_dir = market_root / f"trade_date={previous_date}"
-    reference_dir = (
-        data_dir / "facts" / "reference" / f"as_of_date={previous_date}"
-    )
-    paths = {
-        "universe": reference_dir / "universe.parquet",
-        "security_reference": reference_dir / "security_reference.parquet",
-        "quotes": market_dir / "daily_quotes.parquet",
-        "daily_status": market_dir / "daily_security_status.parquet",
-    }
-    if not all(path.exists() for path in paths.values()):
-        return None
+    _, paths = max(candidates, key=lambda item: item[0])
     return {name: read_parquet_file(path) for name, path in paths.items()}
 
 

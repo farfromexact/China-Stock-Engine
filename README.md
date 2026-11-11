@@ -1,6 +1,6 @@
 # China Stock Engine
 
-Wind Mac 迁移已提供离线适配、SDK 安全检查及独立候选采集入口，尚未启用真实 Wind 生产切换；运行中的 Wind 看板会阻止本项目建立新会话。配置、验收边界和后续切换条件见 [Wind 迁移说明](docs/WIND_MIGRATION.md)。
+Wind 已加入本机 SDK 采集、300 日候选校验和独立版本发布；实际最新状态见 `data/wind_publication_status.json`。Mac 已完成真实样本/批量验证，Windows 接手请先读 [Windows Wind 说明](docs/WINDOWS_WIND_HANDOFF.md)。SDK 配置、独占会话保护及自动化验收边界见 [Wind 迁移说明](docs/WIND_MIGRATION.md)。本机 runner 尚未部署，合并代码不代表已自动切源。
 
 AKShare 全市场历史补齐入口已加入，使用 `backfill-akshare --sessions 300`；数据源、复权口径、断点恢复和验收见 [AKShare 历史说明](docs/AKSHARE_HISTORY.md)。
 
