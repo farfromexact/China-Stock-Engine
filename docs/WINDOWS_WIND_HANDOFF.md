@@ -44,9 +44,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-wind-win
 
 把示例 profile 复制到 `.private-stock-data/wind/profile.json`，验证成交量为股、成交额为元、股本为股，核对原生复权 OHLC 乘法映射后，才能把本机 `units_verified` 标记为 true。不要为了跳过门槛直接改布尔值。Mac 的样本验证和这台机器的登录检查都不能代替 Windows 单位验证。
 
-## 全市场与生产发布
+## 增量样本与日常入口
 
-先读取远端 `data/wind_publication_status.json` 的截止日期。若明早尚无新的已收盘交易日，直接复用已合并的 Wind 300 日数据；配置 SDK 只需要小样本，不要为安装验证重复下载全市场历史。当前采集器新窗口仍完整获取，增量与额度策略需在长期自动化前另行优化。
+每日 tick 已默认增量。完成本机单位 canary 后，再按 [Wind 增量更新](WIND_INCREMENTAL.md) 的 PowerShell 命令，用 incremental --codes 验证当前基线复用、两个单字段收盘探针和配对下载；样本不能发布。保留 300 日工作集，完整 K 线按新增/缺口下载，修订按股票重取；非收盘深度修订通过 20 组轮换核查，不能承诺当日全发现。首次新交易日的实际耗时与 Windows 原生返回还需实测。日常使用 wind_daily tick，不要把下面的全量基线命令注册成每日任务。
+
+## 全市场基线重建与生产发布
+
+先读取远端 `data/wind_publication_status.json` 的截止日期。若明早尚无新的已收盘交易日，直接复用已合并的 Wind 300 日数据；配置 SDK 只需要小样本，不要为安装验证重复下载全市场历史。日常增量入口可直接从远端带来的已验证 Wind 版本复用，无须复制 Mac 私有缓存。
 
 ```powershell
 .\.venv\Scripts\python.exe -m china_stock_engine.wind_collect collect `
@@ -54,7 +58,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-wind-win
   --profile .private-stock-data/wind/profile.json --exclusive-window
 ```
 
-候选与规范化断点在 `.private-stock-data/wind/`，不包含原始 SDK 响应。相同窗口通过 SHA 的断点可复用；供应商修订相同日期时使用 `--refresh`。新窗口当前会完整获取，增量吞吐仍需实测，不承诺固定完成时间。
+候选与规范化断点在 `.private-stock-data/wind/`，不包含原始 SDK 响应。相同窗口通过 SHA 的断点可复用；供应商修订相同日期时使用 `--refresh`。此 collect 命令仍完整获取，限首次建库、经审核的 profile 更换或显式基线重建；日常不要使用它。增量吞吐仍需实测，不承诺固定完成时间。
 
 确认候选覆盖完整股票池与 300 个交易日、质量/筛选通过后，才用 `wind_publish` 提升；它拒绝样本、未核对单位或不完整历史。
 

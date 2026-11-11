@@ -63,7 +63,8 @@ class CachedWind:
 def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
                       sessions: int = 300, codes: list[str] | None = None,
                       min_universe: int = 5000, build_report: bool = True,
-                      refresh: bool = False, batch_size: int = 1) -> dict:
+                      refresh: bool = False, batch_size: int = 1,
+                      cache_context: str | None = None) -> dict:
     """Collect one normalization vintage. Partial samples can never be promoted."""
     workspace = workspace.resolve()
     if workspace == ROOT / "data" or (ROOT / "data") in workspace.parents:
@@ -81,6 +82,8 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
     if len(days) < sessions or not days or days[-1] != end:
         raise WindError("Wind did not certify enough completed sessions ending on the requested date")
     days = days[-sessions:]
+    if cache_context is not None:
+        cache_context = json_sha256({"plan": cache_context, "certified_sessions": days})
     universe = normalize_universe(provider.fetch_universe(end))
     full_universe_count = len(universe)
     if codes is not None:
@@ -106,6 +109,7 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
                          (("raw", "raw.parquet"), ("factors", "factors.parquet"))}
                 reusable = (not refresh and metadata.get("start") == days[0]
                     and metadata.get("end") == end and metadata.get("profile_hash") == profile_hash
+                    and metadata.get("context") == cache_context
                     and all(p.exists() and metadata.get(name + "_sha256") == sha256_file(p)
                             for name, p in paths.items()))
                 if not reusable:
@@ -123,6 +127,8 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
                     atomic_write_parquet(directory / "factors.parquet", factors)
                     atomic_write_json(directory / "receipt.json", {
                         "start": days[0], "end": end, "profile_hash": profile_hash,
+                        "context": cache_context,
+                        "incremental": getattr(provider, "checkpoint_metadata", lambda code: None)(code),
                         "thscode": code, "observed_at": now(),
                         "raw_sha256": sha256_file(directory / "raw.parquet"),
                         "factors_sha256": sha256_file(directory / "factors.parquet")})
@@ -138,11 +144,14 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
         metadata = json.loads(receipt.read_text()) if receipt.exists() else {}
         reusable = (not refresh and metadata.get("start") == days[0] and metadata.get("end") == end
                     and metadata.get("profile_hash") == profile_hash
+                    and metadata.get("context") == cache_context
                     and raw_path.exists() and factors_path.exists()
                     and metadata.get("raw_sha256") == sha256_file(raw_path)
                     and metadata.get("factors_sha256") == sha256_file(factors_path))
         if reusable:
             raw, factors = read_parquet_file(raw_path), read_parquet_file(factors_path)
+            if hasattr(provider, "reuse_checkpoint"):
+                provider.reuse_checkpoint(code, metadata.get("incremental"))
         else:
             raw = provider.history(code, days[0], end)
             adjusted = provider.history(code, days[0], end, adjusted=True)
@@ -153,6 +162,8 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
             atomic_write_parquet(factors_path, factors)
             atomic_write_json(receipt, {"start": days[0], "end": end,
                 "profile_hash": profile_hash, "thscode": code, "observed_at": now(),
+                "context": cache_context,
+                "incremental": getattr(provider, "checkpoint_metadata", lambda code: None)(code),
                 "raw_sha256": sha256_file(raw_path), "factors_sha256": sha256_file(factors_path)})
         listing = reference.loc[reference.thscode.eq(code), "listing_date"]
         if len(listing) != 1 or pd.isna(listing.iloc[0]):
@@ -208,6 +219,8 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
               "canary_only": codes is not None or full_universe_count < 5000, "report_built": build_report,
               "production_changed": False, "ready_for_cutover": False,
               "candidate": str(target), "completed_at": now()}
+    if hasattr(provider, "incremental_status"):
+        status["incremental"] = provider.incremental_status
     atomic_write_json(target / "wind_candidate.json", status)
     atomic_write_json(workspace / "latest_candidate.json", status)
     return status
@@ -215,15 +228,17 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("doctor", "canary", "collect"))
+    parser.add_argument("mode", choices=("doctor", "canary", "collect", "incremental"))
     parser.add_argument("--end")
     parser.add_argument("--sessions", type=int, default=300)
     parser.add_argument("--batch-size", type=int, default=100)
     parser.add_argument("--profile", type=Path)
     parser.add_argument("--workspace", type=Path, default=PRIVATE)
+    parser.add_argument("--data-dir", type=Path, default=ROOT / "data")
+    parser.add_argument("--audit-all", action="store_true", help="Explicit full-field revision audit for every stock (incremental mode only)")
     parser.add_argument("--exclusive-window", action="store_true")
     parser.add_argument("--refresh", action="store_true", help="Ignore checkpoints for revised provider observations")
-    parser.add_argument("--codes", default="600000.SH,000001.SZ,920001.BJ")
+    parser.add_argument("--codes", help="Limit a canary/incremental candidate to these codes; never publishable")
     args = parser.parse_args(argv)
     try:
         if args.mode == "doctor":
@@ -238,13 +253,26 @@ def main(argv=None):
         if end.isoformat() > default_trade_date():
             raise ValueError("Wind collection cannot request an unfinished trade date")
         profile = profile_from(args.profile)
-        if args.mode == "collect" and not profile.units_verified:
+        if args.audit_all and args.mode != "incremental":
+            raise ValueError("--audit-all is only supported by incremental mode")
+        if args.mode == "incremental" and (args.refresh or args.sessions != 300):
+            raise ValueError("Incremental mode keeps 300 sessions; use --audit-all for a complete revision audit")
+        if args.codes and args.mode == "collect":
+            raise ValueError("Use canary or incremental --codes for a non-publishable sample")
+        if args.mode in {"collect", "incremental"} and not profile.units_verified:
             raise ValueError("Full-market collection requires a reviewed unit profile; run canary first")
         with WindSession(exclusive_window=args.exclusive_window) as session:
-            result = collect_candidate(WindProvider(session.request, profile), args.workspace,
-                end=args.end, sessions=5 if args.mode == "canary" else args.sessions,
-                codes=args.codes.split(",") if args.mode == "canary" else None,
-                build_report=args.mode != "canary", refresh=args.refresh, batch_size=args.batch_size)
+            provider = WindProvider(session.request, profile)
+            if args.mode == "incremental":
+                from .wind_incremental import collect_incremental
+                result = collect_incremental(provider, args.workspace, data_dir=args.data_dir,
+                    end=args.end, batch_size=args.batch_size, audit_all=args.audit_all,
+                    codes=args.codes.split(",") if args.codes else None)
+            else:
+                result = collect_candidate(provider, args.workspace,
+                    end=args.end, sessions=5 if args.mode == "canary" else args.sessions,
+                    codes=(args.codes or "600000.SH,000001.SZ,920001.BJ").split(",") if args.mode == "canary" else None,
+                    build_report=args.mode != "canary", refresh=args.refresh, batch_size=args.batch_size)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except (WindError, ValueError, OSError) as exc:

@@ -38,7 +38,7 @@ class WindLocalDailyTests(unittest.TestCase):
             ("DAILY_LOCK", {"new": self.root / "daily.lock"}),
             ("verify_latest_artifacts", {"return_value": ({}, [])}),
             ("dashboard_running", {"return_value": False}),
-            ("WindSession", {}), ("collect_candidate", {}), ("publish", {})]:
+            ("WindSession", {}), ("collect_incremental", {}), ("publish", {})]:
             obj = self.enterContext(patch("china_stock_engine.wind_daily." + target, **kwargs))
             setattr(self, target, obj)
 
@@ -75,7 +75,7 @@ class WindLocalDailyTests(unittest.TestCase):
         provider.return_value.fetch_trade_calendar.return_value = pd.DataFrame({"is_open": True, "trade_date": self.days})
         self.candidate = self.workspace / "candidates" / "new"
         self.candidate.mkdir(parents=True)
-        self.collect_candidate.return_value = {"candidate": str(self.candidate), "trade_date": self.days[-1]}
+        self.collect_incremental.return_value = {"candidate": str(self.candidate), "trade_date": self.days[-1]}
         self.publish.return_value = {"trade_date": self.days[-1]}
         return provider
 
@@ -122,10 +122,10 @@ class WindLocalDailyTests(unittest.TestCase):
         first = tick(self.config)
         self.assertEqual(first["state"], "published")
         self.assertEqual(first["missing_dates"], self.days[-3:])
-        self.collect_candidate.assert_called_once()
-        self.assertEqual(self.collect_candidate.call_args.kwargs["sessions"], 300)
+        self.collect_incremental.assert_called_once()
+        self.assertEqual(self.collect_incremental.call_args.kwargs["data_dir"], self.data)
         self.assertEqual(tick(self.config)["state"], "up_to_date")
-        self.collect_candidate.assert_called_once()
+        self.collect_incremental.assert_called_once()
         self.assertFalse((self.workspace / "local_pending.json").exists())
 
     def test_unknown_new_day_requires_live_calendar_instead_of_weekday_guess(self):
@@ -144,7 +144,7 @@ class WindLocalDailyTests(unittest.TestCase):
             provider.return_value.fetch_trade_calendar.assert_called_once()
             self.assertEqual(tick(self.config)["state"], "up_to_date")
             self.WindSession.assert_called_once()
-            self.collect_candidate.assert_not_called()
+            self.collect_incremental.assert_not_called()
 
     def test_old_provider_cannot_conceal_a_wind_gap(self):
         old = self.data / "facts/market" / f"trade_date={self.days[-1]}" / "daily_quotes.parquet"
@@ -183,11 +183,11 @@ class WindLocalDailyTests(unittest.TestCase):
 
     def test_failure_backoff_prevents_repeated_login_attempts(self):
         self.prepare_collection()
-        self.collect_candidate.side_effect = ValueError("vendor failure")
+        self.collect_incremental.side_effect = ValueError("vendor failure")
         before = json.loads((self.data / "latest/manifest.json").read_text())
         self.assertEqual(tick(self.config)["state"], "failed")
         self.assertEqual(tick(self.config)["state"], "retry_wait")
-        self.collect_candidate.assert_called_once()
+        self.collect_incremental.assert_called_once()
         self.publish.assert_not_called()
         self.assertEqual(json.loads((self.data / "latest/manifest.json").read_text()), before)
 
@@ -214,7 +214,7 @@ class WindLocalDailyTests(unittest.TestCase):
         def revoked(*args, **kwargs):
             self.config["ready_file"].unlink()
             provider.call_args.args[0]("wsd", "code")
-        self.collect_candidate.side_effect = revoked
+        self.collect_incremental.side_effect = revoked
         self.assertEqual(tick(self.config)["state"], "waiting_exclusive_window")
         self.WindSession.return_value.__enter__.return_value.request.assert_not_called()
         self.publish.assert_not_called()

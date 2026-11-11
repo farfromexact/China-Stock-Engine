@@ -6,6 +6,8 @@ Wind 已加入本机 SDK 采集、300 日候选校验和独立版本发布；实
 
 本地每日/开机漏日补采已加入统一入口 `python -m china_stock_engine.wind_daily tick`：18:00 后考虑当日，按 Wind 日历补最近 300 日窗口；需要本机已审核 profile 和有时限的登录/独占确认，Trading Desk 运行时等待。Dot 调用方式、Windows 可选计划任务、滚动版本留存与尚待实机验收项见 [本地 Wind 调度](docs/WIND_LOCAL_DAILY.md)。远端自动触发继续关闭。
 
+每日入口现已默认 [增量更新](docs/WIND_INCREMENTAL.md)：完整 K 线仅取新增/缺失日期，另做整窗收盘/复权探针及 20 组轮换完整字段核查，发现修订后按股票重取。最终保留完整 300 日工作集。深度非收盘修订的轮换发现周期与 `--audit-all` 人工核查方式详见文档；新实机耗时尚未测定。
+
 AKShare 全市场历史补齐入口已加入，使用 `backfill-akshare --sessions 300`；数据源、复权口径、断点恢复和验收见 [AKShare 历史说明](docs/AKSHARE_HISTORY.md)。
 
 主用途已改为量价机会发现：默认 300 交易日日线、60 日放量收盘突破与临界收敛 WATCH。规则、数据缺口、台账和命令见 [价量雷达契约](docs/PRICE_VOLUME_RADAR.md)。基本面模块仅供少量候选核实催化与风险。

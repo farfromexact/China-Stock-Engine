@@ -155,12 +155,12 @@ class WindProvider:
         frame["trade_date"] = date_values(pd.Series(result["times"]))
         return self._normalize_history(frame, code, start, end, adjusted=adjusted)
 
-    def history_many(self, codes, start, end, *, adjusted=False):
+    def _matrix(self, codes, mapping, start, end, *, adjusted=False):
         """Wind supports many-code/one-field matrices; preserve both axes."""
         if not codes or len(set(codes)) != len(codes) or any(not CODE.fullmatch(c) for c in codes):
             raise ValueError("invalid/duplicate Wind batch codes")
-        mapping = ({key: self.profile.quote_fields[key] for key in ("open", "high", "low", "close")}
-                   if adjusted else self.profile.quote_fields)
+        if start > end:
+            raise ValueError("invalid Wind date range")
         frames = {code: pd.DataFrame() for code in codes}
         expected_times = None
         options = self.profile.adjusted_options if adjusted else self.profile.raw_options
@@ -181,7 +181,29 @@ class WindProvider:
                 frames[code][name] = values
         for code, frame in frames.items():
             frame["trade_date"] = date_values(pd.Series(expected_times))
-            frames[code] = self._normalize_history(frame, code, start, end, adjusted=adjusted)
+        return frames
+
+    def history_many(self, codes, start, end, *, adjusted=False):
+        mapping = ({key: self.profile.quote_fields[key] for key in ("open", "high", "low", "close")}
+                   if adjusted else self.profile.quote_fields)
+        frames = self._matrix(codes, mapping, start, end, adjusted=adjusted)
+        return {code: self._normalize_history(frame, code, start, end, adjusted=adjusted)
+                for code, frame in frames.items()}
+
+    def close_many(self, codes, start, end, *, adjusted=False):
+        """Small revision probe using the same verified one-field matrix API."""
+        frames = self._matrix(codes, {"close": self.profile.quote_fields["close"]},
+                              start, end, adjusted=adjusted)
+        for code, frame in frames.items():
+            if (frame.trade_date.isna().any() or frame.trade_date.duplicated().any()
+                    or not frame.trade_date.between(start, end).all()):
+                raise WindError("Wind close probe has invalid dates")
+            frame["close"] = pd.to_numeric(frame["close"], errors="coerce")
+            frame = frame.loc[frame.close.gt(0)].copy()
+            if not frame.close.lt(float("inf")).all():
+                raise WindError("Wind close probe contains infinite prices")
+            frame["thscode"] = code
+            frames[code] = frame.reset_index(drop=True)
         return frames
 
     def _normalize_history(self, frame, code, start, end, *, adjusted=False):

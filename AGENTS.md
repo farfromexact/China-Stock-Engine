@@ -8,5 +8,6 @@
 - Mac 的 100 代码单字段矩阵及 300 日采集证据不能代替 Windows 实机验收。Windows 先 small canary，确认字段、单位、日历和复权再全市场；小样本不能提升到生产。
 - 不覆盖已有 iFinD/AKShare 日期事实、快照或旧技术台账。Wind 发布使用独立 `facts/wind/vintage=...`，验证后才更新 latest；后补数据 known_at 是真实观察时间。
 - 本地每日入口见 `docs/WIND_LOCAL_DAILY.md`：只轮换明确标记 local_daily_rolling 的新 Wind 版本，迁移基线和旧供应商历史不删。Dot 的登录确认必须同时保留完整独占窗口，不能只因进程存在就自动 arm；远端触发继续 idle。
+- 每日默认增量，详见 `docs/WIND_INCREMENTAL.md`；复用仅来自当前已验证 Wind vintage，新增/缺口成对下载原始/复权 OHLC，整窗收盘探针 + 20 组完整字段核查。不要把两个单字段探针描述成零历史请求，也不要承诺非收盘深度修订当日全发现；全量修订核查需显式 --audit-all。
 - 修改后运行 `python -m unittest discover -s tests` 以及变更涉及的真实验收；区分模拟测试与实机结果。实际数据发布前跑 CLI validate、检查容量及差异。
 - GitHub 托管 Ubuntu 不视为已支持本机 Wind 登录。Mac/Windows self-hosted workflow 默认关闭；不得擅自安装系统服务或启动后台 runner。用户已明确将远端 iFinD 工作流及 Scheduler Bridge 设为 idle，不得擅自恢复；Wind 手动功能保持可用。
