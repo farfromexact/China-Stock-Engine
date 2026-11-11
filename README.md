@@ -1,5 +1,7 @@
 # China Stock Engine
 
+Wind 已加入本机 SDK 采集、300 日候选校验和独立版本发布；实际最新状态见 `data/wind_publication_status.json`。Mac 已完成真实样本/批量验证，Windows 接手请先读 [Windows Wind 说明](docs/WINDOWS_WIND_HANDOFF.md)。SDK 配置、独占会话保护及自动化验收边界见 [Wind 迁移说明](docs/WIND_MIGRATION.md)。本机 runner 尚未部署，合并代码不代表已自动切源。
+
 AKShare 全市场历史补齐入口已加入，使用 `backfill-akshare --sessions 300`；数据源、复权口径、断点恢复和验收见 [AKShare 历史说明](docs/AKSHARE_HISTORY.md)。
 
 主用途已改为量价机会发现：默认 300 交易日日线、60 日放量收盘突破与临界收敛 WATCH。规则、数据缺口、台账和命令见 [价量雷达契约](docs/PRICE_VOLUME_RADAR.md)。基本面模块仅供少量候选核实催化与风险。

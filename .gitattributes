@@ -1,2 +1,5 @@
 * text=auto eol=lf
+*.ps1 text eol=crlf
 *.parquet -text
+# Data manifests contain byte hashes: checkout must never translate artifacts.
+data/** -text

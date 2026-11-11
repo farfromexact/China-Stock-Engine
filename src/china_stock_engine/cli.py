@@ -1106,7 +1106,7 @@ def _inspect_series(args: argparse.Namespace) -> int:
     scoped = history.loc[history["thscode"].eq(code)].copy()
     factor_date = pd.Timestamp(cutoff).tz_convert("Asia/Shanghai").date().isoformat()
     sessions = history.attrs.get("session_dates") or sorted(history["trade_date"].unique())
-    adjusted = apply_adjustments(scoped, load_adjustment_snapshot(args.data_dir, factor_date), cutoff,
+    adjusted = apply_adjustments(scoped, load_adjustment_snapshot(args.data_dir, factor_date, provider=manifest.get("provider")), cutoff,
                                  technical_sessions=sessions)
     display_sessions = sessions[-args.sessions:]
     adjusted = adjusted.loc[adjusted["trade_date"].isin(display_sessions)]

@@ -350,6 +350,7 @@ def load_market_history(
         (data_dir / "facts" / "market").glob("trade_date=*/daily_quotes.parquet")
     )
     paths += sorted((data_dir / "facts/akshare/market_history").glob("vintage=*/trade_date=*/daily_quotes.parquet"))
+    paths += sorted((data_dir / "facts/wind").glob("vintage=*/market/trade_date=*/daily_quotes.parquet"))
     eligible = [
         path
         for path in paths
@@ -436,6 +437,7 @@ def load_market_history(
     # is absent. Single-day calendar caches cannot certify intervening holidays.
     calendar_paths = sorted((data_dir / "facts/reference").glob("as_of_date=*/trading_calendar.parquet"))
     calendar_paths += sorted((data_dir / "facts/akshare/reference").glob("as_of_date=*/vintage=*/trading_calendar.parquet"))
+    calendar_paths += sorted((data_dir / "facts/wind").glob("vintage=*/reference/as_of_date=*/trading_calendar.parquet"))
     calendars = [
         read_parquet_file(path)
         for path in calendar_paths
@@ -537,6 +539,9 @@ def _latest_partition_frame(
     ]
     vintages = [path for path in (data_dir / "facts" / category).glob(f"as_of_date=*/vintage=*/{file_name}")
                 if path.parent.parent.name.removeprefix("as_of_date=") <= as_of_date]
+    if category == "adjustment":
+        vintages += [path for path in (data_dir / "facts/wind").glob(f"vintage=*/adjustment/as_of_date=*/vintage=*/{file_name}")
+                     if path.parent.parent.name.removeprefix("as_of_date=") <= as_of_date]
     latest_path = data_dir / "latest" / file_name
     selected = (eligible if keep_batches else eligible[-1:]) + sorted(vintages)
     if not selected and latest_path.exists():
@@ -553,11 +558,16 @@ def _latest_partition_frame(
     return pd.concat(frames, ignore_index=True).drop_duplicates()
 
 
-def load_adjustment_snapshot(data_dir: Path, as_of_date: str) -> pd.DataFrame:
+def load_adjustment_snapshot(data_dir: Path, as_of_date: str, *, provider: str | None = None) -> pd.DataFrame:
     """Load adjustment batches available by partition date for PIT selection."""
-    return _latest_partition_frame(
+    frame = _latest_partition_frame(
         data_dir, "adjustment", "adjustment_factors.parquet", as_of_date, keep_batches=True
     )
+    if provider == "windpy" and not frame.empty:
+        # A Wind research view uses one native Wind normalization vintage;
+        # legacy CPS/Tencent factors remain archived, never a hidden fallback.
+        frame = frame.loc[frame["source_provider"].eq("windpy")].copy()
+    return frame
 
 
 def feature_pit_timing(market_timing: dict[str, str], adjustments: pd.DataFrame, *optional_frames: pd.DataFrame) -> dict[str, str]:
@@ -1680,7 +1690,7 @@ def build_data_reference_outputs(
         status_path = latest / "daily_security_status.parquet"
     daily_status = read_parquet_file(status_path)
     observation_date = timestamp(research_asof).tz_convert("Asia/Shanghai").date().isoformat() if research_asof else selected_date
-    adjustments = load_adjustment_snapshot(data_dir, observation_date)
+    adjustments = load_adjustment_snapshot(data_dir, observation_date, provider=manifest.get("provider"))
     market_pit_timing = dict(pit_timing)
     pit_timing = feature_pit_timing(market_pit_timing, adjustments)
     corporate_actions = _latest_partition_frame(

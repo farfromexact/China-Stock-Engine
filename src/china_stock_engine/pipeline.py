@@ -9,7 +9,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
-from .ifind_http import IFindHTTPClient
+from .providers import MarketDataProvider
 from .quality import (
     build_daily_security_status,
     build_market_summary,
@@ -83,7 +83,7 @@ def _last_valid_trade_date(data_dir: Path) -> str | None:
     return None if value is None else str(value)
 
 
-def _safe_error(exc: Exception, client: IFindHTTPClient) -> str:
+def _safe_error(exc: Exception, client: MarketDataProvider) -> str:
     message = f"{type(exc).__name__}: {exc}"
     for secret in (
         getattr(client, "refresh_token", None),
@@ -123,39 +123,42 @@ def _pit_timing(
 def _previous_quality_context(
     data_dir: Path, trade_date: str
 ) -> dict[str, pd.DataFrame] | None:
-    market_root = data_dir / "facts" / "market"
-    dates = sorted(
-        path.name.split("=", 1)[1]
-        for path in market_root.glob("trade_date=*")
-        if path.is_dir()
-        and "=" in path.name
-        and path.name.split("=", 1)[1] < trade_date
-    )
-    if not dates:
+    roots = [data_dir / "facts"] + sorted((data_dir / "facts/wind").glob("vintage=*"))
+    candidates = []
+    for root in roots:
+        for market_dir in (root / "market").glob("trade_date=*"):
+            day = market_dir.name.removeprefix("trade_date=")
+            if day >= trade_date:
+                continue
+            reference_dir = root / "reference" / f"as_of_date={day}"
+            paths = {
+                "universe": reference_dir / "universe.parquet",
+                "security_reference": reference_dir / "security_reference.parquet",
+                "quotes": market_dir / "daily_quotes.parquet",
+                "daily_status": market_dir / "daily_security_status.parquet",
+            }
+            if not all(path.exists() for path in paths.values()):
+                continue
+            receipt = load_json_object(market_dir / "market_receipt.json")
+            if root != data_dir / "facts" and receipt.get("verified") is not True:
+                continue
+            observed = receipt.get("collection_completed_at") or receipt.get("collected_at_utc")
+            priority = pd.Timestamp(observed).value if observed else -1
+            candidates.append(((day, priority, str(root)), paths))
+    if not candidates:
         return None
-    previous_date = dates[-1]
-    market_dir = market_root / f"trade_date={previous_date}"
-    reference_dir = (
-        data_dir / "facts" / "reference" / f"as_of_date={previous_date}"
-    )
-    paths = {
-        "universe": reference_dir / "universe.parquet",
-        "security_reference": reference_dir / "security_reference.parquet",
-        "quotes": market_dir / "daily_quotes.parquet",
-        "daily_status": market_dir / "daily_security_status.parquet",
-    }
-    if not all(path.exists() for path in paths.values()):
-        return None
+    _, paths = max(candidates, key=lambda item: item[0])
     return {name: read_parquet_file(path) for name, path in paths.items()}
 
 
 def collect_and_publish(
-    client: IFindHTTPClient,
+    client: MarketDataProvider,
     trade_date: str,
     *,
     config: CollectionConfig = CollectionConfig(),
     progress: ProgressCallback | None = None,
 ) -> CollectionResult:
+    provider_name = getattr(client, "provider", "ifind_http")
     started_at = str(
         getattr(client, "collection_started_at", None) or _utc_now()
     )
@@ -182,7 +185,7 @@ def collect_and_publish(
                 "data_fresh": False,
                 "requested_trade_date": trade_date,
                 "last_valid_trade_date": previous_trade_date,
-                "provider": "ifind_http",
+                "provider": provider_name,
                 "calendar": "SSE",
                 "calendar_open_dates": open_dates,
                 "started_at_utc": started_at,
@@ -241,7 +244,7 @@ def collect_and_publish(
                 "data_fresh": False,
                 "requested_trade_date": trade_date,
                 "last_valid_trade_date": previous_trade_date,
-                "provider": "ifind_http",
+                "provider": provider_name,
                 "started_at_utc": started_at,
                 "completed_at_utc": _utc_now(),
                 "raw_payload_persisted": False,
@@ -272,9 +275,10 @@ def collect_and_publish(
             )
         )
         existing_provenance = existing_manifest.get("provenance") or {}
-        unchanged = existing_manifest.get("trade_date") == trade_date and all(
-            existing_provenance.get(key) == value
-            for key, value in frame_hashes.items()
+        unchanged = (
+            existing_manifest.get("trade_date") == trade_date
+            and existing_manifest.get("provider") == provider_name
+            and all(existing_provenance.get(key) == value for key, value in frame_hashes.items())
         )
         existing_drift = (
             ((existing_manifest.get("quality") or {}).get("metrics") or {}).get(
@@ -330,7 +334,7 @@ def collect_and_publish(
                 "last_valid_trade_date": (
                     trade_date if is_current_latest else previous_trade_date
                 ),
-                "provider": "ifind_http",
+                "provider": provider_name,
                 "started_at_utc": started_at,
                 "completed_at_utc": _utc_now(),
                 "raw_payload_persisted": False,
@@ -364,23 +368,20 @@ def collect_and_publish(
             "source_trade_date": trade_date,
             "collected_at_utc": completed_at,
             **pit_timing,
-            "provider": "ifind_http",
-            "source_endpoints": [
-                "get_trade_dates",
-                "data_pool",
-                "basic_data_service",
-                "cmd_history_quotation",
-            ],
+            "provider": provider_name,
+            "source_endpoints": list(getattr(client, "source_endpoints", (
+                "get_trade_dates", "data_pool", "basic_data_service", "cmd_history_quotation",
+            ))),
             "verified": True,
             "data_fresh": True,
             "raw_payload_persisted": False,
             "quality": quality.as_dict(),
             "quality_thresholds": _quality_thresholds(config),
             "provenance": {
-                "universe_report": "p03291",
-                "universe_block": "001005010",
-                "calendar": "SSE",
-                "calendar_market_code": "212001",
+                **getattr(client, "provenance", {
+                    "universe_report": "p03291", "universe_block": "001005010",
+                    "calendar": "SSE", "calendar_market_code": "212001",
+                }),
                 **frame_hashes,
                 **{
                     f"{name}_schema_signature": schema_signature(frame)
@@ -455,7 +456,7 @@ def collect_and_publish(
                 else previous_trade_date
             ),
             "previous_valid_trade_date": previous_trade_date,
-            "provider": "ifind_http",
+            "provider": provider_name,
             "started_at_utc": started_at,
             "completed_at_utc": _utc_now(),
             "raw_payload_persisted": False,
@@ -476,7 +477,7 @@ def collect_and_publish(
             "data_fresh": False,
             "requested_trade_date": trade_date,
             "last_valid_trade_date": previous_trade_date,
-            "provider": "ifind_http",
+            "provider": provider_name,
             "started_at_utc": started_at,
             "completed_at_utc": _utc_now(),
             "raw_payload_persisted": False,

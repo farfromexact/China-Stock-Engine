@@ -176,6 +176,10 @@ def _date_text(values: pd.Series) -> pd.Series:
 class IFindHTTPClient:
     """Short-lived Quant API client; refresh/access tokens remain in memory."""
 
+    provider = "ifind_http"
+    source_endpoints = ("get_trade_dates", "data_pool", "basic_data_service", "cmd_history_quotation")
+    provenance = {"universe_report": "p03291", "universe_block": "001005010", "calendar": "SSE", "calendar_market_code": "212001"}
+
     refresh_token: str | None = None
     access_token: str | None = None
     base_url: str = DEFAULT_BASE_URL
