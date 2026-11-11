@@ -97,6 +97,12 @@ def _worker(connection):
                                  "data": _wire(result.Data or [])})
     except (EOFError, BrokenPipeError):
         pass
+    except WindError as exc:
+        # Our own messages contain operation/error codes only, never SDK Data.
+        try:
+            connection.send({"error": str(exc)})
+        except (OSError, EOFError):
+            pass
     except Exception as exc:
         try:
             connection.send({"error": f"Wind child failed: {type(exc).__name__}"})

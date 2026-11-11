@@ -140,6 +140,17 @@ class WindAdapterTests(unittest.TestCase):
 
 
 class WindIsolationTests(unittest.TestCase):
+    def test_login_error_preserves_error_code_without_sdk_account_data(self):
+        from china_stock_engine.wind_session import _worker
+        connection = MagicMock()
+        response = SimpleNamespace(ErrorCode=-40520007, Data=["private-account-detail"])
+        native = SimpleNamespace(w=SimpleNamespace(start=MagicMock(return_value=response)))
+        with patch("china_stock_engine.wind_session.importlib.import_module", return_value=native):
+            _worker(connection)
+        error = connection.send.call_args.args[0]["error"]
+        self.assertIn("-40520007", error)
+        self.assertNotIn("private-account", error)
+        connection.close.assert_called_once()
     def test_running_dashboard_blocks_before_process_or_sdk_import(self):
         with patch("china_stock_engine.wind_session.dashboard_running", return_value=True), \
              patch("china_stock_engine.wind_session.mp.get_context") as spawn:

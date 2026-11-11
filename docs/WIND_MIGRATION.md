@@ -86,4 +86,4 @@ python3.12 -m venv .venv
 - 全市场扫描 5580 行：25 个 BREAKOUT、11 个 WATCH。它们是待核验研究候选，不代表执行许可。
 - 发布后 1634 个既有历史事实、快照和特征文件 SHA 未变，活动数据约 529.5 MB，低于 900 MB 容量门槛。
 - 完成市场质量、派生产物大小/hash、完整 300 日历史读取与生产 CLI validate。详情见 `data/wind_publication_status.json` 与 `data/storage_status.json`。
-- 本轮本机测试 173 项通过；新增 GitHub Windows/Ubuntu 离线 CI 用于验证代码与 Windows PowerShell 语法，仍不等于 Windows 原生 Wind SDK 实测。
+- 本轮本机测试 174 项通过；新增 GitHub Windows/Ubuntu 离线 CI 用于验证代码与 Windows PowerShell 语法，仍不等于 Windows 原生 Wind SDK 实测。
