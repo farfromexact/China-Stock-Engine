@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import tempfile
 
@@ -46,7 +47,22 @@ def verify_candidate(candidate: Path) -> dict:
     return status
 
 
-def publish(candidate: Path, data_dir: Path = Path("data"), *, profile: Path | None = None) -> dict:
+def rolling_vintages(data_dir: Path, keep: Path) -> list[Path]:
+    """Only local-daily managed archives rotate; migration/legacy facts stay."""
+    retired = []
+    for directory in sorted((data_dir / "facts/wind").glob("vintage=*")):
+        if directory == data_dir / keep:
+            continue
+        if not re.fullmatch(r"vintage=[0-9a-f]{24}", directory.name):
+            continue
+        receipt = load_json_object(directory / "candidate_receipt.json")
+        if receipt.get("retention_class") == "local_daily_rolling":
+            retired.append(directory.relative_to(data_dir))
+    return retired
+
+
+def publish(candidate: Path, data_dir: Path = Path("data"), *, profile: Path | None = None,
+            rolling: bool = False) -> dict:
     candidate, data_dir = candidate.resolve(), data_dir.resolve()
     if candidate == data_dir or data_dir in candidate.parents or candidate in data_dir.parents:
         raise ValueError("Wind candidate must be separate from production data")
@@ -90,8 +106,13 @@ def publish(candidate: Path, data_dir: Path = Path("data"), *, profile: Path | N
             shutil.copytree(candidate / "facts", destination, dirs_exist_ok=True)
             for name in ("wind_coverage.json",):
                 shutil.copy2(candidate / name, destination / name)
-            atomic_write_json(destination / "candidate_receipt.json", {
-                key: value for key, value in status.items() if key != "candidate"})
+            archived_status = {key: value for key, value in status.items() if key != "candidate"}
+            if rolling:
+                archived_status["retention_class"] = "local_daily_rolling"
+            atomic_write_json(destination / "candidate_receipt.json", archived_status)
+            retired = rolling_vintages(staging, relative) if rolling else []
+            for directory in retired:
+                shutil.rmtree(staging / directory)
             day = status["trade_date"]
             snapshot_relative = relative / "snapshots" / f"trade_date={day}"
             snapshot = staging / snapshot_relative
@@ -123,6 +144,8 @@ def publish(candidate: Path, data_dir: Path = Path("data"), *, profile: Path | N
             # Existing facts, daily snapshots and historical features are immutable.
             for name, digest in before.items():
                 if name.startswith(("facts/", "snapshots/", "features/")):
+                    if any(Path(name).is_relative_to(directory) for directory in retired):
+                        continue
                     if sha256_file(staging / name) != digest:
                         raise ArtifactContractError(f"Wind would alter existing historical artifact: {name}")
             if inventory(candidate) != source_inventory or (data_dir.exists() and inventory(data_dir) != before):
@@ -131,8 +154,11 @@ def publish(candidate: Path, data_dir: Path = Path("data"), *, profile: Path | N
                 "trade_date": day, "start": status["start"], "sessions": 300,
                 "securities": status["securities"], "rows": status["rows"], "vintage": vintage,
                 "source_snapshot_path": snapshot_relative.as_posix(), "research_asof": observed,
-                "protected_historical_files": sum(name.startswith(("facts/", "snapshots/", "features/")) for name in before),
+                "protected_historical_files": sum(name.startswith(("facts/", "snapshots/", "features/"))
+                    and not any(Path(name).is_relative_to(directory) for directory in retired) for name in before),
                 "original_history_preserved": True,
+                "retention_class": "local_daily_rolling" if rolling else "immutable_migration",
+                "retired_local_daily_vintages": [path.as_posix() for path in retired],
                 "completed_at": datetime.now(timezone.utc).isoformat()}
             atomic_write_json(staging / "wind_publication_status.json", receipt)
             atomic_write_json(staging / "last_run_status.json", {

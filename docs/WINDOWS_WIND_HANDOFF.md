@@ -2,6 +2,8 @@
 
 请先读根目录 AGENTS.md，再核对本说明与 `data/wind_publication_status.json` 的实际状态。不要仅凭“Wind 已连接”判断提数完整。
 
+**最新接手任务：** 本地每日/开机补采与 Dot 接口已写好，详见 [本地 Wind 调度](WIND_LOCAL_DAILY.md)。明天先完成本机 canary，再配置私有 local_daily.json 并实测 tick；可选安装交互式用户计划任务。GitHub 的自动取数与 bridge 继续关闭，不能拿恢复远端触发代替本地配置。不要影响 trading desk；看板运行就等待。
+
 ## 配置依据与证据边界
 
 依据用户已有 `trading-desk-wind-API` 项目的 `scripts/configure_wind.py`、`docs/CROSS_PLATFORM.md`、Windows 安装脚本及对应 chat 的交接。该项目旧 Windows 版本有真实运行记录；本仓库新增股票批量适配及 Windows 文件锁分支仍需要 Windows 实机复验。
@@ -67,6 +69,6 @@ git status
 
 ## 自动化尚需单独部署
 
-本机无人值守需要已登录 Wind、开机在线、不休眠且存在独占窗口。自托管 runner 应先交互式运行并实测，不应直接假定 Windows service 可复用桌面登录。不要未经用户授权安装后台服务。
+本机无人值守需要已登录 Wind、开机在线、不休眠且存在独占窗口。当前方案用本地 tick 与可选交互式计划任务，不需要自托管 runner；仍不能假定 Windows service 可复用桌面登录。不要擅自安装系统服务。
 
-Mac 和 Windows 是候选采集 workflow，默认关闭且只读，不能只合并代码就认定未来已自动切换 Wind。用户已明确要求远端 iFinD 设为 idle，日常/补充/研究增强/Scheduler Bridge 均已禁用，仓库变量 `IFIND_COLLECTION_STATE=idle`。不要擅自启用；目前不保证自动更新。后续应验证 Wind runner、独占窗口、重启恢复与发布回写后启用 Wind 调度。相关真实状态以 README 和 workflow 配置为准。
+Mac 和 Windows 的 GitHub workflow 只是默认关闭的手动候选验证，不负责本地每日任务。用户已明确要求远端 iFinD 设为 idle，日常/补充/研究增强/Scheduler Bridge 均已禁用，仓库变量 `IFIND_COLLECTION_STATE=idle`，继续保持。后续使用本地 tick、Dot 的短时就绪确认及可选计划任务；先实测本机 SDK、独占窗口、任务触发、睡眠/重启恢复和发布，不要把代码合并当成已完成无人值守部署。相关实际状态以本地 status、README 和 workflow 配置为准。

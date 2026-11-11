@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -74,6 +75,42 @@ class WindPublicationTests(unittest.TestCase):
                 with self.assertRaises(ArtifactContractError):
                     publish(self.candidate, production)
             self.assertEqual(inventory(production), before)
+
+    def test_local_daily_rotates_only_managed_wind_versions_after_success(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            production = root / "data"
+            old = production / "facts/prior-provider/keep.bin"
+            old.parent.mkdir(parents=True)
+            old.write_bytes(b"immutable-original")
+            def validate_small(*, data_dir):
+                return validate_latest(data_dir=data_dir, policy_min_universe_size=3)
+            with patch("china_stock_engine.wind_publish.verify_candidate", return_value=self.status), \
+                 patch("china_stock_engine.wind_publish.validate_latest", side_effect=validate_small):
+                baseline = publish(self.candidate, production)
+                migration = production / "facts/wind" / ("vintage=" + baseline["vintage"])
+                protected = inventory(migration)
+                first_candidate = root / "first"
+                second_candidate = root / "second"
+                for path, note in ((first_candidate, "first daily"), (second_candidate, "second daily")):
+                    shutil.copytree(self.candidate, path)
+                    # Distinct valid candidate inventory, with the same tiny
+                    # real 300-session fixture and unchanged quality contracts.
+                    (path / "operator_note.json").write_text(json.dumps({"note": note}))
+                first = publish(first_candidate, production, rolling=True)
+                first_path = production / "facts/wind" / ("vintage=" + first["vintage"])
+                before = inventory(production)
+                with patch("china_stock_engine.wind_publish.tree_bytes", return_value=900_000_000):
+                    with self.assertRaises(ArtifactContractError):
+                        publish(second_candidate, production, rolling=True)
+                self.assertEqual(inventory(production), before)
+                second = publish(second_candidate, production, rolling=True)
+            self.assertFalse(first_path.exists())
+            self.assertEqual(inventory(migration), protected)
+            self.assertEqual(old.read_bytes(), b"immutable-original")
+            self.assertEqual(second["retention_class"], "local_daily_rolling")
+            self.assertEqual(second["retired_local_daily_vintages"], [first_path.relative_to(production).as_posix()])
+            self.assertTrue((production / second["source_snapshot_path"] / "manifest.json").exists())
 
     def test_symlink_artifact_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp:
