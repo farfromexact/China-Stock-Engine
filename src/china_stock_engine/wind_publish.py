@@ -91,6 +91,9 @@ def publish(candidate: Path, data_dir: Path = Path("data"), *, profile: Path | N
 
     data_dir.parent.mkdir(parents=True, exist_ok=True)
     with collector_lock(data_dir.parent / ".private-stock-data/wind-publication.lock"):
+        seed = (status.get("incremental") or {}).get("source_vintage")
+        if seed and load_manifest(data_dir / "latest/manifest.json").get("wind_vintage") != seed:
+            raise ArtifactContractError("Incremental source changed; rebuild against the current published vintage")
         # This snapshot also prevents promoting over an unrelated local update.
         before = inventory(data_dir) if data_dir.exists() else {}
         with tempfile.TemporaryDirectory(prefix=".wind-publication-", dir=data_dir.parent) as temporary:
@@ -159,6 +162,7 @@ def publish(candidate: Path, data_dir: Path = Path("data"), *, profile: Path | N
                 "original_history_preserved": True,
                 "retention_class": "local_daily_rolling" if rolling else "immutable_migration",
                 "retired_local_daily_vintages": [path.as_posix() for path in retired],
+                "incremental": status.get("incremental"),
                 "completed_at": datetime.now(timezone.utc).isoformat()}
             atomic_write_json(staging / "wind_publication_status.json", receipt)
             atomic_write_json(staging / "last_run_status.json", {

@@ -14,7 +14,8 @@ import pandas as pd
 
 from .storage import (atomic_write_json, json_sha256, load_json_object,
                       load_manifest, sha256_file, verify_latest_artifacts)
-from .wind_collect import ROOT, collect_candidate, profile_from
+from .wind_collect import ROOT, profile_from
+from .wind_incremental import collect_incremental
 from .wind_provider import WindProvider
 from .wind_publish import publish, verify_candidate
 from .wind_session import (WindBusyError, WindError, WindSession,
@@ -200,7 +201,8 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
                         pending_path.unlink(missing_ok=True)
                         release_candidates(workspace, candidate)
                         return finish("published", trade_date=receipt["trade_date"], resumed=True,
-                                      production_changed=True, catchup_still_required=receipt["trade_date"] < bound)
+                                      production_changed=True, catchup_still_required=receipt["trade_date"] < bound,
+                                      incremental=receipt.get("incremental"))
                     # Another verified producer already advanced beyond this one.
                     pending_path.unlink()
                 if dashboard_running():
@@ -225,8 +227,8 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
                     if not missing and last is not None and last >= days[-1]:
                         return finish("up_to_date", trade_date=last, missing_dates=[])
                     finish("collecting", trade_date=days[-1], missing_dates=missing)
-                    candidate_status = collect_candidate(provider, workspace, end=days[-1], sessions=300,
-                                                         batch_size=config["batch_size"])
+                    candidate_status = collect_incremental(provider, workspace, data_dir=data,
+                        end=days[-1], batch_size=config["batch_size"])
                 # Native child is gone before staged production publication.
                 atomic_write_json(pending_path, {"candidate": candidate_status["candidate"],
                                   "trade_date": candidate_status["trade_date"]})
@@ -236,7 +238,7 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
                 pending_path.unlink(missing_ok=True)
                 release_candidates(workspace, Path(candidate_status["candidate"]))
                 return finish("published", trade_date=receipt["trade_date"], missing_dates=missing,
-                              production_changed=True, resumed=False)
+                              production_changed=True, resumed=False, incremental=receipt.get("incremental"))
             except WindBusyError:
                 return finish("waiting_exclusive_window", next_retry_at=(clock() + timedelta(minutes=config["retry_minutes"])).isoformat())
             except (WindError, ValueError, OSError, KeyError, TypeError) as exc:
