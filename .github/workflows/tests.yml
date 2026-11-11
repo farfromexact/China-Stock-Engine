@@ -33,8 +33,10 @@ jobs:
         run: |
           $Tokens = $null
           $ParseErrors = $null
-          $Script = (Resolve-Path 'scripts/setup-wind-windows.ps1').Path
-          $null = [System.Management.Automation.Language.Parser]::ParseFile($Script, [ref]$Tokens, [ref]$ParseErrors)
-          if ($ParseErrors.Count -gt 0) { throw ($ParseErrors | Out-String) }
+          foreach ($Path in @('scripts/setup-wind-windows.ps1', 'scripts/install-wind-local-task.ps1')) {
+            $Script = (Resolve-Path $Path).Path
+            $null = [System.Management.Automation.Language.Parser]::ParseFile($Script, [ref]$Tokens, [ref]$ParseErrors)
+            if ($ParseErrors.Count -gt 0) { throw ($ParseErrors | Out-String) }
+          }
       - name: Test without native Wind SDK
         run: python -m unittest discover -s tests -v
