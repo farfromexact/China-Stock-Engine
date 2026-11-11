@@ -74,7 +74,7 @@ python3.12 -m venv .venv
 
 本轮可手动生成并提升完整 Wind 数据，**不等于已部署无人值守 Wind 自动采集**。Mac/Windows self-hosted workflow 都默认关闭、手动 dispatch、候选只读，未安装 runner/launchd/Windows service。两个 workflow 共用原生会话 concurrency group，防止 GitHub 同仓重复任务并发；本机与跨机器账号占用仍需独占窗口协调。
 
-旧 iFinD 日常与补充任务暂时保留，避免 runner 和登录尚未就绪时停更。正式停用需先验收本机 SDK 登录、独占窗口、重启恢复、增量追赶、版本留存/容量以及 commit/push 发布，再切换 ChatGPT 调度桥。财务/事件等尚未映射的可选模块明确保持原来源或未知，不冒充 Wind 数据。
+用户已于 2026-11-11 明确要求停用远端 iFinD 自动提数。日常、补充、研究增强、Scheduler Bridge 四个工作流已禁用，`IFIND_COLLECTION_STATE=idle`，代码中也要求显式 active 才执行。Wind 无人值守尚未部署，因此当前没有自动数据更新保证；后续在 Windows 完成本机 SDK、独占窗口、重启恢复、增量/留存及发布回写验收后，再按用户要求启用 Wind 调度，不能擅自恢复 iFinD。财务/事件等尚未映射的可选模块保留历史来源或未知，不冒充 Wind 数据。
 
 ## 2026-11-11 全市场实测结果
 
