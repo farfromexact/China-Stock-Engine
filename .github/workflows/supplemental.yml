@@ -29,6 +29,7 @@ concurrency:
 
 jobs:
   collect:
+    if: vars.IFIND_COLLECTION_STATE == 'active'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

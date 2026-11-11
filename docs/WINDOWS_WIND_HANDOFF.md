@@ -69,4 +69,4 @@ git status
 
 本机无人值守需要已登录 Wind、开机在线、不休眠且存在独占窗口。自托管 runner 应先交互式运行并实测，不应直接假定 Windows service 可复用桌面登录。不要未经用户授权安装后台服务。
 
-Mac 和 Windows 是候选采集 workflow，默认关闭且只读，不能只合并代码就认定未来已自动切换 Wind。旧 iFinD 日常任务仍承担连续更新，正式停用和调度切源必须等 Wind runner、独占窗口、重启恢复与发布回写验收完成。相关真实状态以 README 和 workflow 配置为准。
+Mac 和 Windows 是候选采集 workflow，默认关闭且只读，不能只合并代码就认定未来已自动切换 Wind。用户已明确要求远端 iFinD 设为 idle，日常/补充/研究增强/Scheduler Bridge 均已禁用，仓库变量 `IFIND_COLLECTION_STATE=idle`。不要擅自启用；目前不保证自动更新。后续应验证 Wind runner、独占窗口、重启恢复与发布回写后启用 Wind 调度。相关真实状态以 README 和 workflow 配置为准。

@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   dispatch:
-    if: ${{ github.event_name == 'push' || (github.event.issue.number == 5 && github.event.assignee.login == 'farfromexact') }}
+    if: ${{ vars.IFIND_COLLECTION_STATE == 'active' && (github.event_name == 'push' || (github.event.issue.number == 5 && github.event.assignee.login == 'farfromexact')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
