@@ -58,6 +58,18 @@ class MatrixFakeWind(FakeWind):
 
 
 class WindAdapterTests(unittest.TestCase):
+    def test_single_day_native_cross_section_uses_returned_code_order(self):
+        def request(op, *args):
+            return dict(fields=["CLOSE"], codes=list(reversed(CODES)), times=[DAYS[-1]], data=[[30., 20., 10.]])
+        result = provider(request).close_many(CODES, DAYS[-1], DAYS[-1])
+        self.assertEqual([result[c].close.iloc[0] for c in CODES], [10., 20., 30.])
+
+    def test_single_day_cross_section_rejects_missing_values_axis(self):
+        def request(op, *args):
+            return dict(fields=["CLOSE"], codes=CODES, times=[DAYS[-1]], data=[[30., 20.]])
+        with self.assertRaises(WindError):
+            provider(request).close_many(CODES, DAYS[-1], DAYS[-1])
+
     def test_many_code_one_field_matrices_match_single_code_history(self):
         client = provider(MatrixFakeWind())
         for adjusted in [False, True]:

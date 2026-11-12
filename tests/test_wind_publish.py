@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -12,6 +13,7 @@ from china_stock_engine.wind_provider import WindProvider, WindProfile
 from china_stock_engine.wind_publish import publish, verify_candidate, inventory
 from china_stock_engine.pipeline import validate_latest
 from china_stock_engine.storage import ArtifactContractError, verify_latest_artifacts
+from china_stock_engine.wind_git import DataPublisher, git_binary
 from test_wind import FakeWind
 
 
@@ -75,6 +77,38 @@ class WindPublicationTests(unittest.TestCase):
                 with self.assertRaises(ArtifactContractError):
                     publish(self.candidate, production)
             self.assertEqual(inventory(production), before)
+
+    def test_actual_publication_including_research_view_can_be_committed_and_pushed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "repo"
+            root.mkdir()
+            remote = Path(temp) / "remote.git"
+            binary = git_binary()
+            def git(*args):
+                return subprocess.run([binary, "-C", str(root), *args], capture_output=True,
+                                      text=True, check=True).stdout.strip()
+            git("init", "-b", "main")
+            git("config", "user.name", "Fixture")
+            git("config", "user.email", "fixture@example.invalid")
+            (root / ".gitignore").write_text(".private-stock-data/\n")
+            git("add", ".gitignore")
+            git("commit", "-m", "source baseline")
+            subprocess.run([binary, "init", "--bare", str(remote)], capture_output=True, check=True)
+            git("remote", "add", "origin", str(remote))
+            git("push", "-u", "origin", "main")
+            def small(*, data_dir):
+                return validate_latest(data_dir=data_dir, policy_min_universe_size=3)
+            with patch("china_stock_engine.wind_publish.verify_candidate", return_value=self.status), \
+                 patch("china_stock_engine.wind_publish.validate_latest", side_effect=small):
+                publish(self.candidate, root / "data")
+            with patch("china_stock_engine.wind_git.validate_latest", side_effect=small):
+                result = DataPublisher(root, root / ".private-stock-data/wind",
+                                       allowed_origins=(str(remote), remote.as_posix())).sync()
+            self.assertTrue(result["pushed"])
+            self.assertEqual(git("status", "--porcelain"), "")
+            paths = git("show", "--format=", "--name-only", "HEAD").splitlines()
+            self.assertTrue(any("research_view=" in path for path in paths))
+            self.assertTrue(all(path.startswith("data/") for path in paths))
 
     def test_local_daily_rotates_only_managed_wind_versions_after_success(self):
         with tempfile.TemporaryDirectory() as temp:

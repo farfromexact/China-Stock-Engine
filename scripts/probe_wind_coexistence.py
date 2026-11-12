@@ -9,12 +9,16 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from china_stock_engine.wind_session import WindSession
+from china_stock_engine.wind_provider import WindProvider, adjustment_pair
+from china_stock_engine.wind_collect import profile_from
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--date", required=True, type=date.fromisoformat)
     parser.add_argument("--login-confirmed", required=True, action="store_true")
+    parser.add_argument("--matrix", action="store_true", help="Also verify single-day raw/adjusted multi-code matrices")
+    parser.add_argument("--profile", type=Path)
     args = parser.parse_args()
     day = str(args.date)
     samples = []
@@ -35,6 +39,19 @@ def main():
             if not low <= min(op, close) <= max(op, close) <= high:
                 raise ValueError("Invalid OHLC ordering")
             samples.append({"code": code, "source_date": day, "ohlc": values})
+        if args.matrix:
+            provider = WindProvider(session.request, profile_from(args.profile))
+            codes = [sample["code"] for sample in samples]
+            raw = provider.history_many(codes, day, day)
+            adjusted = provider.history_many(codes, day, day, adjusted=True)
+            for sample in samples:
+                code = sample["code"]
+                factors = adjustment_pair(raw[code], adjusted[code])
+                if len(raw[code]) != 1 or len(factors) != 1:
+                    raise ValueError("Matrix canary lacks one paired bar per code")
+                if [float(raw[code][field].iloc[0]) for field in ("open", "high", "low", "close")] != sample["ohlc"]:
+                    raise ValueError("Matrix and single-code OHLC differ")
+                sample["single_day_matrix_verified"] = True
     print(json.dumps({"state": "canary_passed", "samples": samples, "production_changed": False}, ensure_ascii=False))
 
 
