@@ -49,6 +49,8 @@ class MutableWind(MatrixFakeWind):
                     if adjusted and value is not None:
                         value *= self.factors.get(code, 2)
                     result["data"][index][time_index] = value
+            if len(result["times"]) == 1 and len(result["codes"]) > 1:
+                result["data"] = [[column[0] for column in result["data"]]]
         return result
 
     @staticmethod

@@ -18,3 +18,5 @@
 详见 `docs/WIND_DASHBOARD_COEXISTENCE.md`；默认旧模式保持兼容。
 股票/商品日常原生 worker 已使用同一跨仓库本机用户锁；不得声称覆盖所有旧 backfill 或跨机器。
 不得为了共存关闭/重启/注销看板或 Wind；小样本验收后才把共存模式接入一键启动器。
+
+用户已于 2026-11-12 要求股票日常验证后自动 commit/push，auto_git_push 默认 true。只提交当前生成且验证成功的数据，在 main 向本仓库 origin/main 普通推送；不代交用户代码、私有配置或凭据，不强推或擅自解决远端并发冲突。git_push_pending 必须先恢复上传，不能重复取数或伪称已上传。check/单独 canary 不自动 Git 写入。

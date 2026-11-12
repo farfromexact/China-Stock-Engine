@@ -69,7 +69,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-wind-win
 git status
 ```
 
-按用户要求再 commit/push/PR/merge。不要提交 `.venv`、SDK、登录凭据、临时日志和私有缓存。发布失败保留旧 latest，不修改旧供应商事实；不允许失败后暗中改用 iFinD。
+手工基线发布仍按用户要求 commit/push。日常 wind_daily tick 已默认开启 auto_git_push：验证后自动提交生成数据并推送 origin/main；需先配置本机 Git 身份/推送权限并确保 main 和工作区状态正确。上传失败保留 journal/commit，下一次先重试 Git，不重复取数。不要提交 `.venv`、SDK、登录凭据、临时日志和私有缓存。发布失败保留旧 latest，不修改旧供应商事实；不允许失败后暗中改用 iFinD。
+
+2026-11-12 Mac 已实测单日期多代码 WSD 返回 Data=1×代码数，多日期为代码数×时间数。适配器现同时严格校验这两种形状，并用 3 股票单日原始/复权矩阵与逐股 OHLC 完成真实对照。Windows 仍需本机验收；可在已授权窗口使用 `scripts/probe_wind_coexistence.py --date YYYY-MM-DD --login-confirmed --matrix --profile .private-stock-data/wind/profile.json` 做不可发布小样本，不把 Mac 结果当作 Windows 证明。
 
 ## 自动化尚需单独部署
 

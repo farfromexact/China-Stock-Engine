@@ -2,7 +2,7 @@
 
 > 2026-11-12 更新：新增用户授权的显式看板共存模式，见 [共存采集](WIND_DASHBOARD_COEXISTENCE.md)。下文端口阻挡/独占条件适用于默认旧模式。
 
-GitHub iFinD 日常、补充、研究增强及 Scheduler Bridge 继续 disabled，`IFIND_COLLECTION_STATE=idle`。本功能不 dispatch Actions、不登录 GitHub、不自动 commit/push，也不安装 self-hosted runner。Mac/Windows 共用 `china_stock_engine.wind_daily`。
+GitHub iFinD 日常、补充、研究增强及 Scheduler Bridge 继续 disabled，`IFIND_COLLECTION_STATE=idle`。本功能不 dispatch Actions、不安装 self-hosted runner。按用户 2026-11-12 授权，本地采集成功并通过验证后默认自动 commit/push 数据；使用本机已有 Git 身份与凭据，不自动登录 GitHub。Mac/Windows 共用 `china_stock_engine.wind_daily`。
 
 ## 运行规则
 
@@ -27,7 +27,15 @@ Mac 的 `PYTHON` 是 `.venv/bin/python`，Windows 为 `.\.venv\Scripts\python.ex
 .venv/bin/python -m china_stock_engine.wind_daily tick
 ```
 
-`check` 不改生产和状态 JSON。`tick` 将结果写入 `.private-stock-data/wind/local_daily_status.json`，常用状态为 `idle`、`up_to_date`、`waiting_dashboard`、`waiting_login_and_exclusive_window`、`waiting_exclusive_window`、`retry_wait`、`collecting`、`publishing`、`published`、`failed`。`missing_dates` 是本次检测/补采的日期，不是补采后仍缺失的日期。`failed` 的 `error` 和 `next_retry_at` 供人工排查；API 错误不写账户响应。
+`check` 不改生产和状态 JSON，也不调用 Git 或联网上传。`tick` 将结果写入 `.private-stock-data/wind/local_daily_status.json`，常用状态为 `idle`、`up_to_date`、`waiting_dashboard`、`waiting_login_and_exclusive_window`、`waiting_exclusive_window`、`retry_wait`、`collecting`、`publishing`、`published`、`failed`、`git_push_pending`。`missing_dates` 是本次检测/补采的日期，不是补采后仍缺失的日期。`failed` 的 `error` 和 `next_retry_at` 供人工排查；API 错误不写账户响应。
+
+## 验证后自动提交、推送
+
+`auto_git_push` 默认 true，一键启动器调用 tick 同样生效。必须在本仓库 main、对应的 origin、已配置 Git 提交身份和推送权限下运行；不切换分支，不把用户的代码或已暂存改动一起提交。仅允许当前已验证 Wind 版本、latest、相应技术研究视图、发布状态及明确退役的每日版本路径。推送到 `origin/main`，不自动 force-push、rebase 或覆盖远端并发更新。
+
+成功结果的 `git.state=pushed`、`git.commit` 是本次上传的提交；`no_changes` 表示无新本地数据提交，不制造空提交。若 `auto_git_push=false`，published 仍只代表本地发布；自定义数据目录/仅本地实验应显式关闭此项。单独运行 `wind_collect` 或 `wind_publish` 不会自动 Git 推送。
+
+推送失败返回 `git_push_pending`（非零退出码），本地数据、已生成 commit 和 `.private-stock-data/wind/git_pending.json` 均保留。下一次 tick 在进入 Wind SDK 前先恢复上传，不重复下载；没有 journal 但上次验证后的生成数据尚未提交时也会先尝试发布。存在用户改动、分支错误、远端推进或数据变化时会停下供人工同步，不擅自处理冲突。不要通过删除 journal、reset --hard 或强推来“清除”此状态。代码改动先完成提交并同步主线，再启动每日采集。
 
 ## Dot 应怎样接手
 
@@ -47,7 +55,7 @@ Dot 负责从本机官方客户端的真实状态确认 **Wind 已登录且 API 
 .venv/bin/python -m china_stock_engine.wind_daily disarm
 ```
 
-建议 Dot 每 5 分钟调用一次 `tick`；18:00 前可以补此前漏日，18:00 后采当日。`published` 或 `failed` 才提醒，`up_to_date` 和等待状态不刷屏。`published` 后核对生产日期和 `cli validate`，再按既有仓库流程提交数据；本入口不自动修改 Git 分支或推送。远端关闭且本机睡眠/离线/未登录/看板持续占用时不会更新，恢复就绪后补窗口内的漏日。超过 300 个交易日的长期离线历史不属于此自动窗口，应人工安排专项回补。
+建议 Dot 每 5 分钟调用一次 `tick`；18:00 前可以补此前漏日，18:00 后采当日。发布成功、采集失败或 Git 上传待恢复时才提醒；是否上传检查嵌套 git 状态。默认旧模式在看板持续占用时等待；用户授权的共存模式见专门说明。超过 300 个交易日的长期离线历史不属于此自动窗口，应人工安排专项回补。
 
 ## Windows 计划任务（明天实机配置）
 

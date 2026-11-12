@@ -19,6 +19,7 @@ from .wind_incremental import collect_incremental
 from .wind_provider import WindProvider
 from .wind_publish import publish, verify_candidate
 from .wind_coordination import RequestPacer
+from .wind_git import GitPublishError, sync_data
 from .wind_session import (WindBusyError, WindError, WindSession,
                            collector_lock, dashboard_running)
 
@@ -75,6 +76,8 @@ def settings(path: Path, root: Path) -> dict:
         raise ValueError("Local configuration requires an explicit enabled boolean")
     if type(config.setdefault("allow_dashboard", False)) is not bool:
         raise ValueError("allow_dashboard must be boolean")
+    if type(config.setdefault("auto_git_push", True)) is not bool:
+        raise ValueError("auto_git_push must be boolean")
     RequestPacer(config.setdefault("request_interval_seconds", 2.0))
     for name, default in (("close_hour_shanghai", 18), ("batch_size", 100), ("retry_minutes", 15)):
         value = config.setdefault(name, default)
@@ -142,6 +145,13 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
 
     def finish(state, **extra):
         result = {**base, "state": state, **extra}
+        if not check_only and config.get("auto_git_push", True) and state in {"published", "up_to_date"}:
+            try:
+                synced = sync_data(ROOT, data, workspace)
+                if synced["state"] != "no_changes" or "git" not in result:
+                    result["git"] = synced
+            except (GitPublishError, ValueError, OSError) as exc:
+                result.update(state="git_push_pending", git={"state": "pending", "error": str(exc)})
         if not check_only:
             atomic_write_json(status_path, result)
         return result
@@ -153,6 +163,13 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
     try:
         with collector_lock(DAILY_LOCK):
             try:
+                if not check_only and config.get("auto_git_push", True):
+                    try:
+                        # Retry a prior local publication/push BEFORE opening
+                        # another SDK session or replacing its validated data.
+                        base["git"] = sync_data(ROOT, data, workspace)
+                    except (GitPublishError, ValueError, OSError) as exc:
+                        return finish("git_push_pending", git={"state": "pending", "error": str(exc)})
                 previous = load_json_object(status_path)
                 profile = profile_from(config["profile"])
                 if not profile.units_verified:
@@ -288,7 +305,7 @@ def main(argv=None):
     except (WindError, ValueError, OSError) as exc:
         result = {"state": "configuration_error", "error": str(exc), "production_changed": False}
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 1 if result["state"] in {"failed", "configuration_error", "blocked_unit_review"} else 0
+    return 1 if result["state"] in {"failed", "configuration_error", "blocked_unit_review", "git_push_pending"} else 0
 
 
 if __name__ == "__main__":

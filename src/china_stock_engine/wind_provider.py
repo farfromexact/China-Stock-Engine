@@ -168,16 +168,25 @@ class WindProvider:
             result = self.request("wsd", ",".join(codes), vendor_field, start, end, options)
             returned = [str(code).upper() for code in result["codes"]]
             times = result["times"]
+            data = result["data"]
+            # Native Wind returns a field-by-code cross section for a single
+            # date, versus code-by-time rows for a multi-date matrix. Both axes
+            # must still match explicitly; never transpose an ambiguous matrix.
+            if (len(times) == 1 and len(returned) > 1 and len(data) == 1
+                    and len(data[0]) == len(returned)):
+                data = [[value] for value in data[0]]
             if ([str(v).lower() for v in result["fields"]] != [vendor_field.lower()]
                     or len(returned) != len(codes) or set(returned) != set(codes)
-                    or len(result["data"]) != len(returned)
-                    or any(len(column) != len(times) for column in result["data"])):
-                raise WindError("Wind matrix code/field/time axes do not match request")
+                    or len(data) != len(returned)
+                    or any(len(column) != len(times) for column in data)):
+                raise WindError(f"Wind matrix code/field/time axes do not match request "
+                                f"(requested_codes={len(codes)}, returned_codes={len(returned)}, "
+                                f"time_points={len(times)}, rows={len(result['data'])})")
             if expected_times is None:
                 expected_times = times
             elif times != expected_times:
                 raise WindError("Wind matrix time axes differ across fields")
-            for code, values in zip(returned, result["data"]):
+            for code, values in zip(returned, data):
                 frames[code][name] = values
         for code, frame in frames.items():
             frame["trade_date"] = date_values(pd.Series(expected_times))

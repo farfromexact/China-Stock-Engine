@@ -13,6 +13,7 @@ from china_stock_engine.storage import atomic_write_json, json_sha256, sha256_fi
 from china_stock_engine.wind_daily import completed_bound, readiness, settings, tick
 from china_stock_engine.wind_provider import WindProfile
 from china_stock_engine.wind_session import collector_lock
+from china_stock_engine.wind_git import GitPublishError
 
 
 class WindLocalDailyTests(unittest.TestCase):
@@ -25,7 +26,7 @@ class WindLocalDailyTests(unittest.TestCase):
         profile = self.root / "profile.json"
         atomic_write_json(profile, asdict(WindProfile(units_verified=True, min_interval=0)))
         config_path = self.root / "config.json"
-        atomic_write_json(config_path, {"enabled": True, "profile": str(profile),
+        atomic_write_json(config_path, {"enabled": True, "auto_git_push": False, "profile": str(profile),
             "workspace": "private", "data_dir": "data", "ready_file": "ready.json"})
         self.config = settings(config_path, self.root)
         self.workspace = self.config["workspace"]
@@ -89,6 +90,29 @@ class WindLocalDailyTests(unittest.TestCase):
         self.assertEqual(tick(self.config)["state"], "up_to_date")
         self.WindSession.assert_not_called()
         self.publish.assert_not_called()
+
+    def test_auto_push_failure_is_distinct_and_retries_before_any_sdk_call(self):
+        self.config["auto_git_push"] = True
+        with patch("china_stock_engine.wind_daily.sync_data", side_effect=GitPublishError("push offline")):
+            result = tick(self.config)
+        self.assertEqual(result["state"], "git_push_pending")
+        self.WindSession.assert_not_called()
+
+    def test_current_data_with_pending_push_recovers_without_collecting_again(self):
+        self.config["auto_git_push"] = True
+        with patch("china_stock_engine.wind_daily.sync_data", side_effect=[
+            {"state": "pushed", "pushed": True, "commit": "fixture"}, {"state": "no_changes"}]):
+            result = tick(self.config)
+        self.assertEqual(result["state"], "up_to_date")
+        self.assertEqual(result["git"]["commit"], "fixture")
+        self.collect_incremental.assert_not_called()
+        self.WindSession.assert_not_called()
+
+    def test_offline_check_never_invokes_git_publication(self):
+        self.config["auto_git_push"] = True
+        with patch("china_stock_engine.wind_daily.sync_data") as sync:
+            self.assertEqual(tick(self.config, check_only=True)["state"], "up_to_date")
+            sync.assert_not_called()
 
     def test_idle_is_explicit_and_never_imports_sdk(self):
         self.config["enabled"] = False
