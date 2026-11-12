@@ -1,5 +1,7 @@
 # 本地 Wind 每日采集与开机补采
 
+> 2026-11-12 更新：新增用户授权的显式看板共存模式，见 [共存采集](WIND_DASHBOARD_COEXISTENCE.md)。下文端口阻挡/独占条件适用于默认旧模式。
+
 GitHub iFinD 日常、补充、研究增强及 Scheduler Bridge 继续 disabled，`IFIND_COLLECTION_STATE=idle`。本功能不 dispatch Actions、不登录 GitHub、不自动 commit/push，也不安装 self-hosted runner。Mac/Windows 共用 `china_stock_engine.wind_daily`。
 
 ## 运行规则

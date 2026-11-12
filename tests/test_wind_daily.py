@@ -235,3 +235,20 @@ class WindLocalDailyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_coexistence_collects_with_dashboard_running(self):
+        self.prepare_collection()
+        self.config['allow_dashboard']=True
+        self.dashboard_running.return_value=True
+        atomic_write_json(self.config['ready_file'], {'host':platform.node(),'login_confirmed':True,
+            'dashboard_coexistence':True,'exclusive_window':False,
+            'expires_at':(self.at+timedelta(minutes=30)).isoformat()})
+        self.assertEqual(tick(self.config)['state'],'published')
+        self.WindSession.assert_called_once_with(exclusive_window=True,allow_dashboard=True,request_interval=2.0)
+        self.dashboard_running.assert_not_called()
+
+    def test_exclusive_attestation_does_not_authorize_coexistence(self):
+        self.prepare_collection()
+        self.config['allow_dashboard']=True
+        self.assertEqual(tick(self.config)['state'],'waiting_login_and_exclusive_window')
+        self.WindSession.assert_not_called()

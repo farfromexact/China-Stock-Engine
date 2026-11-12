@@ -10,6 +10,8 @@ from pathlib import Path
 import socket
 import threading
 
+from .wind_coordination import CollectionBusy, collection_lock, RequestPacer
+
 
 class WindError(RuntimeError):
     pass
@@ -30,10 +32,10 @@ def dashboard_running() -> bool:
         raise WindBusyError("Cannot establish whether the Wind dashboard is idle") from exc
 
 
-def require_exclusive_window(authorized: bool) -> None:
+def require_exclusive_window(authorized: bool, allow_dashboard: bool = False) -> None:
     if not authorized:
         raise WindBusyError("Live SDK calls require an explicitly reserved exclusive window")
-    if dashboard_running():
+    if not allow_dashboard and dashboard_running():
         raise WindBusyError("Wind dashboard is running on port 8765; SDK was NOT imported")
 
 
@@ -70,12 +72,23 @@ def _wire(value):
     return value
 
 
-def _worker(connection):
+def _worker(connection, request_interval=2.0):
+    try:
+        with collection_lock():
+            _serve(connection, request_interval)
+    except CollectionBusy as exc:
+        connection.send({"error": str(exc), "busy": True})
+        connection.close()
+
+
+def _serve(connection, request_interval):
     # Native code exists in this child only. Never issue stop/cancel/logout to
     # a potentially shared desktop backend; exit this owned child instead.
     try:
+        pacer = RequestPacer(request_interval)
         w = importlib.import_module("WindPy").w
-        result = w.start(waitTime=15)
+        with pacer.slot():
+            result = w.start(waitTime=15)
         if result.ErrorCode:
             raise WindError(f"Wind start failed with code {result.ErrorCode}")
         connection.send({"ready": True})
@@ -86,7 +99,8 @@ def _worker(connection):
             operation, arguments = request
             if operation not in {"wset", "wss", "wsd", "tdays"}:
                 raise WindError("Unsupported read-only Wind operation")
-            result = getattr(w, operation)(*arguments)
+            with pacer.slot():
+                result = getattr(w, operation)(*arguments)
             # SDK error Data may contain account details; never send or log it.
             if result.ErrorCode:
                 connection.send({"error": f"Wind {operation} failed with code {result.ErrorCode}"})
@@ -115,21 +129,26 @@ def _worker(connection):
 class WindSession:
     """One owned subprocess and one serial request; no reconnect/retry storm."""
     def __init__(self, *, exclusive_window: bool = False, timeout: float = 120,
-                 lock_path: Path | None = None):
+                 lock_path: Path | None = None, allow_dashboard: bool = False,
+                 request_interval: float = 2.0):
+        RequestPacer(request_interval)  # validate before spawning
+        if type(allow_dashboard) is not bool:
+            raise ValueError("allow_dashboard must be boolean")
+        self.allow_dashboard, self.request_interval = allow_dashboard, request_interval
         self.authorized, self.timeout = exclusive_window, timeout
         self.lock_path = lock_path or Path.home() / ".cache/china-stock-engine/wind.lock"
         self.process = self.connection = self._lock = None
         self.serial = threading.Lock()
 
     def __enter__(self):
-        require_exclusive_window(self.authorized)
+        require_exclusive_window(self.authorized, self.allow_dashboard)
         self._lock = collector_lock(self.lock_path)
         self._lock.__enter__()
         try:
-            require_exclusive_window(self.authorized)
+            require_exclusive_window(self.authorized, self.allow_dashboard)
             context = mp.get_context("spawn")
             self.connection, child = context.Pipe()
-            self.process = context.Process(target=_worker, args=(child,), daemon=True)
+            self.process = context.Process(target=_worker, args=(child, self.request_interval), daemon=True)
             self.process.start()
             child.close()
             if not self._receive(30).get("ready"):
@@ -146,6 +165,8 @@ class WindSession:
             result = self.connection.recv()
         except EOFError as exc:
             raise WindError("Wind child exited unexpectedly") from exc
+        if result.get("busy"):
+            raise WindBusyError(result["error"])
         if "error" in result:
             raise WindError(result["error"])
         return result
@@ -155,7 +176,7 @@ class WindSession:
             raise WindError("Unsupported read-only Wind operation")
         with self.serial:
             try:
-                require_exclusive_window(self.authorized)
+                require_exclusive_window(self.authorized, self.allow_dashboard)
                 self.connection.send((operation, arguments))
                 return self._receive(self.timeout)
             except BaseException:

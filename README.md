@@ -1,5 +1,7 @@
 # China Stock Engine
 
+> 2026-11-12：已增加并完成本机 Mac 小样本验证的 [Trading Desk 共存采集模式](docs/WIND_DASHBOARD_COEXISTENCE.md)，支持看板运行时股票/商品串行限速取数。
+
 **自动采集状态（2026-11-11）：iFinD = idle。** 已按用户要求禁用 GitHub 的 Daily China Stock Data、Supplemental iFinD Facts、Research Data Enrichment 和 ChatGPT Scheduler Bridge。仓库变量 `IFIND_COLLECTION_STATE=idle`；四个工作流还要求显式设为 `active` 才能执行。Issue #5 分配或触发文件变更不会再启动 iFinD 提数。代码、Secret 与历史数据保留，Wind 手动功能及离线 CI 不受影响。下文 iFinD 自动化说明为历史设计；恢复需要同时启用相应工作流并修改开关，更新 token 不会自动恢复。
 
 Wind 已加入本机 SDK 采集、300 日候选校验和独立版本发布；实际最新状态见 `data/wind_publication_status.json`。Mac 已完成真实样本/批量验证，Windows 接手请先读 [Windows Wind 说明](docs/WINDOWS_WIND_HANDOFF.md)。SDK 配置、独占会话保护及自动化验收边界见 [Wind 迁移说明](docs/WIND_MIGRATION.md)。本机 runner 尚未部署，合并代码不代表已自动切源。

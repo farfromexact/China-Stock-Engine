@@ -18,6 +18,7 @@ from .wind_collect import ROOT, profile_from
 from .wind_incremental import collect_incremental
 from .wind_provider import WindProvider
 from .wind_publish import publish, verify_candidate
+from .wind_coordination import RequestPacer
 from .wind_session import (WindBusyError, WindError, WindSession,
                            collector_lock, dashboard_running)
 
@@ -45,13 +46,13 @@ def instant(value: str) -> datetime:
     return result
 
 
-def readiness(path: Path, at: datetime) -> bool:
+def readiness(path: Path, at: datetime, allow_dashboard: bool = False) -> bool:
     """Dot/operator attestation, NOT a Wind login probe. Never imports the SDK."""
     hint = load_json_object(path)
     if not hint:
         return False
     if (hint.get("host") != platform.node() or hint.get("login_confirmed") is not True
-            or hint.get("exclusive_window") is not True):
+            or hint.get("dashboard_coexistence" if allow_dashboard else "exclusive_window") is not True):
         return False
     expires = instant(hint["expires_at"])
     return at < expires <= at + timedelta(hours=1)
@@ -72,6 +73,9 @@ def settings(path: Path, root: Path) -> dict:
     config = load_json_object(path, missing_ok=False)
     if type(config.get("enabled")) is not bool:
         raise ValueError("Local configuration requires an explicit enabled boolean")
+    if type(config.setdefault("allow_dashboard", False)) is not bool:
+        raise ValueError("allow_dashboard must be boolean")
+    RequestPacer(config.setdefault("request_interval_seconds", 2.0))
     for name, default in (("close_hour_shanghai", 18), ("batch_size", 100), ("retry_minutes", 15)):
         value = config.setdefault(name, default)
         if type(value) is not int:
@@ -205,17 +209,18 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
                                       incremental=receipt.get("incremental"))
                     # Another verified producer already advanced beyond this one.
                     pending_path.unlink()
-                if dashboard_running():
+                if not config.get("allow_dashboard", False) and dashboard_running():
                     return finish("waiting_dashboard", next_retry_at=(at + timedelta(minutes=config["retry_minutes"])).isoformat())
-                if not readiness(config["ready_file"], at):
+                if not readiness(config["ready_file"], at, config.get("allow_dashboard", False)):
                     return finish("waiting_login_and_exclusive_window")
 
                 def guarded_request(operation, *args):
-                    if not readiness(config["ready_file"], clock()):
+                    if not readiness(config["ready_file"], clock(), config.get("allow_dashboard", False)):
                         raise WindBusyError("Local login/exclusive-window attestation expired")
                     return session.request(operation, *args)
 
-                with WindSession(exclusive_window=True) as session:
+                with WindSession(exclusive_window=True, allow_dashboard=config.get("allow_dashboard", False),
+                                 request_interval=config.get("request_interval_seconds", 2.0)) as session:
                     provider = WindProvider(guarded_request, profile)
                     calendar = provider.fetch_trade_calendar(bound, offset=-330)
                     days = sorted(calendar.loc[calendar.is_open & calendar.trade_date.le(bound), "trade_date"].unique())[-300:]
@@ -259,16 +264,20 @@ def main(argv=None):
     parser.add_argument("--config", type=Path, default=ROOT / ".private-stock-data/wind/local_daily.json")
     parser.add_argument("--login-confirmed", action="store_true")
     parser.add_argument("--exclusive-window", action="store_true")
+    parser.add_argument("--dashboard-coexistence", action="store_true",
+                        help="Confirm login for an explicitly configured dashboard coexistence run")
     parser.add_argument("--minutes", type=int, default=30)
     args = parser.parse_args(argv)
     try:
         config = settings(args.config, ROOT)
         if args.mode == "arm":
-            if not args.login_confirmed or not args.exclusive_window or not 1 <= args.minutes <= 60:
-                raise ValueError("arm requires confirmed login, reserved exclusive window and 1..60 minutes")
-            if dashboard_running():
+            coexist = config.get("allow_dashboard", False)
+            confirmed = args.dashboard_coexistence if coexist else args.exclusive_window
+            if not args.login_confirmed or not confirmed or not 1 <= args.minutes <= 60:
+                raise ValueError("arm requires confirmed login, matching --dashboard-coexistence or --exclusive-window and 1..60 minutes")
+            if not coexist and dashboard_running():
                 raise ValueError("Trading desk is running; readiness was not granted")
-            result = {"host": platform.node(), "login_confirmed": True, "exclusive_window": True,
+            result = {"host": platform.node(), "login_confirmed": True, "exclusive_window": not coexist, "dashboard_coexistence": coexist,
                       "expires_at": (clock() + timedelta(minutes=args.minutes)).isoformat(), "state": "armed"}
             atomic_write_json(config["ready_file"], result)
         elif args.mode == "disarm":

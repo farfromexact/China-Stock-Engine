@@ -11,3 +11,10 @@
 - 每日默认增量，详见 `docs/WIND_INCREMENTAL.md`；复用仅来自当前已验证 Wind vintage，新增/缺口成对下载原始/复权 OHLC，整窗收盘探针 + 20 组完整字段核查。不要把两个单字段探针描述成零历史请求，也不要承诺非收盘深度修订当日全发现；全量修订核查需显式 --audit-all。
 - 修改后运行 `python -m unittest discover -s tests` 以及变更涉及的真实验收；区分模拟测试与实机结果。实际数据发布前跑 CLI validate、检查容量及差异。
 - GitHub 托管 Ubuntu 不视为已支持本机 Wind 登录。Mac/Windows self-hosted workflow 默认关闭；不得擅自安装系统服务或启动后台 runner。用户已明确将远端 iFinD 工作流及 Scheduler Bridge 设为 idle，不得擅自恢复；Wind 手动功能保持可用。
+
+## 2026-11-12 用户授权更新（优先于上文旧端口限制）
+
+用户明确要求允许 Trading Desk 运行时低速取数。新增显式 `allow_dashboard=true` 模式，
+详见 `docs/WIND_DASHBOARD_COEXISTENCE.md`；默认旧模式保持兼容。
+股票/商品日常原生 worker 已使用同一跨仓库本机用户锁；不得声称覆盖所有旧 backfill 或跨机器。
+不得为了共存关闭/重启/注销看板或 Wind；小样本验收后才把共存模式接入一键启动器。
