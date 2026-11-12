@@ -66,9 +66,12 @@ class WindProvider:
     provider = "windpy"
     source_endpoints = ("tdays", "wset:sectorconstituent", "wss", "wsd")
 
-    def __init__(self, request: Callable, profile: WindProfile | None = None):
+    def __init__(self, request: Callable, profile: WindProfile | None = None, *, request_interval: float | None = None):
         self._request = request
         self.profile = profile or WindProfile()
+        self.request_interval = self.profile.min_interval if request_interval is None else request_interval
+        if isinstance(self.request_interval, bool) or not isinstance(self.request_interval, (int, float)) or not math.isfinite(self.request_interval) or self.request_interval < 0:
+            raise ValueError("request_interval must be finite and nonnegative")
         self.last_request = 0.0
         self.provenance = {"universe_sector": self.profile.sector_id,
                            "calendar": self.profile.calendar,
@@ -77,7 +80,7 @@ class WindProvider:
                            "adapter_version": "windpy-v1"}
 
     def request(self, operation, *args):
-        pause = self.profile.min_interval - (time.monotonic() - self.last_request)
+        pause = self.request_interval - (time.monotonic() - self.last_request)
         if pause > 0:
             time.sleep(pause)
         self.last_request = time.monotonic()

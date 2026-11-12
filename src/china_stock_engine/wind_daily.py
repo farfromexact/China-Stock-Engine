@@ -74,11 +74,13 @@ def settings(path: Path, root: Path) -> dict:
     config = load_json_object(path, missing_ok=False)
     if type(config.get("enabled")) is not bool:
         raise ValueError("Local configuration requires an explicit enabled boolean")
-    if type(config.setdefault("allow_dashboard", False)) is not bool:
+    if type(config.setdefault("allow_dashboard", True)) is not bool:
         raise ValueError("allow_dashboard must be boolean")
     if type(config.setdefault("auto_git_push", True)) is not bool:
         raise ValueError("auto_git_push must be boolean")
-    RequestPacer(config.setdefault("request_interval_seconds", 2.0))
+    if type(config.setdefault("allow_parallel_collectors", True)) is not bool:
+        raise ValueError("allow_parallel_collectors must be boolean")
+    RequestPacer(config.setdefault("request_interval_seconds", 0.0))
     for name, default in (("close_hour_shanghai", 18), ("batch_size", 100), ("retry_minutes", 15)):
         value = config.setdefault(name, default)
         if type(value) is not int:
@@ -237,8 +239,9 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
                     return session.request(operation, *args)
 
                 with WindSession(exclusive_window=True, allow_dashboard=config.get("allow_dashboard", False),
-                                 request_interval=config.get("request_interval_seconds", 2.0)) as session:
-                    provider = WindProvider(guarded_request, profile)
+                                 request_interval=config.get("request_interval_seconds", 0.0),
+                                 allow_parallel_collectors=config.get("allow_parallel_collectors", True)) as session:
+                    provider = WindProvider(guarded_request, profile, request_interval=config.get("request_interval_seconds", 0.0))
                     calendar = provider.fetch_trade_calendar(bound, offset=-330)
                     days = sorted(calendar.loc[calendar.is_open & calendar.trade_date.le(bound), "trade_date"].unique())[-300:]
                     if len(days) != 300:

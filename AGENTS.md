@@ -20,3 +20,8 @@
 不得为了共存关闭/重启/注销看板或 Wind；小样本验收后才把共存模式接入一键启动器。
 
 用户已于 2026-11-12 要求股票日常验证后自动 commit/push，auto_git_push 默认 true。只提交当前生成且验证成功的数据，在 main 向本仓库 origin/main 普通推送；不代交用户代码、私有配置或凭据，不强推或擅自解决远端并发冲突。git_push_pending 必须先恢复上传，不能重复取数或伪称已上传。check/单独 canary 不自动 Git 写入。
+
+
+## 2026-11-12 晚最新默认（用户授权，优先于旧独占说明）
+
+日常入口默认 allow_dashboard=true、allow_parallel_collectors=true、request_interval_seconds=0。股票/商品可同时取数，单仓库内部仍串行；本仓库 daily/session 防重复锁、profile 审核、日期/字段校验、独立发布及推送保护全部保留。不开启远端任务、不控制 Trading Desk，不调用stop/cancel/logout。运行间隔独立于已审核profile，不改变profile哈希或字段单位。低层诊断工具仍可显式采用互斥模式。并行配置生效不等于所有交易时段与Windows已验收。

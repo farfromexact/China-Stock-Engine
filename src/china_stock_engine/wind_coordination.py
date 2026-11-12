@@ -52,8 +52,8 @@ def collection_lock():
 class RequestPacer:
     """Idle interval after each native call, including errors and login."""
     def __init__(self, seconds=2.0):
-        if isinstance(seconds, bool) or not isinstance(seconds, (float, int)) or not math.isfinite(seconds) or seconds < 1:
-            raise ValueError("Wind request interval must be finite and at least 1 second")
+        if isinstance(seconds, bool) or not isinstance(seconds, (float, int)) or not math.isfinite(seconds) or seconds < 0:
+            raise ValueError("Wind request interval must be finite and nonnegative")
         self.seconds = seconds
         self.next_at = 0.0
 

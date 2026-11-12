@@ -26,7 +26,7 @@ class WindLocalDailyTests(unittest.TestCase):
         profile = self.root / "profile.json"
         atomic_write_json(profile, asdict(WindProfile(units_verified=True, min_interval=0)))
         config_path = self.root / "config.json"
-        atomic_write_json(config_path, {"enabled": True, "auto_git_push": False, "profile": str(profile),
+        atomic_write_json(config_path, {"enabled": True, "auto_git_push": False, "allow_dashboard": False, "allow_parallel_collectors": False, "profile": str(profile),
             "workspace": "private", "data_dir": "data", "ready_file": "ready.json"})
         self.config = settings(config_path, self.root)
         self.workspace = self.config["workspace"]
@@ -268,7 +268,7 @@ if __name__ == "__main__":
             'dashboard_coexistence':True,'exclusive_window':False,
             'expires_at':(self.at+timedelta(minutes=30)).isoformat()})
         self.assertEqual(tick(self.config)['state'],'published')
-        self.WindSession.assert_called_once_with(exclusive_window=True,allow_dashboard=True,request_interval=2.0)
+        self.WindSession.assert_called_once_with(exclusive_window=True,allow_dashboard=True,request_interval=0.0,allow_parallel_collectors=False)
         self.dashboard_running.assert_not_called()
 
     def test_exclusive_attestation_does_not_authorize_coexistence(self):

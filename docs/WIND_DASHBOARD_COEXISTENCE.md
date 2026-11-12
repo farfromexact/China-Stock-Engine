@@ -53,3 +53,8 @@ SDK 错误、超时、数据校验失败仍停止当前任务/退避，保留缓
   不代表交易时段高负载、期权/分钟线大批量、整日无人值守或 Windows 已验收。
 - 离线：股票全量 215 项、商品全量 291 项通过；另验证股票持锁时独立商品进程被拒绝，
   锁释放后可获取。Mac 启动器 5 项模拟测试及 shell 语法检查通过。
+
+
+## 2026-11-12 晚最新默认（用户授权，优先于旧独占说明）
+
+日常入口默认 allow_dashboard=true、allow_parallel_collectors=true、request_interval_seconds=0。股票/商品可同时取数，单仓库内部仍串行；本仓库 daily/session 防重复锁、profile 审核、日期/字段校验、独立发布及推送保护全部保留。不开启远端任务、不控制 Trading Desk，不调用stop/cancel/logout。运行间隔独立于已审核profile，不改变profile哈希或字段单位。低层诊断工具仍可显式采用互斥模式。并行配置生效不等于所有交易时段与Windows已验收。

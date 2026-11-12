@@ -85,3 +85,8 @@ Get-ScheduledTask -TaskName ChinaStockEngine-Wind-Local
 ## 验收边界
 
 已加入离线测试：收盘时间/时区、节假日、增量缺口、复权/历史修订、重复触发、看板阻挡、登录/独占确认失效、任务互斥、失败退避、pending 发布恢复、300 日候选和轮换发布事务。真实 Wind 300 日基线沿用 2026-11-11 的已发布证据；本轮不为测试调度或增量算法抢占 SDK。Windows 原生增量、计划任务注册、真正开机恢复与下一交易日自动更新仍待当地实机验收。
+
+
+## 2026-11-12 晚最新默认（用户授权，优先于旧独占说明）
+
+日常入口默认 allow_dashboard=true、allow_parallel_collectors=true、request_interval_seconds=0。股票/商品可同时取数，单仓库内部仍串行；本仓库 daily/session 防重复锁、profile 审核、日期/字段校验、独立发布及推送保护全部保留。不开启远端任务、不控制 Trading Desk，不调用stop/cancel/logout。运行间隔独立于已审核profile，不改变profile哈希或字段单位。低层诊断工具仍可显式采用互斥模式。并行配置生效不等于所有交易时段与Windows已验收。

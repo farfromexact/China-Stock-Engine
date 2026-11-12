@@ -28,7 +28,7 @@ class CoordinationTests(unittest.TestCase):
             self.assertEqual(pacer.next_at,47)
 
     def test_invalid_intervals_are_rejected(self):
-        for value in (0,.5,-1,True,'2',float('nan'),float('inf')):
+        for value in (-.001,-1,True,'2',float('nan'),float('inf')):
             with self.subTest(value=value),self.assertRaises(ValueError):
                 coordination.RequestPacer(value)
 
@@ -45,7 +45,7 @@ class NativeLockTests(unittest.TestCase):
         from unittest.mock import MagicMock
         from china_stock_engine.wind_session import _worker
         pipe=MagicMock()
-        with coordination.collection_lock(), patch('china_stock_engine.wind_session.importlib.import_module') as loader:
+        with tempfile.TemporaryDirectory() as tmp, patch.object(coordination, "collection_lock_path", return_value=Path(tmp)/"test.lock"), coordination.collection_lock(), patch('china_stock_engine.wind_session.importlib.import_module') as loader:
             _worker(pipe)
             loader.assert_not_called()
         self.assertTrue(pipe.send.call_args.args[0]['busy'])
