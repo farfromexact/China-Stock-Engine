@@ -10,7 +10,6 @@ from pathlib import Path
 import socket
 import threading
 
-from contextlib import nullcontext
 from .wind_coordination import CollectionBusy, collection_lock, RequestPacer
 
 
@@ -33,10 +32,10 @@ def dashboard_running() -> bool:
         raise WindBusyError("Cannot establish whether the Wind dashboard is idle") from exc
 
 
-def require_exclusive_window(authorized: bool, allow_dashboard: bool = False) -> None:
+def require_exclusive_window(authorized: bool) -> None:
     if not authorized:
         raise WindBusyError("Live SDK calls require an explicitly reserved exclusive window")
-    if not allow_dashboard and dashboard_running():
+    if dashboard_running():
         raise WindBusyError("Wind dashboard is running on port 8765; SDK was NOT imported")
 
 
@@ -73,9 +72,9 @@ def _wire(value):
     return value
 
 
-def _worker(connection, request_interval=2.0, allow_parallel_collectors=False):
+def _worker(connection, request_interval):
     try:
-        with nullcontext() if allow_parallel_collectors else collection_lock():
+        with collection_lock():
             _serve(connection, request_interval)
     except CollectionBusy as exc:
         connection.send({"error": str(exc), "busy": True})
@@ -98,7 +97,7 @@ def _serve(connection, request_interval):
             if request is None:
                 return
             operation, arguments = request
-            if operation not in {"wset", "wss", "wsd", "tdays"}:
+            if operation not in {"wset", "wsd", "tdays"}:
                 raise WindError("Unsupported read-only Wind operation")
             with pacer.slot():
                 result = getattr(w, operation)(*arguments)
@@ -130,29 +129,23 @@ def _serve(connection, request_interval):
 class WindSession:
     """One owned subprocess and one serial request; no reconnect/retry storm."""
     def __init__(self, *, exclusive_window: bool = False, timeout: float = 120,
-                 lock_path: Path | None = None, allow_dashboard: bool = False,
-                 request_interval: float = 2.0, allow_parallel_collectors: bool = False):
-        RequestPacer(request_interval)  # validate before spawning
-        if type(allow_dashboard) is not bool:
-            raise ValueError("allow_dashboard must be boolean")
-        if type(allow_parallel_collectors) is not bool:
-            raise ValueError("allow_parallel_collectors must be boolean")
-        self.allow_parallel_collectors = allow_parallel_collectors
-        self.allow_dashboard, self.request_interval = allow_dashboard, request_interval
+                 lock_path: Path | None = None, request_interval: float = 0.5):
+        RequestPacer(request_interval)
+        self.request_interval = request_interval
         self.authorized, self.timeout = exclusive_window, timeout
         self.lock_path = lock_path or Path.home() / ".cache/china-stock-engine/wind.lock"
         self.process = self.connection = self._lock = None
         self.serial = threading.Lock()
 
     def __enter__(self):
-        require_exclusive_window(self.authorized, self.allow_dashboard)
+        require_exclusive_window(self.authorized)
         self._lock = collector_lock(self.lock_path)
         self._lock.__enter__()
         try:
-            require_exclusive_window(self.authorized, self.allow_dashboard)
+            require_exclusive_window(self.authorized)
             context = mp.get_context("spawn")
             self.connection, child = context.Pipe()
-            self.process = context.Process(target=_worker, args=(child, self.request_interval, self.allow_parallel_collectors), daemon=True)
+            self.process = context.Process(target=_worker, args=(child, self.request_interval), daemon=True)
             self.process.start()
             child.close()
             if not self._receive(30).get("ready"):
@@ -176,11 +169,11 @@ class WindSession:
         return result
 
     def request(self, operation, *arguments):
-        if operation not in {"wset", "wss", "wsd", "tdays"}:
+        if operation not in {"wset", "wsd", "tdays"}:
             raise WindError("Unsupported read-only Wind operation")
         with self.serial:
             try:
-                require_exclusive_window(self.authorized, self.allow_dashboard)
+                require_exclusive_window(self.authorized)
                 self.connection.send((operation, arguments))
                 return self._receive(self.timeout)
             except BaseException:

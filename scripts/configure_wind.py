@@ -62,7 +62,7 @@ def main():
         print(f'Python: {sys.executable}\nPlatform: {platform.system()} {platform.machine()}\nSDK: {sdk}\nPath file: {pth}')
         if not args.check:
             pth.write_text(str(sdk) + '\n', encoding='utf-8')
-            print(f'Configured without loading SDK. Run with {sys.executable}: -m china_stock_engine.wind_collect doctor')
+            print(f'Configured without loading SDK. Run with {sys.executable}: -m china_stock_engine doctor')
         else:
             print('SDK path exists. Native loading, architecture and login are NOT tested.')
         return 0

@@ -1,39 +1,17 @@
-# Python
+.venv/
 __pycache__/
 *.py[cod]
 *.egg-info/
 build/
 dist/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-.test-tmp/
-data/.research-build-*/
-data/.akshare-publish-*/
-.wind-publication-*/
-
-# Virtual environments
-.venv/
-venv/
-
-# Credentials and local overrides
+.warehouse/
+data/
+.private-stock-data/
 .env
 .env.*
-!.env.example
 *.pem
 *.key
-
-# Normalized daily data is versioned for downstream automation.
-# Never commit raw iFinD responses or credentials.
-*.tmp
-*.temp
-*.log
-
-# Editors and OS files
-.idea/
-.vscode/
-.private-stock-data/
+*.parquet
+*.duckdb
+*.duckdb.wal
 .DS_Store
-Thumbs.db

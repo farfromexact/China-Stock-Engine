@@ -1,1242 +1,272 @@
-"""Command-line interface for collection, probing, and validation."""
+"""Stock Engine command line. Market files and research stay in the local data directory."""
 
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import replace
-from datetime import datetime, timedelta, timezone
-from getpass import getpass
+import csv
+from datetime import datetime
+import importlib.util
 import json
 import os
 from pathlib import Path
-from typing import Any
-from zoneinfo import ZoneInfo
-
-import pandas as pd
-
-from .dashboard import build_dashboard
-from .ifind_http import IFindHTTPClient, QUOTE_FIELDS
-from .pipeline import CollectionConfig, collect_and_publish, validate_latest
-from .report_dashboard import build_data_reference_dashboard
-from .data_reference import build_data_reference_outputs
-from .research_inputs import import_research_batch
-from .storage import (
-    read_parquet_file,
-    atomic_write_json,
-    atomic_write_parquet,
-    load_manifest,
-    write_run_status,
-)
-
-
-SHANGHAI = ZoneInfo("Asia/Shanghai")
-
-
-def default_trade_date() -> str:
-    now = datetime.now(SHANGHAI)
-    trade_day = now.date() if now.hour >= 18 else now.date() - timedelta(days=1)
-    while trade_day.weekday() >= 5:
-        trade_day -= timedelta(days=1)
-    return trade_day.isoformat()
-
-
-def _token(prompt_token: bool) -> str | None:
-    value = os.environ.get("IFIND_REFRESH_TOKEN")
-    if value:
-        return value
-    if prompt_token:
-        return getpass("iFinD refresh token (hidden): ").strip()
-    return None
-
-
-def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    probe = subparsers.add_parser("probe", help="run a no-write single-stock canary")
-    probe.add_argument("--code", default="000001.SZ")
-    probe.add_argument("--date", default=default_trade_date())
-    probe.add_argument("--prompt-token", action="store_true")
-
-    canary = subparsers.add_parser(
-        "canary", help="run a narrow entitlement or schema canary"
-    )
-    canary.add_argument(
-        "--module",
-        required=True,
-        choices=(
-            "history",
-            "adjustment",
-            "industry",
-            "index-membership",
-            "tradability",
-            "financials",
-        ),
-    )
-    canary.add_argument("--code", default="000001.SZ")
-    canary.add_argument("--date", default=default_trade_date())
-    canary.add_argument("--start")
-    canary.add_argument(
-        "--spec",
-        type=Path,
-        help="JSON indicator spec for modules without stable public indicator codes",
-    )
-    canary.add_argument("--prompt-token", action="store_true")
-    canary.add_argument("--record-status", action="store_true")
-    canary.add_argument("--data-dir", type=Path, default=Path("data"))
-
-    run = subparsers.add_parser("run", help="collect and promote a verified snapshot")
-    run.add_argument("--date", default=default_trade_date())
-    run.add_argument("--data-dir", type=Path, default=Path("data"))
-    run.add_argument("--prompt-token", action="store_true")
-    run.add_argument("--min-universe-size", type=int, default=5000)
-    run.add_argument("--min-quote-coverage", type=float, default=0.98)
-    run.add_argument("--min-reference-coverage", type=float, default=0.98)
-    run.add_argument("--min-extended-field-coverage", type=float, default=0.95)
-    run.add_argument("--reference-batch-size", type=int, default=100)
-    run.add_argument("--batch-size", type=int, default=300)
-    run.add_argument("--refresh-adjustments", action="store_true")
-    run.add_argument("--adjustment-start")
-    run.add_argument("--adjustment-batch-size", type=int, default=100)
-
-    backfill = subparsers.add_parser(
-        "backfill", help="collect a point-in-time weekday range into durable partitions"
-    )
-    backfill_range = backfill.add_mutually_exclusive_group(required=True)
-    backfill_range.add_argument("--start")
-    backfill_range.add_argument(
-        "--sessions", type=int, help="use the last N SSE trading sessions"
-    )
-    backfill.add_argument("--end", required=True)
-    backfill.add_argument("--data-dir", type=Path, default=Path("data"))
-    backfill.add_argument("--prompt-token", action="store_true")
-    backfill.add_argument("--min-universe-size", type=int, default=5000)
-    backfill.add_argument("--min-quote-coverage", type=float, default=0.98)
-    backfill.add_argument("--min-reference-coverage", type=float, default=0.98)
-    backfill.add_argument("--min-extended-field-coverage", type=float, default=0.95)
-    backfill.add_argument("--reference-batch-size", type=int, default=1000)
-    backfill.add_argument("--batch-size", type=int, default=300)
-    backfill.add_argument("--with-adjustment-snapshot", action="store_true")
-    backfill.add_argument("--adjustment-batch-size", type=int, default=100)
-
-    refresh = subparsers.add_parser("refresh-technical-adjustments", help="collect the 61-session technical adjustment window")
-    refresh.add_argument("--data-dir", type=Path, default=Path("data"))
-    refresh.add_argument("--prompt-token", action="store_true")
-
-    ak_backfill = subparsers.add_parser("backfill-akshare", help="resume full-market raw/adjusted AKShare history and publish verified technical signals")
-    ak_backfill.add_argument("--end", default=default_trade_date())
-    ak_backfill.add_argument("--sessions", type=int, default=300)
-    ak_backfill.add_argument("--workers", type=int, default=4)
-    ak_backfill.add_argument("--data-dir", type=Path, default=Path("data"))
-    ak_backfill.add_argument("--cache-dir", type=Path, default=Path(".private-stock-data/akshare-backfill"))
-    ak_backfill.add_argument("--collect-only", action="store_true")
-    ak_backfill.add_argument("--publish-only", action="store_true")
-    ak_backfill.add_argument("--limit", type=int, help="canary only; requires --collect-only")
-
-    validate = subparsers.add_parser("validate", help="validate the latest snapshot")
-    validate.add_argument("--data-dir", type=Path, default=Path("data"))
-
-    dashboard = subparsers.add_parser(
-        "dashboard", help="build an offline HTML dashboard from latest"
-    )
-    dashboard.add_argument("--data-dir", type=Path, default=Path("data"))
-    dashboard.add_argument("--output", type=Path)
-
-    build_state = subparsers.add_parser(
-        "build-state", help="build point-in-time stock state and data reference"
-    )
-    build_state.add_argument("--date")
-    build_state.add_argument("--data-dir", type=Path, default=Path("data"))
-    build_state.add_argument("--min-adt20", type=float, default=20_000_000.0)
-
-    build_report = subparsers.add_parser(
-        "build-report", help="rebuild the compact data reference from verified facts"
-    )
-    build_report.add_argument("--date")
-    build_report.add_argument("--data-dir", type=Path, default=Path("data"))
-    build_report.add_argument("--min-adt20", type=float, default=20_000_000.0)
-    for command in (build_state, build_report):
-        command.add_argument("--technical-config", type=Path, help="price/volume strategy parameters; defaults to config/technical_signals.json")
-        command.add_argument("--research-asof", help="explicit timezone-aware current research cutoff; preserves historical snapshot")
-        command.add_argument("--company-exposures", type=Path,
-                             help="validated company commodity exposure registry")
-    research_import = subparsers.add_parser(
-        "import-research",
-        help="validate and append normalized PIT financial/event facts; no API calls",
-    )
-    research_import.add_argument("--input", type=Path, required=True)
-    research_import.add_argument("--data-dir", type=Path, default=Path("data"))
-    series = subparsers.add_parser("inspect-series", help="read one security's verified raw/adjusted K-lines; no API calls")
-    series.add_argument("--code", required=True)
-    series.add_argument("--date")
-    series.add_argument("--sessions", type=int, default=120)
-    series.add_argument("--research-asof")
-    series.add_argument("--data-dir", type=Path, default=Path("data"))
-    review = subparsers.add_parser("record-technical-review", help="append a research decision without deleting technical signals")
-    review.add_argument("--code", required=True)
-    review.add_argument("--date", required=True)
-    review.add_argument("--decision", choices=("keep", "exclude", "wait"), required=True)
-    review.add_argument("--reason", required=True)
-    review.add_argument("--sources", nargs="*", default=[])
-    review.add_argument("--research-view", help="16-character research view hash, or latest; default is historical EOD ledger")
-    review.add_argument("--data-dir", type=Path, default=Path("data"))
-    return parser
-
-
-def _client(args: argparse.Namespace) -> IFindHTTPClient:
-    token = _token(bool(getattr(args, "prompt_token", False)))
-    if not token:
-        raise RuntimeError(
-            "IFIND_REFRESH_TOKEN is missing; use a process environment or --prompt-token"
-        )
-    return IFindHTTPClient(refresh_token=token)
-
-
-def _probe(args: argparse.Namespace) -> int:
-    client = _client(args)
-    try:
-        calendar = client.fetch_trade_calendar(args.date, offset=-3)
-        calendar_dates = sorted(
-            calendar.get("trade_date", pd.Series(dtype=str))
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
-        reference = client.fetch_security_reference(
-            [str(args.code).upper()],
-            args.date,
-            batch_size=1,
-            request_interval_seconds=0,
-        )
-        frame = client.fetch_daily_quotes(
-            [str(args.code).upper()],
-            args.date,
-            batch_size=1,
-            request_interval_seconds=0,
-        )
-        source_dates = sorted(
-            frame.get("trade_date", pd.Series(dtype=str))
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
-        non_null = {
-            field: int(frame.get(target, pd.Series(dtype=float)).notna().sum())
-            for field, target in {
-                "open": "open",
-                "high": "high",
-                "low": "low",
-                "close": "close",
-                "preClose": "pre_close",
-                "avgPrice": "avg_price",
-                "volume": "volume",
-                "amount": "amount",
-                "turnoverRatio": "turnover_ratio",
-                "changeRatio": "change_ratio",
-            }.items()
-        }
-        reference_non_null = {
-            field: int(reference.get(field, pd.Series(dtype=object)).notna().sum())
-            for field in ("listing_date", "total_shares", "float_a_shares")
-        }
-        calendar_ok = args.date in calendar_dates
-        reference_ok = len(reference) == 1 and all(reference_non_null.values())
-        quote_ok = len(frame) > 0 and args.date in source_dates
-        ok = calendar_ok and reference_ok and quote_ok
-        payload = {
-            "auth_ok": bool(client.access_token),
-            "calendar_ok": calendar_ok,
-            "reference_ok": reference_ok,
-            "quote_ok": quote_ok,
-            "requested_code": str(args.code).upper(),
-            "requested_trade_date": args.date,
-            "calendar_dates": calendar_dates,
-            "reference_rows": int(len(reference)),
-            "reference_non_null_fields": reference_non_null,
-            "rows": int(len(frame)),
-            "source_dates": source_dates,
-            "requested_fields": list(QUOTE_FIELDS),
-            "non_null_fields": non_null,
-            "raw_payload_persisted": False,
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return 0 if ok else 1
-    except Exception as exc:
-        message = f"{type(exc).__name__}: {exc}"
-        for secret in (client.refresh_token, client.access_token):
-            if secret:
-                message = message.replace(secret, "[REDACTED]")
-        print(
-            json.dumps(
-                {"auth_ok": False, "quote_ok": False, "error": message[:500]},
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
-        return 1
-
-
-def _replace_spec_placeholders(value: Any, trade_date: str) -> Any:
-    if isinstance(value, dict):
-        return {
-            key: _replace_spec_placeholders(item, trade_date)
-            for key, item in value.items()
-        }
-    if isinstance(value, list):
-        return [_replace_spec_placeholders(item, trade_date) for item in value]
-    if isinstance(value, str):
-        return value.replace("{date}", trade_date).replace(
-            "{compact_date}", trade_date.replace("-", "")
-        )
-    return value
-
-
-def _safe_client_error(exc: Exception, client: IFindHTTPClient) -> str:
-    message = f"{type(exc).__name__}: {exc}"
-    for secret in (client.refresh_token, client.access_token):
-        if secret:
-            message = message.replace(str(secret), "[REDACTED]")
-    return message[:500]
-
-
-def _is_entitlement_error(message: str) -> bool:
-    lowered = message.lower()
-    markers = (
-        "not entitled",
-        "permission denied",
-        "no permission",
-        "not licensed",
-        "未购买",
-        "无权限",
-        "没有权限",
-        "权限不足",
-    )
-    return any(marker in lowered for marker in markers)
-
-
-def _record_canary_status(
-    data_dir: Path, module: str, trade_date: str, state: str
-) -> None:
-    output = (
-        data_dir
-        / "facts"
-        / "module_status"
-        / f"as_of_date={trade_date}"
-        / "module_status.json"
-    )
-    payload: dict[str, Any] = {}
-    if output.exists():
-        loaded = json.loads(output.read_text(encoding="utf-8"))
-        if isinstance(loaded, dict):
-            payload = loaded
-    modules = dict(payload.get("modules") or {})
-    modules[module] = {
-        "state": state,
-        "checked_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "raw_payload_persisted": False,
-    }
-    atomic_write_json(
-        output,
-        {
-            "schema_version": 1,
-            "as_of_date": trade_date,
-            "modules": modules,
-            "raw_payload_persisted": False,
-        },
-    )
-
-
-def _canary(args: argparse.Namespace) -> int:
-    if args.module not in {"history", "adjustment"} and args.spec is None:
-        payload = {
-            "module": args.module,
-            "state": "not_configured",
-            "ok": False,
-            "reason": "provide a validated provider indicator spec; no API request was made",
-            "raw_payload_persisted": False,
-        }
-        if args.record_status:
-            _record_canary_status(
-                args.data_dir, args.module, args.date, "not_configured"
-            )
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return 2
-    client = _client(args)
-    start = (
-        args.start
-        or (pd.Timestamp(args.date) - pd.Timedelta(days=10)).date().isoformat()
-    )
-    try:
-        if args.module == "history":
-            frame = client.fetch_daily_history(
-                [str(args.code).upper()],
-                start,
-                args.date,
-                batch_size=1,
-                request_interval_seconds=0,
-            )
-            payload = {
-                "module": args.module,
-                "state": "ready" if not frame.empty else "missing",
-                "rows": int(len(frame)),
-                "source_dates": sorted(
-                    frame.get("trade_date", pd.Series(dtype=str))
-                    .dropna()
-                    .astype(str)
-                    .unique()
-                    .tolist()
-                ),
-                "columns": list(frame.columns),
-                "raw_payload_persisted": False,
-            }
-        elif args.module == "adjustment":
-            frame = client.fetch_adjustment_factors(
-                [str(args.code).upper()],
-                start,
-                args.date,
-                known_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                batch_size=1,
-                request_interval_seconds=0,
-            )
-            factors = pd.to_numeric(frame.get("adj_factor"), errors="coerce")
-            payload = {
-                "module": args.module,
-                "state": (
-                    "ready" if not frame.empty and factors.gt(0).all() else "missing"
-                ),
-                "rows": int(len(frame)),
-                "source_dates": sorted(
-                    frame.get("trade_date", pd.Series(dtype=str))
-                    .dropna()
-                    .astype(str)
-                    .unique()
-                    .tolist()
-                ),
-                "factor_min": None if factors.empty else float(factors.min()),
-                "factor_max": None if factors.empty else float(factors.max()),
-                "method": "ifind_forward1_dividend_plan",
-                "raw_payload_persisted": False,
-            }
-        else:
-            if args.spec is None:
-                payload = {
-                    "module": args.module,
-                    "state": "not_configured",
-                    "ok": False,
-                    "reason": "official public documentation does not expose a stable indicator id; provide --spec",
-                    "raw_payload_persisted": False,
-                }
-                if args.record_status:
-                    _record_canary_status(
-                        args.data_dir, args.module, args.date, "not_configured"
-                    )
-                print(json.dumps(payload, ensure_ascii=False, indent=2))
-                return 2
-            loaded = json.loads(args.spec.read_text(encoding="utf-8"))
-            specs = _replace_spec_placeholders(
-                loaded.get("indicators") or [], args.date
-            )
-            frame = client.fetch_basic_indicators([str(args.code).upper()], specs)
-            requested = [str(item.get("indicator")) for item in specs]
-            payload = {
-                "module": args.module,
-                "state": "ready" if not frame.empty else "missing",
-                "rows": int(len(frame)),
-                "requested_indicators": requested,
-                "returned_columns": list(frame.columns),
-                "non_null": {
-                    field: int(frame.get(field, pd.Series(dtype=object)).notna().sum())
-                    for field in requested
-                },
-                "raw_payload_persisted": False,
-            }
-        payload["ok"] = payload.get("state") == "ready"
-        if args.record_status:
-            _record_canary_status(
-                args.data_dir, args.module, args.date, str(payload["state"])
-            )
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return 0 if payload["ok"] else 1
-    except Exception as exc:
-        error = _safe_client_error(exc, client)
-        state = "not_entitled" if _is_entitlement_error(error) else "failed"
-        if args.record_status:
-            _record_canary_status(args.data_dir, args.module, args.date, state)
-        print(
-            json.dumps(
-                {
-                    "module": args.module,
-                    "state": state,
-                    "ok": False,
-                    "error": error,
-                    "raw_payload_persisted": False,
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
-        return 1
-
-
-def _run(args: argparse.Namespace) -> int:
-    client = _client(args)
-    config = _collection_config(args)
-
-    def progress(phase: str, done: int, total: int) -> None:
-        print(f"iFinD {phase} batches: {done}/{total}", flush=True)
-
-    result = collect_and_publish(client, args.date, config=config, progress=progress)
-    if (
-        result.ok
-        and result.status.get("state") != "market_closed"
-        and args.refresh_adjustments
-    ):
-        try:
-            adjustment = _refresh_adjustments(
-                client,
-                args.data_dir,
-                args.adjustment_start
-                or (pd.Timestamp(args.date) - pd.Timedelta(days=600))
-                .date()
-                .isoformat(),
-                args.date,
-                args.adjustment_batch_size,
-            )
-            result.status["adjustment_refresh"] = adjustment
-        except Exception as exc:
-            result.status["adjustment_refresh"] = {
-                "ok": False,
-                "error": _safe_client_error(exc, client),
-            }
-            print(json.dumps(result.status, ensure_ascii=False, indent=2))
-            return 1
-    print(json.dumps(result.status, ensure_ascii=False, indent=2))
-    return 0 if result.ok else 1
-
-
-def _collection_config(args: argparse.Namespace) -> CollectionConfig:
-    return CollectionConfig(
-        data_dir=args.data_dir,
-        min_universe_size=args.min_universe_size,
-        min_quote_coverage=args.min_quote_coverage,
-        min_reference_coverage=args.min_reference_coverage,
-        min_extended_field_coverage=args.min_extended_field_coverage,
-        reference_batch_size=args.reference_batch_size,
-        quote_batch_size=args.batch_size,
-    )
-
-
-def _refresh_adjustments(
-    client: IFindHTTPClient,
-    data_dir: Path,
-    start_date: str,
-    end_date: str,
-    requested_batch_size: int,
-) -> dict[str, Any]:
-    if start_date > end_date:
-        raise ValueError("adjustment start cannot be after end")
-    partition_universe = (
-        data_dir / "facts" / "reference" / f"as_of_date={end_date}" / "universe.parquet"
-    )
-    universe_path = (
-        partition_universe
-        if partition_universe.exists()
-        else data_dir / "latest" / "universe.parquet"
-    )
-    if not universe_path.exists():
-        raise FileNotFoundError("latest universe is required before adjustment refresh")
-    universe = read_parquet_file(universe_path)
-    codes = universe["thscode"].dropna().astype(str).tolist()
-    from .ifind_supplemental import collect_adjustments
-
-    metadata = collect_adjustments(client, data_dir, codes, end_date,
-                                   start_date=start_date, batch_size=requested_batch_size)
-    data_reference = build_data_reference_outputs(data_dir, end_date)
-    return {
-        "ok": True,
-        **metadata,
-        "data_reference": data_reference,
-    }
-
-
-def _refresh_technical_adjustments(args: argparse.Namespace) -> int:
-    from .ifind_supplemental import _cached_closes, collect_adjustments, safe_failure
-
-    client = _client(args)
-    try:
-        manifest = load_manifest(args.data_dir / "latest/manifest.json", missing_ok=False)
-        if manifest.get("verified") is not True or manifest.get("data_fresh") is not True:
-            raise ValueError("a verified and fresh market snapshot is required")
-        day = manifest["trade_date"]
-        calendar = client.fetch_trade_calendar(day, offset=-65)
-        sessions = sorted(set(calendar.loc[calendar["is_open"].eq(True) & calendar["trade_date"].le(day), "trade_date"]))[-61:]
-        if len(sessions) != 61 or sessions[-1] != day:
-            raise ValueError("61 certified open sessions ending on the target date are required")
-
-        universe = read_parquet_file(args.data_dir / "latest/universe.parquet")
-        codes = sorted(set(universe["thscode"].dropna().astype(str)))
-        raw = _cached_closes(args.data_dir, day, codes, start_date=sessions[0])
-        complete = raw.loc[raw["trade_date"].isin(sessions)].groupby("thscode")["trade_date"].nunique()
-        complete_codes = complete.index[complete.eq(len(sessions))]
-        samples = [next((code for code in complete_codes if code.endswith(suffix)), None)
-                   for suffix in (".SH", ".SZ", ".BJ")]
-        if any(code is None for code in samples):
-            raise ValueError("the cached window lacks a complete sample for each exchange")
-        sample_raw = raw.loc[raw["thscode"].isin(samples)]
-        probe = client.fetch_adjustment_factors(samples, sessions[0], day, raw_prices=sample_raw,
-                                                batch_size=len(samples), request_interval_seconds=0)
-        if (len(probe) != len(sample_raw) or not probe["adj_factor"].between(0, float("inf"), inclusive="neither").all()
-                or set(probe[["trade_date", "thscode"]].itertuples(index=False, name=None))
-                != set(sample_raw[["trade_date", "thscode"]].itertuples(index=False, name=None))):
-            raise ValueError("the CPS=2 sample did not match the cached adjustment window")
-        metadata = collect_adjustments(client, args.data_dir, codes, day, start_date=sessions[0])
-        print(json.dumps({"ok": True, "trade_date": day, **metadata}, ensure_ascii=False))
-        return 0
-    except Exception as exc:
-        status = safe_failure(exc)
-        if _is_entitlement_error(str(exc)):
-            status["state"] = "not_entitled"
-        if isinstance(exc, ValueError) and status.get("api_error_code") is None:
-            status["reason"] = _safe_client_error(exc, client)
-        print(json.dumps({"ok": False, **status}, ensure_ascii=False))
-        return 1
-
-
-class _PreparedBackfillClient:
-    """Serve prefetched PIT frames through the daily publisher contract."""
-
-    def __init__(
-        self,
-        base: IFindHTTPClient,
-        universes: dict[str, pd.DataFrame],
-        references: dict[str, pd.DataFrame],
-        quotes: pd.DataFrame,
-        trading_calendar: pd.DataFrame | None = None,
-    ) -> None:
-        self.base = base
-        self.universes = universes
-        self.references = references
-        self.quotes = quotes
-        self.trading_calendar = trading_calendar
-        self.collection_started_at: str | None = None
-        self.collection_completed_at: str | None = None
-
-    @property
-    def refresh_token(self) -> str | None:
-        return self.base.refresh_token
-
-    @property
-    def access_token(self) -> str | None:
-        return self.base.access_token
-
-    def fetch_trade_calendar(self, trade_date: str, *, offset: int) -> pd.DataFrame:
-        del offset
-        if self.trading_calendar is not None:
-            calendar = self.trading_calendar.loc[
-                self.trading_calendar["trade_date"].le(trade_date)
-            ].copy()
-            calendar["as_of_date"] = trade_date
-            if "calendar_window_end" in calendar:
-                calendar["calendar_window_end"] = calendar["calendar_window_end"].map(lambda day: min(str(day), trade_date))
-            return calendar
-        return pd.DataFrame(
-            {
-                "as_of_date": [trade_date],
-                "trade_date": [trade_date],
-                "calendar": ["SSE"],
-                "market_code": ["212001"],
-                "is_open": [True],
-                "source_provider": ["ifind_http"],
-                "source_endpoint": ["get_trade_dates"],
-            }
-        )
-
-    def fetch_universe(self, trade_date: str) -> pd.DataFrame:
-        return self.universes[trade_date].copy()
-
-    def fetch_security_reference(
-        self,
-        codes: list[str],
-        trade_date: str,
-        *,
-        batch_size: int,
-        request_interval_seconds: float,
-        progress=None,
-    ) -> pd.DataFrame:
-        del batch_size, request_interval_seconds
-        if progress:
-            progress(1, 1)
-        frame = self.references[trade_date]
-        return frame.loc[frame["thscode"].astype(str).isin(codes)].copy()
-
-    def fetch_daily_quotes(
-        self,
-        codes: list[str],
-        trade_date: str,
-        *,
-        batch_size: int,
-        request_interval_seconds: float,
-        progress=None,
-    ) -> pd.DataFrame:
-        del batch_size, request_interval_seconds
-        if progress:
-            progress(1, 1)
-        return self.quotes.loc[
-            self.quotes["trade_date"].eq(trade_date)
-            & self.quotes["thscode"].astype(str).isin(codes)
-        ].copy()
-
-
-def _resolve_backfill_dates(
-    client: IFindHTTPClient, args: argparse.Namespace
-) -> tuple[list[str], list[str], str, str]:
-    if args.sessions is not None and args.sessions < 1:
-        raise ValueError("backfill sessions must be positive")
-    if args.start and args.start > args.end:
-        raise ValueError("backfill start cannot be after end")
-    if args.sessions is not None:
-        offset = -max(args.sessions + 40, 60)
-    else:
-        business_count = len(pd.date_range(args.start, args.end, freq="B"))
-        offset = -max(business_count * 2, 60)
-    calendar = client.fetch_trade_calendar(args.end, offset=offset)
-    args._resolved_trading_calendar = calendar.copy()
-    available = sorted(
-        calendar.loc[calendar["is_open"].fillna(False).astype(bool), "trade_date"]
-        .dropna()
-        .astype(str)
-        .loc[lambda values: values.le(args.end)]
-        .unique()
-        .tolist()
-    )
-    if args.sessions is not None:
-        if len(available) < args.sessions:
-            raise RuntimeError(
-                f"SSE calendar returned {len(available)} sessions; "
-                f"{args.sessions} required"
-            )
-        dates = available[-args.sessions :]
-        requested_start = dates[0]
-        non_trading_dates: list[str] = []
-    else:
-        dates = [value for value in available if value >= args.start]
-        requested_start = args.start
-        requested_weekdays = {
-            value.date().isoformat()
-            for value in pd.date_range(args.start, args.end, freq="B")
-        }
-        non_trading_dates = sorted(requested_weekdays.difference(dates))
-    if not dates:
-        raise ValueError("backfill range contains no SSE trading sessions")
-    # A refreshed CPS vintage must span the technical screen even when the raw
-    # quote catch-up covers a single day. Use the open sessions from iFinD.
-    adjustment_start = min(requested_start, available[-61:][0])
-    return dates, non_trading_dates, requested_start, adjustment_start
-
-
-def _prepare_backfill_client(
-    client: IFindHTTPClient,
-    dates: list[str],
-    args: argparse.Namespace,
-) -> _PreparedBackfillClient:
-    universes: dict[str, pd.DataFrame] = {}
-    references: dict[str, pd.DataFrame] = {}
-    required_quote_columns = {
-        "trade_date",
-        "thscode",
-        "open",
-        "high",
-        "low",
-        "close",
-        "pre_close",
-        "avg_price",
-        "volume",
-        "amount",
-        "turnover_ratio",
-        "change_ratio",
-        "source_provider",
-        "source_endpoint",
-    }
-    # Authentication is cached before the pool starts; at most two dates are
-    # in flight, matching the conservative iFinD concurrency default.
-    if hasattr(client, "get_access_token"):
-        client.get_access_token()
-
-    def cached_date(
-        trade_date: str,
-    ) -> tuple[pd.DataFrame, pd.DataFrame] | None:
-        candidate_dirs = [
-            args.data_dir / "facts" / "reference" / f"as_of_date={trade_date}",
-            args.data_dir / "snapshots" / trade_date,
-        ]
-        cached_paths: tuple[Path, Path] | None = None
-        for reference_dir in candidate_dirs:
-            universe_path = reference_dir / "universe.parquet"
-            reference_path = reference_dir / "security_reference.parquet"
-            if universe_path.exists() and reference_path.exists():
-                cached_paths = universe_path, reference_path
-                break
-        if cached_paths is None:
-            return None
-        try:
-            universe = read_parquet_file(cached_paths[0])
-            reference = read_parquet_file(cached_paths[1])
-        except (OSError, ValueError):
-            return None
-        universe_required = {
-            "as_of_date",
-            "thscode",
-            "security_name",
-            "security_name_in_time",
-        }
-        reference_required = {
-            "as_of_date",
-            "thscode",
-            "listing_date",
-            "total_shares",
-            "float_a_shares",
-        }
-        if (
-            universe.empty
-            or reference.empty
-            or not universe_required.issubset(universe.columns)
-            or not reference_required.issubset(reference.columns)
-        ):
-            return None
-        return universe, reference
-
-    def cached_quotes(trade_date: str) -> pd.DataFrame | None:
-        candidates = [
-            args.data_dir
-            / "facts"
-            / "market"
-            / f"trade_date={trade_date}"
-            / "daily_quotes.parquet",
-            args.data_dir / "snapshots" / trade_date / "daily_quotes.parquet",
-        ]
-        path = next((item for item in candidates if item.exists()), None)
-        if path is None:
-            return None
-        try:
-            frame = read_parquet_file(path)
-        except (OSError, ValueError):
-            return None
-        if frame.empty or not required_quote_columns.issubset(frame.columns):
-            return None
-        observed_dates = set(frame["trade_date"].dropna().astype(str).unique().tolist())
-        if observed_dates != {trade_date}:
-            return None
-        return frame.copy()
-
-    def fetch_date(
-        trade_date: str,
-    ) -> tuple[pd.DataFrame, pd.DataFrame, bool]:
-        cached = cached_date(trade_date)
-        if cached is not None:
-            return cached[0], cached[1], True
-        universe = client.fetch_universe(trade_date)
-        codes = universe["thscode"].dropna().astype(str).str.upper().tolist()
-        reference = client.fetch_security_reference(
-            codes,
-            trade_date,
-            batch_size=args.reference_batch_size,
-            request_interval_seconds=0.15,
-        )
-        if not universe.empty and not reference.empty:
-            reference_dir = (
-                args.data_dir / "facts" / "reference" / f"as_of_date={trade_date}"
-            )
-            atomic_write_parquet(reference_dir / "universe.parquet", universe)
-            atomic_write_parquet(
-                reference_dir / "security_reference.parquet", reference
-            )
-        return universe, reference, False
-
-    worker_count = min(2, len(dates))
-    with ThreadPoolExecutor(
-        max_workers=worker_count, thread_name_prefix="ifind-pit"
-    ) as executor:
-        future_dates = {
-            executor.submit(fetch_date, trade_date): (index, trade_date)
-            for index, trade_date in enumerate(dates, start=1)
-        }
-        for future in as_completed(future_dates):
-            index, trade_date = future_dates[future]
-            universe, reference, from_cache = future.result()
-            universes[trade_date] = universe
-            references[trade_date] = reference
-            print(
-                f"iFinD PIT universe/reference dates: {index}/{len(dates)} "
-                f"({trade_date}) {'[cached]' if from_cache else ''}",
-                flush=True,
-            )
-    quote_frames: list[pd.DataFrame] = []
-    cached_quote_dates: set[str] = set()
-    for trade_date in dates:
-        frame = cached_quotes(trade_date)
-        if frame is None:
-            continue
-        quote_frames.append(frame)
-        cached_quote_dates.add(trade_date)
-        print(f"iFinD history date: {trade_date} [cached]", flush=True)
-
-    missing_groups: list[list[str]] = []
-    active_group: list[str] = []
-    for trade_date in dates:
-        if trade_date in cached_quote_dates:
-            if active_group:
-                missing_groups.append(active_group)
-                active_group = []
-            continue
-        active_group.append(trade_date)
-    if active_group:
-        missing_groups.append(active_group)
-    date_windows = [
-        group[start : start + 63]
-        for group in missing_groups
-        for start in range(0, len(group), 63)
+import sys
+from uuid import uuid4
+
+import duckdb
+import pyarrow
+
+from .legacy import seed_industry, seed_market
+from .research import get_history, make_report, status
+from .schema import SHANGHAI, code_value, day_value, utcnow
+from .warehouse import Warehouse, atomic_json, digest
+from .wind import canary, collect
+from .wind_session import WindError, dashboard_running
+
+
+def read_csv(path, required):
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        cols = reader.fieldnames or []
+        if len(set(cols)) != len(cols) or not required <= set(cols):
+            raise ValueError(f"CSV 缺少必需字段或列名重复: {', '.join(sorted(required))}")
+        for row in reader:
+            if None in row:
+                raise ValueError("CSV 有超出表头的数据")
+            yield row
+
+
+def safe_cell(value):
+    if value is None:
+        return "—"
+    return (" ".join(str(value).split()).replace("&", "&amp;")
+            .replace("<", "&lt;").replace(">", "&gt;").replace("|", "\\|"))
+
+
+def percentage(value):
+    return "—" if value is None else f"{value:.1%}"
+
+
+def markdown(result):
+    market, industry = result["market"], result["industry"]
+    dates = result["warehouse"]
+    local_cutoff = datetime.fromisoformat(result["as_of"]).astimezone(SHANGHAI).isoformat(timespec="seconds")
+    lines = [
+        f"# A 股盘后研究 · {result['trade_date']}",
+        "",
+        f"观察截点 {local_cutoff} · 行情来源 {safe_cell(result['source'])}",
+        f"新鲜度 `{dates['freshness']}` · 日历确认至 {dates['calendar_through'] or '—'}"
+        f" · 有效行情 {percentage(result['market_coverage'])}",
+        "",
+        "## 市场与候选", "",
+        f"成交 {market['traded']:,}/{market['members']:,} 只 · 有涨跌幅证券 {market['with_returns']:,} 只"
+        f" · 上涨占比 {percentage(market['breadth'])} · 成交额 {market['amount'] / 100_000_000:,.0f} 亿元",
+        f"连续 20 日收益可计算证券 {market['with_20d']:,} 只。",
+        "",
     ]
-    for window_index, window in enumerate(date_windows, start=1):
-        window_codes = sorted(
-            {
-                str(code).strip().upper()
-                for trade_date in window
-                for code in universes[trade_date]["thscode"].dropna().astype(str)
-                if str(code).strip()
-            }
-        )
-        safe_batch = max(
-            1,
-            min(
-                args.batch_size,
-                45_000 // max(len(window) * len(QUOTE_FIELDS), 1),
-            ),
-        )
-
-        def progress(done: int, total: int, *, number: int = window_index) -> None:
-            print(
-                f"iFinD history window {number}/{len(date_windows)} batches: "
-                f"{done}/{total}",
-                flush=True,
-            )
-
-        quote_frames.append(
-            client.fetch_daily_history(
-                window_codes,
-                window[0],
-                window[-1],
-                batch_size=safe_batch,
-                request_interval_seconds=0.15,
-                progress=progress,
-            )
-        )
-    quotes = (
-        pd.concat(quote_frames, ignore_index=True) if quote_frames else pd.DataFrame()
-    )
-    missing_quote_columns = sorted(required_quote_columns.difference(quotes.columns))
-    if missing_quote_columns:
-        raise RuntimeError(
-            "range history response missing columns: "
-            + ", ".join(missing_quote_columns)
-        )
-    quotes = quotes.loc[quotes["trade_date"].isin(dates)].copy()
-    return _PreparedBackfillClient(
-        client,
-        universes,
-        references,
-        quotes,
-        getattr(args, "_resolved_trading_calendar", None),
-    )
-
-
-def _backfill(args: argparse.Namespace) -> int:
-    client = _client(args)
-    config = _collection_config(args)
-    initial_manifest_path = args.data_dir / "latest" / "manifest.json"
-    try:
-        initial_manifest = load_manifest(initial_manifest_path)
-    except Exception as exc:
-        error = _safe_client_error(exc, client)
-        print(
-            json.dumps(
-                {"ok": False, "state": "invalid_latest_manifest", "error": error},
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
-        return 1
-    initial_latest_date = initial_manifest.get("trade_date")
-    completed: list[str] = []
-
-    def fail_backfill(error: str, *, failed_date: str | None = None) -> int:
-        status = {
-            "schema_version": 2,
-            "state": "failed_backfill",
-            "data_fresh": False,
-            "requested_start": args.start,
-            "requested_sessions": args.sessions,
-            "requested_end": args.end,
-            "failed_date": failed_date,
-            "completed_trade_dates_not_published": completed,
-            "last_valid_trade_date": initial_latest_date,
-            "provider": "ifind_http",
-            "completed_at_utc": datetime.now(timezone.utc).isoformat(
-                timespec="seconds"
-            ),
-            "raw_payload_persisted": False,
-            "error": error,
-        }
-        write_run_status(args.data_dir, status)
-        print(json.dumps({"ok": False, "status": status}, ensure_ascii=False, indent=2))
-        return 1
-
-    try:
-        dates, non_trading_dates, requested_start, adjustment_start = _resolve_backfill_dates(
-            client, args
-        )
-        collection_started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        prepared = _prepare_backfill_client(client, dates, args)
-        prepared.collection_started_at = collection_started_at
-        prepared.collection_completed_at = datetime.now(timezone.utc).isoformat(
-            timespec="seconds"
-        )
-    except Exception as exc:
-        return fail_backfill(_safe_client_error(exc, client))
-
-    def progress(phase: str, done: int, total: int) -> None:
-        print(f"iFinD {phase} batches: {done}/{total}", flush=True)
-
-    for trade_date in dates:
-        print(f"Backfill date: {trade_date}", flush=True)
-        date_config = replace(config, build_data_reference=trade_date == dates[-1])
-        result = collect_and_publish(
-            prepared, trade_date, config=date_config, progress=progress
-        )
-        if not result.ok:
-            return fail_backfill(
-                str(result.status.get("error") or result.status.get("state")),
-                failed_date=trade_date,
-            )
-        completed.append(trade_date)
-    adjustment: dict[str, Any] | None = None
-    if args.with_adjustment_snapshot and completed:
-        try:
-            adjustment = _refresh_adjustments(
-                client,
-                args.data_dir,
-                adjustment_start,
-                completed[-1],
-                args.adjustment_batch_size,
-            )
-        except Exception as exc:
-            return fail_backfill(
-                _safe_client_error(exc, client), failed_date=completed[-1]
-            )
-    latest_manifest_path = args.data_dir / "latest" / "manifest.json"
-    try:
-        latest_manifest = load_manifest(latest_manifest_path)
-    except Exception as exc:
-        return fail_backfill(_safe_client_error(exc, client))
-    aggregate_state = "success_backfill" if completed else "market_closed"
-    write_run_status(
-        args.data_dir,
-        {
-            "schema_version": 2,
-            "state": aggregate_state,
-            "data_fresh": bool(completed),
-            "requested_start": requested_start,
-            "requested_end": args.end,
-            "completed_trade_dates": completed,
-            "completed_count": len(completed),
-            "non_trading_dates": non_trading_dates,
-            "last_valid_trade_date": latest_manifest.get("trade_date"),
-            "provider": "ifind_http",
-            "completed_at_utc": datetime.now(timezone.utc).isoformat(
-                timespec="seconds"
-            ),
-            "raw_payload_persisted": False,
-        },
-    )
-    payload = {
-        "ok": True,
-        "state": aggregate_state,
-        "requested_start": requested_start,
-        "requested_end": args.end,
-        "completed_trade_dates": completed,
-        "completed_count": len(completed),
-        "non_trading_dates": non_trading_dates,
-        "adjustment_snapshot": adjustment,
-    }
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0
-
-
-def _build_data_reference(args: argparse.Namespace) -> int:
-    payload = build_data_reference_outputs(
-        args.data_dir,
-        args.date,
-        min_adt20=args.min_adt20,
-        research_asof=args.research_asof,
-        exposure_path=args.company_exposures,
-        technical_config_path=args.technical_config,
-    )
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0
-
-
-def _inspect_series(args: argparse.Namespace) -> int:
-    from .data_reference import load_market_history, load_adjustment_snapshot, apply_adjustments, manifest_pit_timing
-    from .storage import load_json_object
-    from .technical_signals import number
-    manifest = load_manifest(args.data_dir / "latest/manifest.json", missing_ok=False)
-    day = args.date or manifest["trade_date"]
-    if day != manifest["trade_date"]:
-        receipt = args.data_dir / "facts/market" / f"trade_date={day}" / "market_receipt.json"
-        manifest = load_json_object(receipt) if receipt.exists() else load_manifest(args.data_dir / "snapshots" / day / "manifest.json", missing_ok=False)
-    if not 1 <= args.sessions <= 300:
-        raise ValueError("series sessions must be between 1 and 300")
-    cutoff = args.research_asof or (manifest.get("research_context") or {}).get("research_asof") or manifest_pit_timing(manifest, day)["effective_pit_cutoff"]
-    history = load_market_history(args.data_dir, day, limit=max(61, args.sessions), research_asof=cutoff)
-    code = args.code.strip().upper()
-    if history.empty or code not in set(history["thscode"]):
-        raise ValueError(f"no verified history for {code}")
-    scoped = history.loc[history["thscode"].eq(code)].copy()
-    factor_date = pd.Timestamp(cutoff).tz_convert("Asia/Shanghai").date().isoformat()
-    sessions = history.attrs.get("session_dates") or sorted(history["trade_date"].unique())
-    adjusted = apply_adjustments(scoped, load_adjustment_snapshot(args.data_dir, factor_date, provider=manifest.get("provider")), cutoff,
-                                 technical_sessions=sessions)
-    display_sessions = sessions[-args.sessions:]
-    adjusted = adjusted.loc[adjusted["trade_date"].isin(display_sessions)]
-    fields = ("open", "high", "low", "close", "volume", "amount", "adj_factor",
-              "adjusted_open", "adjusted_high", "adjusted_low", "adjusted_close", "adj_multiplier", "adj_offset")
-    rows = [{"trade_date": row["trade_date"], "first_observed_at": row.get("first_observed_at"),
-             **{key: number(row.get(key)) for key in fields}} for row in adjusted.to_dict("records")]
-    print(json.dumps({"thscode": code, "trade_date": day, "research_asof": cutoff,
-        "sessions_requested": args.sessions, "rows": rows,
-        "missing_session_dates": sorted(set(display_sessions) - set(scoped["trade_date"])),
-        "price_basis": "raw prices and native PIT-adjusted OHLC or factor; affine inverse mapping; missing adjustments remain null"}, ensure_ascii=False, allow_nan=False, indent=2))
-    return 0
-
-
-def _record_technical_review(args: argparse.Namespace) -> int:
-    from .storage import load_json_object, sha256_file, json_sha256, ArtifactContractError
-    root = args.data_dir / "features/technical_signals" / f"trade_date={args.date}"
-    if args.research_view:
-        import re
-        if args.research_view == "latest":
-            latest_manifest = load_manifest(args.data_dir / "latest/manifest.json", missing_ok=False)
-            if latest_manifest["trade_date"] != args.date:
-                raise ValueError("latest research view is for a different trade date")
-            matches = [path.parent for path in root.glob("research_view=*/signal_receipt.json")
-                       if load_json_object(path).get("feature_input_sha256") == latest_manifest.get("feature_input_sha256")]
-            if len(matches) != 1:
-                raise ValueError("no unique latest research view; specify its hash")
-            root = matches[0]
-        elif re.fullmatch(r"[a-f0-9]{16}", args.research_view):
-            root = root / f"research_view={args.research_view}"
-        else:
-            raise ValueError("research view must be latest or a 16-character hex hash")
-    receipt = load_json_object(root / "signal_receipt.json", missing_ok=False)
-    scan_path = root / "technical_scan.parquet"
-    if receipt["artifacts"][scan_path.name]["sha256"] != sha256_file(scan_path):
-        raise ArtifactContractError("technical scan hash mismatch")
-    scan = read_parquet_file(scan_path)
-    code = args.code.strip().upper()
-    selected = scan.loc[scan["thscode"].eq(code)]
-    if selected.empty or selected.iloc[0]["signal"] not in ("BREAKOUT", "WATCH"):
-        raise ValueError("review must reference a stored technical candidate")
-    if not args.reason.strip():
-        raise ValueError("review reason is required")
-    payload = {"schema_version": 1, "trade_date": args.date, "thscode": code,
-        "signal": selected.iloc[0]["signal"], "signal_scan_sha256": receipt["artifacts"][scan_path.name]["sha256"],
-        "feature_input_sha256": receipt["feature_input_sha256"], "decision": args.decision,
-        "research_view": root.name if root.name.startswith("research_view=") else None,
-        "signal_effective_pit_cutoff": receipt["effective_pit_cutoff"],
-        "reason": args.reason.strip(), "sources": args.sources,
-        "reviewed_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
-    path = args.data_dir / "facts/technical_reviews" / f"{json_sha256(payload)}.json"
-    atomic_write_json(path, payload)
-    print(json.dumps({"ok": True, "path": str(path.resolve())}, ensure_ascii=False))
-    return 0
-
-
-def _dashboard(args: argparse.Namespace) -> int:
-    ok, validation = validate_latest(data_dir=args.data_dir)
-    if not ok:
-        print(json.dumps(validation, ensure_ascii=False, indent=2))
-        return 1
-    output = args.output or args.data_dir / "latest" / "data_reference.html"
-    if (args.data_dir / "latest" / "data_reference_latest.json").exists():
-        built = build_data_reference_dashboard(args.data_dir, output)
-        dashboard_type = "data_reference"
+    if industry["used"]:
+        lines.extend([
+            f"{safe_cell(industry['scheme'])} 行业标记观察日 {industry['as_of']}"
+            f" · 命中 {industry['mapped']:,}/{market['members']:,} · 按行业等权日收益展示前六",
+            "",
+            "| 行业 | 等权日收益 | 上涨占比 | 涨跌幅分母 | 成交额占比 |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ])
+        for row in result["sectors"][:6]:
+            share = row["amount"] / market["amount"] if market["amount"] else None
+            lines.append(f"| {safe_cell(row['industry'])} | {percentage(row['return_1d'])} | "
+                         f"{percentage(row['breadth'])} | {row['with_returns']} | {percentage(share)} |")
     else:
-        built = build_dashboard(args.data_dir, output)
-        dashboard_type = "market_snapshot"
-    print(
-        json.dumps(
-            {
-                "ok": True,
-                "trade_date": validation.get("trade_date"),
-                "dashboard_type": dashboard_type,
-                "output": str(built.resolve()),
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-    )
-    return 0
+        lines.append("行业标记未导入或已超过 45 个自然日，本页按市场比较相对强弱。")
+    lines += ["", f"显示 {len(result['candidates'])}/{result['candidate_count']} 个量价候选。盘前需核对报价与交易状态。", ""]
+    if result["universe"] == "legacy_window":
+        lines += ["该日期使用旧窗口期末股票池，只提供历史行情观察。", ""]
+    if result["candidates"]:
+        lines += ["| 股票 | 行业 | 放量倍数 | 20日相对收益 | 比较基准 | 行业扩散 |",
+                  "| --- | --- | ---: | ---: | --- | --- |"]
+        for row in result["candidates"]:
+            lines.append(f"| {row['code']} {safe_cell(row['name'])} | {safe_cell(row['industry'])} | "
+                         f"{row['turnover_multiple']:.2f}× | {percentage(row['relative_20d'])} | "
+                         f"{'行业' if row['comparison'] == 'industry' else '市场'} | "
+                         f"{'是' if row['industry_expansion'] else '—'} |")
+    lines += ["", "## 持仓与自选风险", ""]
+    if result["tradability_source"]:
+        lines += [f"交易状态 {result['risk_date']} · {safe_cell(result['tradability_source'])}", ""]
+    else:
+        lines += [f"{result['risk_date']} 的停复牌、风险警示和限价数据未导入。", ""]
+    if result["watchlist_configured"]:
+        lines += ["| 股票 | 分组 | 行情观测 | 风险提示 | 已导入相关事件 |",
+                  "| --- | --- | --- | --- | ---: |"]
+        for row in result["watchlist_risks"]:
+            official = row["reported_status"] or {}
+            flags = [label for value, label in ((row["risk_name"], "名称风险提示"),
+                     (official.get("suspended"), "停牌"), (official.get("risk_warning"), "风险警示")) if value]
+            if official.get("limit_applies") is True:
+                flags.append(f"限价 {official['limit_down']:g}–{official['limit_up']:g}")
+            if official.get("limit_applies") is False:
+                flags.append("未设涨跌幅限制")
+            lines.append(f"| {row['code']} {safe_cell(row['name'] or row['label'])} | "
+                         f"{'持仓' if row['kind'] == 'holding' else '自选'} | {row['quote_state']} | "
+                         f"{'、'.join(flags) or '—'} | {row['event_count']} |")
+    else:
+        lines += ["未配置持仓或自选名单。"]
+    if result["events"]:
+        lines += ["", "本地已导入的持仓、自选和候选事件", ""]
+        for item in result["events"]:
+            title, source = safe_cell(item["title"]), safe_cell(item["source"])
+            original = item["url"].replace(" ", "%20").replace("<", "%3C").replace(">", "%3E")
+            lines.append(f"- {item['code']} {title} · {source} · <{original}>")
+    else:
+        lines += ["", "无符合条件的已导入事件，公告完整性未确认。"]
+    lines += ["", f"报告 ID `{result['report_id']}`", ""]
+    return "\n".join(lines)
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = _parser().parse_args(argv)
-    if args.command == "backfill-akshare":
-        from .akshare_backfill import main as akshare_main
-        options = ["--end", args.end, "--sessions", str(args.sessions), "--workers", str(args.workers),
-                   "--data-dir", str(args.data_dir), "--cache-dir", str(args.cache_dir)]
-        if args.publish_only:
-            options.append("--publish-only")
-        elif not args.collect_only:
-            options.append("--publish")
-        if args.limit:
-            options.extend(["--limit", str(args.limit)])
-        return akshare_main(options)
-    if args.command in ("inspect-series", "record-technical-review"):
+def parser():
+    app = argparse.ArgumentParser(description="本地 A 股日线及盘后研究")
+    app.add_argument("--warehouse", type=Path, default=Path(os.environ.get("STOCK_WAREHOUSE", ".warehouse")),
+                     help="本地数据目录")
+    commands = app.add_subparsers(dest="command", required=True)
+    commands.add_parser("doctor", help="检查 DuckDB 与 Wind SDK 路径")
+    check = commands.add_parser("wind-canary", help="沪深北小样本比对")
+    check.add_argument("--exclusive-window", action="store_true", help="明确确认 Wind 独占窗口")
+    download = commands.add_parser("collect", help="采集有日历证明的新交易日或漏日")
+    download.add_argument("--date", type=day_value, help="指定一个交易日")
+    download.add_argument("--from", dest="start", type=day_value, help="补采起点")
+    download.add_argument("--through", type=day_value, help="补采结束日期")
+    download.add_argument("--refresh", action="store_true", help="核查指定交易日的历史修订")
+    download.add_argument("--exclusive-window", action="store_true", help="明确确认 Wind 独占窗口")
+    download.add_argument("--batch-size", type=int, default=100)
+    download.add_argument("--max-sessions", type=int, default=5)
+    download.add_argument("--ready-hour", type=int, default=18, help="上海时间的预期收盘数据就绪小时")
+    download.add_argument("--interval", type=float, default=0.5, help="Wind SDK 串行请求间隔")
+
+    seed = commands.add_parser("seed-legacy", help="从旧仓的已验证 Wind 档案导入一次历史")
+    seed.add_argument("data_dir", type=Path)
+    seed.add_argument("--industry-snapshot", type=Path, help="经校验的旧申万行业观察快照目录")
+    industry = commands.add_parser("import-industry", help="导入行业分类 CSV")
+    industry.add_argument("csv", type=Path)
+    industry.add_argument("--as-of-date", required=True, type=day_value)
+    industry.add_argument("--source", required=True)
+    industry.add_argument("--scheme", default="SW1")
+    tradability = commands.add_parser("import-tradability", help="导入有来源的按日交易状态")
+    tradability.add_argument("csv", type=Path)
+    tradability.add_argument("--date", required=True, type=day_value)
+    tradability.add_argument("--source", required=True)
+    events = commands.add_parser("import-events", help="导入有来源的公告 CSV")
+    events.add_argument("csv", type=Path)
+    events.add_argument("--source", required=True)
+
+    check_status = commands.add_parser("status", help="查看最新日期、缺口和来源覆盖")
+    check_status.add_argument("--as-of")
+    commands.add_parser("validate", help="校验目录中的 Parquet 字段、行数和哈希")
+    report = commands.add_parser("report", help="输出行情、候选及持仓自选风险")
+    report.add_argument("--date", type=day_value)
+    report.add_argument("--as-of", help="含时区的观察截点，ISO 8601")
+    report.add_argument("--watchlist", type=Path)
+    report.add_argument("--risk-date", type=day_value, help="可另指定次日交易状态的核对日期")
+    report.add_argument("--industry-scheme", default="SW1")
+    report.add_argument("--limit", type=int, default=15)
+    report.add_argument("--json", action="store_true", help="输出可供脚本读取的 JSON")
+    report.add_argument("--output", type=Path, help="将报告保存到指定的本地文件")
+    history = commands.add_parser("history", help="查一只股票的本地历史")
+    history.add_argument("code")
+    history.add_argument("--sessions", type=int, default=300)
+    history.add_argument("--as-of")
+    review = commands.add_parser("review", help="给一份已保存的 JSON 报告记录研究判断")
+    review.add_argument("report", type=Path)
+    review.add_argument("code", type=code_value)
+    review.add_argument("decision", choices=("research", "watch", "exclude"))
+    review.add_argument("--reason", required=True)
+    return app
+
+
+def record_review(warehouse, args):
+    source = json.loads(args.report.read_text(encoding="utf-8"))
+    if not args.reason.strip() or not source.get("report_id"):
+        raise ValueError("研究记录需要报告 ID 和原因")
+    rows = source["candidates"] + source["watchlist_risks"]
+    if args.code not in {row["code"] for row in rows}:
+        raise ValueError("报告里没有该候选或自选证券")
+    note = {"known_at": utcnow(), "trade_date": day_value(source["trade_date"]), "report_id": source["report_id"],
+            "report_sha256": digest(args.report), "code": args.code,
+            "decision": args.decision, "reason": args.reason.strip()}
+    path = warehouse.root / "reviews" / f"{uuid4().hex}.json"
+    atomic_json(path, note)
+    return {"recorded": str(path)}
+
+
+def execute(args, warehouse):
+    command = args.command
+    if command == "doctor":
+        sdk = importlib.util.find_spec("WindPy")
         try:
-            return _inspect_series(args) if args.command == "inspect-series" else _record_technical_review(args)
-        except (ValueError, OSError, KeyError) as exc:
-            print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
-            return 1
-    if args.command == "import-research":
-        try:
-            result = import_research_batch(args.data_dir, args.input)
-        except (ValueError, OSError) as exc:
-            print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
-            return 1
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+            desk = "listening" if dashboard_running() else "idle"
+        except WindError:
+            desk = "unknown"
+        return {"duckdb": duckdb.__version__, "wind_python": sdk.origin if sdk else None,
+                "trading_desk_port": desk, "warehouse": str(warehouse.root)}
+    if command == "wind-canary":
+        return canary(exclusive=args.exclusive_window)
+    if command == "collect":
+        if args.date and (args.start or args.through):
+            raise ValueError("--date 与 --from/--through 不能并用")
+
+        def progress(day, done, total):
+            if done == total or done % 1000 == 0:
+                print(f"{day} Wind 行情 {done}/{total}", file=sys.stderr)
+
+        return collect(warehouse, start=args.date or args.start, end=args.date or args.through,
+                       refresh=args.refresh, exclusive=args.exclusive_window, batch_size=args.batch_size,
+                       max_sessions=args.max_sessions, ready_hour=args.ready_hour, interval=args.interval,
+                       progress=progress)
+    if command == "seed-legacy":
+        details = seed_market(warehouse, args.data_dir)
+        if args.industry_snapshot:
+            details["industry_imported"] = seed_industry(warehouse, args.industry_snapshot)
+        return details
+    if command == "import-industry":
+        rows = read_csv(args.csv, {"code", "industry"})
+        return {"industry_imported": warehouse.add_industry(rows, args.as_of_date, args.source, args.scheme)}
+    if command == "import-tradability":
+        rows = read_csv(args.csv, {"code"})
+        return {"tradability_imported": warehouse.add_tradability(rows, args.date, args.source)}
+    if command == "import-events":
+        rows = read_csv(args.csv, {"event_id", "code", "category", "title", "url"})
+        return {"new_events": warehouse.add_events(rows, args.source)}
+    if command == "validate":
+        return warehouse.validate()
+    if command == "status":
+        return status(warehouse, args.as_of)
+    if command == "history":
+        return get_history(warehouse, args.code, as_of=args.as_of, days=args.sessions)
+    if command == "review":
+        return record_review(warehouse, args)
+
+    watchlist = args.watchlist or warehouse.root / "watchlist.csv"
+    if not args.watchlist and not watchlist.exists():
+        watchlist = None
+    result = make_report(warehouse, day=args.date, as_of=args.as_of, watchlist=watchlist,
+                         scheme=args.industry_scheme, limit=args.limit, risk_date=args.risk_date)
+    if args.output:
+        if args.json:
+            atomic_json(args.output, result)
+        else:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(markdown(result), encoding="utf-8")
+        return {"saved": str(args.output.resolve()), "trade_date": result["trade_date"], "report_id": result["report_id"]}
+    return result if args.json else markdown(result)
+
+
+def main(argv=None):
+    app = parser()
+    args = app.parse_args(argv)
+    try:
+        result = execute(args, Warehouse(args.warehouse))
+        if isinstance(result, str):
+            print(result)
+        else:
+            print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         return 0
-    if args.command == "probe":
-        return _probe(args)
-    if args.command == "canary":
-        return _canary(args)
-    if args.command == "run":
-        return _run(args)
-    if args.command == "backfill":
-        return _backfill(args)
-    if args.command == "refresh-technical-adjustments":
-        return _refresh_technical_adjustments(args)
-    if args.command == "validate":
-        ok, payload = validate_latest(data_dir=args.data_dir)
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return 0 if ok else 1
-    if args.command == "dashboard":
-        return _dashboard(args)
-    if args.command in {"build-state", "build-report"}:
-        return _build_data_reference(args)
-    raise RuntimeError(f"unsupported command: {args.command}")
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    except (ValueError, OSError, KeyError, WindError, duckdb.Error, pyarrow.ArrowException) as exc:
+        print(f"Stock Engine: {exc}", file=sys.stderr)
+        return 1
