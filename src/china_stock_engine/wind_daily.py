@@ -19,12 +19,15 @@ from .wind_incremental import collect_incremental
 from .wind_provider import WindProvider
 from .wind_publish import publish, verify_candidate
 from .wind_coordination import RequestPacer
-from .wind_git import GitPublishError, sync_data
+from .wind_git import GitPublishError, sync_data, sync_reversal
+from .weak_to_strong import HISTORY_SESSIONS, PRODUCT
 from .wind_session import (WindBusyError, WindError, WindSession,
                            collector_lock, dashboard_running)
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 DAILY_LOCK = Path.home() / ".cache/china-stock-engine/wind-daily.lock"
+LEGACY_PRODUCT = "legacy_300d"
+DEFAULT_PRODUCT = PRODUCT
 
 
 def clock():
@@ -70,8 +73,12 @@ def release_candidates(workspace: Path, candidate: Path):
             shutil.rmtree(old, ignore_errors=True)
 
 
-def settings(path: Path, root: Path) -> dict:
+def settings(path: Path, root: Path, *, product: str | None = None) -> dict:
     config = load_json_object(path, missing_ok=False)
+    if product is not None:
+        config["product"] = product
+    if config.setdefault("product", DEFAULT_PRODUCT) not in (LEGACY_PRODUCT, PRODUCT):
+        raise ValueError("Unknown local Wind product")
     if type(config.get("enabled")) is not bool:
         raise ValueError("Local configuration requires an explicit enabled boolean")
     if type(config.setdefault("allow_dashboard", True)) is not bool:
@@ -81,13 +88,16 @@ def settings(path: Path, root: Path) -> dict:
     if type(config.setdefault("allow_parallel_collectors", True)) is not bool:
         raise ValueError("allow_parallel_collectors must be boolean")
     RequestPacer(config.setdefault("request_interval_seconds", 0.0))
-    for name, default in (("close_hour_shanghai", 18), ("batch_size", 100), ("retry_minutes", 15)):
+    for name, default in (("batch_size", 100), ("retry_minutes", 15)):
         value = config.setdefault(name, default)
         if type(value) is not int:
             raise ValueError(f"{name} must be an integer")
-    if not (18 <= config["close_hour_shanghai"] <= 23 and 1 <= config["batch_size"] <= 100
-            and 5 <= config["retry_minutes"] <= 1440):
-        raise ValueError("Invalid close hour, Wind batch size or retry interval")
+    if not (1 <= config["batch_size"] <= 100 and 5 <= config["retry_minutes"] <= 1440):
+        raise ValueError("Invalid Wind batch size or retry interval")
+    if config["product"] == LEGACY_PRODUCT:
+        hour = config.setdefault("close_hour_shanghai", 18)
+        if type(hour) is not int or not 18 <= hour <= 23:
+            raise ValueError("Invalid legacy close hour")
     for name, default in (("profile", ".private-stock-data/wind/profile.json"),
                           ("workspace", ".private-stock-data/wind"), ("data_dir", "data"),
                           ("ready_file", ".private-stock-data/wind/local-ready.json")):
@@ -98,14 +108,14 @@ def settings(path: Path, root: Path) -> dict:
     return config
 
 
-def certified_days(calendar: dict, bound: str) -> list[str] | None:
+def certified_days(calendar: dict, bound: str, *, sessions: int = 300) -> list[str] | None:
     if calendar.get("through", "") < bound:
         return None
     days = calendar.get("days")
     if (not isinstance(days, list) or not days or days != sorted(set(days))
             or any(not isinstance(day, str) or len(day) != 10 for day in days)):
         raise ValueError("Invalid locally cached Wind trading calendar")
-    return [day for day in days if day <= bound][-300:]
+    return [day for day in days if day <= bound][-sessions:]
 
 
 def coverage(data: Path, days: list[str], profile_hash: str) -> tuple[str | None, list[str]]:
@@ -136,7 +146,16 @@ def coverage(data: Path, days: list[str], profile_hash: str) -> tuple[str | None
     return last, missing
 
 
-def tick(config: dict, *, check_only: bool = False) -> dict:
+def tick(config: dict, *, check_only: bool = False, audit_all: bool = False,
+         end: str | None = None) -> dict:
+    if config.get("product", DEFAULT_PRODUCT) == PRODUCT:
+        return reversal_tick(config, check_only=check_only, audit_all=audit_all, end=end)
+    if audit_all or end is not None:
+        raise ValueError("--audit-all and --end are supported by the reversal daily product")
+    return legacy_tick(config, check_only=check_only)
+
+
+def legacy_tick(config: dict, *, check_only: bool = False) -> dict:
     """One bounded attempt; repeated calls are safe at logon and after close."""
     workspace, data = config["workspace"], config["data_dir"]
     status_path = workspace / "local_daily_status.json"
@@ -169,6 +188,9 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
                     try:
                         # Retry a prior local publication/push BEFORE opening
                         # another SDK session or replacing its validated data.
+                        reversal_workspace = workspace / PRODUCT
+                        if (reversal_workspace / "git_pending.json").is_file():
+                            sync_reversal(ROOT, data, reversal_workspace)
                         base["git"] = sync_data(ROOT, data, workspace)
                     except (GitPublishError, ValueError, OSError) as exc:
                         return finish("git_push_pending", git={"state": "pending", "error": str(exc)})
@@ -278,10 +300,172 @@ def tick(config: dict, *, check_only: bool = False) -> dict:
                       next_retry_at=(clock() + timedelta(minutes=config["retry_minutes"])).isoformat())
 
 
+
+def reversal_tick(config: dict, *, check_only: bool, audit_all: bool, end: str | None) -> dict:
+    from . import wind_weak_to_strong as reversal
+
+    workspace, data = config["workspace"], config["data_dir"]
+    store = reversal.Warehouse(workspace / PRODUCT)
+    status_path = store.workspace / "local_daily_status.json"
+    at = clock()
+    bound = reversal.completed_bound(at)
+    auto_push = config.get("auto_git_push", True)
+    if end is not None:
+        if reversal.trade_date(end) > bound or auto_push:
+            raise ValueError("--end requires a completed date and auto_git_push=false")
+        bound = end
+    base = {"schema_version": 1, "product": PRODUCT, "checked_at": at.isoformat(),
+            "completed_bound": bound, "host": platform.node(), "remote_dispatch": False,
+            "production_changed": False}
+
+    def finish(state, **extra):
+        result = {**base, "state": state, **extra}
+        if not check_only:
+            atomic_write_json(status_path, result)
+        return result
+
+    def upload():
+        """Resume the same candidate first, including a validated file without a journal."""
+        if auto_push:
+            result = sync_reversal(ROOT, data, store.workspace)
+            if result["state"] != "no_changes" or "git" not in base:
+                base["git"] = result
+
+    def publish(profile_hash):
+        receipt = store.promote(data, profile_hash, bound)
+        base["production_changed"] = True
+        upload()
+        details = receipt["incremental"]
+        return finish("published", trade_date=receipt["trade_date"], rows=receipt["rows"],
+                      vintage=receipt["vintage"], incremental={
+                          **{key: value for key, value in details.items()
+                             if key not in {"audited_codes", "repairs"}},
+                          "audited_count": len(details["audited_codes"]),
+                          "repair_count": len(details["repairs"]),
+                      })
+
+    def resolve_profile():
+        profile = profile_from(config["profile"])
+        return profile, json_sha256(asdict(profile))
+
+    def cached_days(profile_hash):
+        cache = load_json_object(store.workspace / "calendar.json")
+        return certified_days(cache, bound, sessions=HISTORY_SESSIONS) if cache.get("profile_hash") == profile_hash else None
+
+    def is_current(current, days, profile_hash):
+        return bool(days and len(days) == HISTORY_SESSIONS and current
+                    and current["profile_hash"] == profile_hash
+                    and current["trade_date"] == days[-1])
+
+    if not config["enabled"]:
+        return finish("idle")
+    if check_only:
+        try:
+            if auto_push and ((store.workspace / "git_pending.json").exists()
+                              or (workspace / "git_pending.json").exists()
+                              or load_json_object(status_path).get("state") == "git_push_pending"):
+                return finish("git_push_pending")
+            profile, profile_hash = resolve_profile()
+            if not profile.units_verified:
+                return finish("blocked_unit_review")
+            if store.pending.exists():
+                return finish("publication_pending")
+            current = store.current()
+            days = cached_days(profile_hash)
+            if not audit_all and is_current(current, days, profile_hash):
+                valid, _ = reversal.validate_publication(data, store.workspace)
+                if valid:
+                    return finish("up_to_date", trade_date=current["trade_date"])
+            return finish("catchup_required" if days else "needs_calendar",
+                          trade_date=current.get("trade_date"))
+        except (WindError, ValueError, OSError, KeyError, TypeError) as exc:
+            return finish("failed", error=str(exc))
+
+    retry_at = (at + timedelta(minutes=config["retry_minutes"])).isoformat()
+    try:
+        with collector_lock(DAILY_LOCK):
+            try:
+                if auto_push and (workspace / "git_pending.json").is_file():
+                    sync_data(ROOT, data, workspace)
+                if auto_push and ((store.workspace / "git_pending.json").is_file()
+                                  or load_json_object(status_path).get("state") == "git_push_pending"):
+                    upload()
+                profile, profile_hash = resolve_profile()
+                if not profile.units_verified:
+                    return finish("blocked_unit_review")
+                if store.pending.is_file():
+                    return publish(profile_hash)
+                current = store.current()
+                if current and current["trade_date"] > bound:
+                    raise ValueError("Reversal request would regress the private latest trade date")
+                if current and current["profile_hash"] == profile_hash and not (data / reversal.PACKAGE).exists():
+                    atomic_write_json(store.pending, {"vintage": current["vintage"]})
+                    return publish(profile_hash)
+                upload()
+                days = cached_days(profile_hash)
+                if not audit_all and is_current(current, days, profile_hash):
+                    valid, details = reversal.validate_publication(data, store.workspace)
+                    if not valid:
+                        raise ValueError(details["error"])
+                    return finish("up_to_date", trade_date=current["trade_date"])
+                previous = load_json_object(status_path)
+                if (previous.get("completed_bound") == bound and previous.get("next_retry_at")
+                        and at < instant(previous["next_retry_at"])):
+                    return finish("retry_wait", next_retry_at=previous["next_retry_at"])
+                allow_dashboard = config.get("allow_dashboard", True)
+                if dashboard_running() and not allow_dashboard:
+                    return finish("waiting_dashboard", next_retry_at=retry_at)
+                if not readiness(config["ready_file"], at, allow_dashboard):
+                    return finish("waiting_login_and_exclusive_window")
+
+                def guarded_request(operation, *args):
+                    if not readiness(config["ready_file"], clock(), allow_dashboard):
+                        raise WindBusyError("Local login/window attestation expired")
+                    return session.request(operation, *args)
+
+                interval = config.get("request_interval_seconds", 0.0)
+                with WindSession(exclusive_window=True, allow_dashboard=allow_dashboard,
+                                 request_interval=interval,
+                                 allow_parallel_collectors=config.get("allow_parallel_collectors", True)) as session:
+                    provider = WindProvider(guarded_request, profile, request_interval=interval, lean=True)
+                    days = reversal.sessions(provider.fetch_trade_calendar(bound, offset=-HISTORY_SESSIONS), bound)
+                    if end is not None and days[-1] != end:
+                        raise ValueError("--end is not a Wind-certified trading date")
+                    atomic_write_json(store.workspace / "calendar.json", {"through": bound, "days": days,
+                                      "profile_hash": profile_hash, "observed_at": clock().isoformat()})
+                    if not audit_all and is_current(current, days, profile_hash):
+                        valid, details = reversal.validate_publication(data, store.workspace)
+                        if not valid:
+                            raise ValueError(details["error"])
+                        return finish("up_to_date", trade_date=current["trade_date"])
+                    finish("collecting", trade_date=days[-1])
+                    basis = store.load_basis(data, days, profile_hash, current)
+                    bars, universe, incremental = reversal.collect(provider, days, basis,
+                        batch_size=config["batch_size"], audit_all=audit_all,
+                        progress=lambda done, total: finish("collecting", trade_date=days[-1],
+                                                            completed_codes=done, total_codes=total))
+                store.stage(bars, universe, days, observed_at=clock().isoformat(),
+                            profile_hash=profile_hash, incremental=incremental)
+                return publish(profile_hash)
+            except GitPublishError as exc:
+                return finish("git_push_pending", git={"state": "pending", "error": str(exc)})
+            except WindBusyError:
+                return finish("waiting_exclusive_window", next_retry_at=retry_at)
+            except (WindError, ValueError, OSError, KeyError, TypeError) as exc:
+                return finish("failed", error=str(exc), next_retry_at=retry_at)
+    except WindBusyError:
+        return {**base, "state": "waiting_exclusive_window"}
+    except (ValueError, OSError) as exc:
+        return finish("failed", error=str(exc))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("check", "tick", "arm", "disarm"))
     parser.add_argument("--config", type=Path, default=ROOT / ".private-stock-data/wind/local_daily.json")
+    parser.add_argument("--product", choices=(LEGACY_PRODUCT, PRODUCT))
+    parser.add_argument("--audit-all", action="store_true", help="Audit all reversal window fields (tick only)")
+    parser.add_argument("--end", help="Validate an explicit completed reversal session with Git disabled")
     parser.add_argument("--login-confirmed", action="store_true")
     parser.add_argument("--exclusive-window", action="store_true")
     parser.add_argument("--dashboard-coexistence", action="store_true",
@@ -289,7 +473,9 @@ def main(argv=None):
     parser.add_argument("--minutes", type=int, default=30)
     args = parser.parse_args(argv)
     try:
-        config = settings(args.config, ROOT)
+        config = settings(args.config, ROOT, product=args.product)
+        if args.mode not in {"tick", "check"} and (args.audit_all or args.end is not None):
+            raise ValueError("--audit-all and --end apply to reversal tick")
         if args.mode == "arm":
             coexist = config.get("allow_dashboard", False)
             confirmed = args.dashboard_coexistence if coexist else args.exclusive_window
@@ -304,7 +490,7 @@ def main(argv=None):
             config["ready_file"].unlink(missing_ok=True)
             result = {"state": "disarmed", "production_changed": False}
         else:
-            result = tick(config, check_only=args.mode == "check")
+            result = tick(config, check_only=args.mode == "check", audit_all=args.audit_all, end=args.end)
     except (WindError, ValueError, OSError) as exc:
         result = {"state": "configuration_error", "error": str(exc), "production_changed": False}
     print(json.dumps(result, ensure_ascii=False, indent=2))

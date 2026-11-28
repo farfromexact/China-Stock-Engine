@@ -8,6 +8,7 @@ import multiprocessing as mp
 import os
 from pathlib import Path
 import socket
+import subprocess
 import threading
 
 from contextlib import nullcontext
@@ -23,6 +24,8 @@ class WindBusyError(WindError):
 
 
 def dashboard_running() -> bool:
+    if os.name == "nt":
+        return _windows_dashboard_running()
     try:
         with socket.create_connection(("127.0.0.1", 8765), timeout=0.5):
             return True
@@ -31,6 +34,29 @@ def dashboard_running() -> bool:
     except OSError as exc:
         # An inaccessible probe is not evidence that the other client is idle.
         raise WindBusyError("Cannot establish whether the Wind dashboard is idle") from exc
+
+
+def _windows_dashboard_running() -> bool:
+    """Read Windows' listener table without making a sandbox-blocked socket connection."""
+    query = (
+        "$rows = @(netstat.exe -ano -p tcp); if ($LASTEXITCODE -ne 0) { exit 3 }; "
+        "$listeners = @($rows | Where-Object { $_ -match '^\\s*TCP\\s+\\S+:8765\\s+\\S+\\s+LISTENING\\b' }); "
+        "if ($listeners.Count -gt 0) { 'busy' } else { 'idle' }"
+    )
+    try:
+        result = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", query],
+            capture_output=True, text=True, timeout=5,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise WindBusyError("Cannot establish whether the Wind dashboard is idle") from exc
+    if result.returncode != 0:
+        raise WindBusyError("Cannot establish whether the Wind dashboard is idle")
+    state = result.stdout.strip()
+    if state not in {"busy", "idle"}:
+        raise WindBusyError("Cannot establish whether the Wind dashboard is idle")
+    return state == "busy"
 
 
 def require_exclusive_window(authorized: bool, allow_dashboard: bool = False) -> None:

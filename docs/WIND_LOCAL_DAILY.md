@@ -1,5 +1,7 @@
 # 本地 Wind 每日采集与开机补采
 
+> 日常入口默认使用 [弱转强数据仓](WEAK_TO_STRONG.md)。下文的 300 日产品可在私有配置设置 product 为 legacy_300d，或在 tick 命令传入 --product legacy_300d。
+
 > 2026-11-12 更新：新增用户授权的显式看板共存模式，见 [共存采集](WIND_DASHBOARD_COEXISTENCE.md)。下文端口阻挡/独占条件适用于默认旧模式。
 
 GitHub iFinD 日常、补充、研究增强及 Scheduler Bridge 继续 disabled，`IFIND_COLLECTION_STATE=idle`。本功能不 dispatch Actions、不安装 self-hosted runner。按用户 2026-11-12 授权，本地采集成功并通过验证后默认自动 commit/push 数据；使用本机已有 Git 身份与凭据，不自动登录 GitHub。Mac/Windows 共用 `china_stock_engine.wind_daily`。

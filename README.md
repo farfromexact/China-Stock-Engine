@@ -1,5 +1,12 @@
 # China Stock Engine
 
+
+## 弱转强
+
+新的 Wind 日频产品面向沪深京全 A。以盘后 30 个交易日的价量底表识别短期回落后收盘放量收复压力位的股票，并跟踪随后两个交易日是否守住。下游 LLM 的入口是 `data/weak_to_strong/latest.json`。口径、字段、回放和本机验收见 [弱转强数据仓](docs/WEAK_TO_STRONG.md)。
+
+## 旧日频数据与 300 日 Wind 管线
+
 > 2026-11-12：已增加并完成本机 Mac 小样本验证的 [Trading Desk 共存采集模式](docs/WIND_DASHBOARD_COEXISTENCE.md)，支持看板运行时股票/商品串行限速取数。
 
 本地每日采集现默认在数据验证成功后自动 commit/push 到本仓库 main（`auto_git_push=true`）；上传失败保留数据和提交，下次先重试上传，不重复取数。只提交生成的数据，不提交代码/SDK/凭据；Git 前置条件与状态见 [本地调度](docs/WIND_LOCAL_DAILY.md)。远端旧采集触发器仍关闭。

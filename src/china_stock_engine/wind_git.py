@@ -192,6 +192,49 @@ class DataPublisher:
         return {"state": "pushed", "pushed": True, "commit": head, "trade_date": info["trade_date"]}
 
 
+class ReversalPublisher(DataPublisher):
+    """Use the existing Git journal and restrict its allowlist to one consumer file."""
+
+    def sync(self):
+        pending = load_json_object(self.journal)
+        if pending:
+            self.allowed_paths([("", path) for path in pending["paths"]], {}, pending)
+        return super().sync()
+
+    def validate_data(self):
+        from .wind_weak_to_strong import MAX_REPO_DATA_BYTES, validate_publication
+
+        data = self.root / "data"
+        valid, receipt = validate_publication(data, self.workspace)
+        if not valid:
+            raise GitPublishError("Reversal candidate failed final validation; nothing committed")
+        if tree_bytes(data) >= MAX_REPO_DATA_BYTES:
+            raise GitPublishError("Data exceeds the 900 MB publication gate")
+        return {}, receipt
+
+    def allowed_paths(self, changes, manifest, receipt):
+        from .wind_weak_to_strong import PACKAGE
+
+        if [path for _, path in changes] != ["data/" + PACKAGE]:
+            raise GitPublishError("Only the validated reversal candidate package can be committed")
+
+    def data_digest(self):
+        from .wind_weak_to_strong import PACKAGE
+
+        data = self.root / "data"
+        source = data / PACKAGE
+        if data.is_symlink() or source.is_symlink() or source.parent.is_symlink():
+            raise GitPublishError("Reversal publication refuses symlinks")
+        return sha256_file(source)
+
+
+def sync_reversal(root: Path, data_dir: Path, workspace: Path):
+    if data_dir.resolve() != root.resolve() / "data":
+        raise GitPublishError("Automatic Git publication requires the repository data/ directory")
+    with collector_lock(root / ".private-stock-data/wind-publication.lock"):
+        return ReversalPublisher(root, workspace).sync()
+
+
 def sync_data(root: Path, data_dir: Path, workspace: Path):
     if data_dir.resolve() != root.resolve() / "data":
         raise GitPublishError("Automatic Git publication requires the repository data/ directory")

@@ -98,11 +98,14 @@ class IncrementalWind:
     """Present a complete candidate to existing quality gates, without full downloads."""
     provider = "windpy"
 
-    def __init__(self, provider, seed, *, audit_all=False):
+    def __init__(self, provider, seed, *, audit_all=False, sessions=300, raw_columns=None):
         self.base, self.seed, self.profile = provider, seed, provider.profile
         self.source_endpoints = provider.source_endpoints
         self.cursor = int((seed["receipt"].get("incremental") or {}).get("next_audit_bucket", 0)) % AUDIT_BUCKETS
         self.audit_all = audit_all
+        self.sessions = sessions
+        self.raw_columns = RAW if raw_columns is None else raw_columns
+        self.audit_fields = [field for field in NUMERIC if field in self.raw_columns]
         self.records, self.pending = {}, {}
         self.actual_downloaded_rows = 0
         self.provenance = {**provider.provenance, "incremental_source_vintage": seed["vintage"],
@@ -110,7 +113,7 @@ class IncrementalWind:
 
     def fetch_trade_calendar(self, end, **kwargs):
         result = self.base.fetch_trade_calendar(end, **kwargs)
-        self.days = sorted(result.loc[result.is_open & result.trade_date.le(end), "trade_date"].unique())[-300:]
+        self.days = sorted(result.loc[result.is_open & result.trade_date.le(end), "trade_date"].unique())[-self.sessions:]
         return result
 
     def fetch_universe(self, end):
@@ -159,13 +162,13 @@ class IncrementalWind:
 
     def _prepare(self, codes, start, end):
         if not self.days or self.days[0] != start or self.days[-1] != end:
-            raise WindError("Incremental range differs from its certified 300-session window")
+            raise WindError("Incremental range differs from its certified session window")
         raw, adjusted, old_factors, repairs, gaps = {}, {}, {}, {}, {}
         for code in codes:
             listing = self.listings.get(code)
             if not listing or pd.isna(listing):
                 raise WindError("Incremental source lacks a unique listing date")
-            original = self.seed["raw"].get(code, pd.DataFrame(columns=RAW))
+            original = self.seed["raw"].get(code, pd.DataFrame(columns=self.raw_columns))
             original = original.loc[original.trade_date.isin(self.days)].copy().reset_index(drop=True)
             factors = self.seed["factors"].get(code, pd.DataFrame(columns=FACTOR))
             factors = factors.loc[factors.trade_date.isin(original.trade_date)].copy().set_index("trade_date")
@@ -210,7 +213,7 @@ class IncrementalWind:
             current = audit_raw[code].set_index("trade_date")
             if (not set(prior.index) <= set(current.index)
                     or any(not same(prior.loc[day, field], current.loc[day, field])
-                           for day in prior.index if day in current.index for field in NUMERIC)):
+                           for day in prior.index if day in current.index for field in self.audit_fields)):
                 repairs[code].append("historical_full_fields_revised")
 
         full = [code for code in codes if repairs[code]]
@@ -268,7 +271,7 @@ class IncrementalWind:
             # Native full-field audit observations supersede cached observations.
             if code in audit_raw and not repairs[code]:
                 raw[code] = audit_raw[code]
-            raw[code] = raw[code][RAW].sort_values("trade_date").reset_index(drop=True)
+            raw[code] = raw[code][self.raw_columns].sort_values("trade_date").reset_index(drop=True)
             adjusted[code] = adjusted[code][["trade_date", "thscode", *OHLC]].sort_values("trade_date").reset_index(drop=True)
             if not set(raw[code].trade_date) <= set(self.days):
                 raise WindError("Incremental result has bars outside certified sessions")

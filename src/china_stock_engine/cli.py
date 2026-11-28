@@ -136,6 +136,8 @@ def _parser() -> argparse.ArgumentParser:
 
     validate = subparsers.add_parser("validate", help="validate the latest snapshot")
     validate.add_argument("--data-dir", type=Path, default=Path("data"))
+    validate.add_argument("--product", choices=("legacy_300d", "weak_to_strong"), default="legacy_300d")
+    validate.add_argument("--workspace", type=Path, help="Private reversal warehouse for input hash verification")
 
     dashboard = subparsers.add_parser(
         "dashboard", help="build an offline HTML dashboard from latest"
@@ -1228,7 +1230,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "refresh-technical-adjustments":
         return _refresh_technical_adjustments(args)
     if args.command == "validate":
-        ok, payload = validate_latest(data_dir=args.data_dir)
+        if args.product == "weak_to_strong":
+            from .wind_weak_to_strong import validate_publication
+            ok, payload = validate_publication(args.data_dir, args.workspace)
+        else:
+            ok, payload = validate_latest(data_dir=args.data_dir)
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0 if ok else 1
     if args.command == "dashboard":

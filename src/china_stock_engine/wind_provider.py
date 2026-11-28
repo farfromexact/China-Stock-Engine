@@ -17,6 +17,7 @@ QUOTE_MAP = {"open": "open", "high": "high", "low": "low", "close": "close",
              "amount": "amt", "turnover_ratio": "turn", "change_ratio": "pct_chg"}
 REFERENCE_MAP = {"listing_date": "ipo_date", "total_shares": "total_shares",
                  "float_a_shares": "float_a_shares"}
+LEAN_QUOTE_FIELDS = ("open", "high", "low", "close", "volume", "amount")
 CODE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$")
 
 
@@ -66,9 +67,14 @@ class WindProvider:
     provider = "windpy"
     source_endpoints = ("tdays", "wset:sectorconstituent", "wss", "wsd")
 
-    def __init__(self, request: Callable, profile: WindProfile | None = None, *, request_interval: float | None = None):
+    def __init__(self, request: Callable, profile: WindProfile | None = None, *,
+                 request_interval: float | None = None, lean: bool = False):
         self._request = request
         self.profile = profile or WindProfile()
+        self.quote_fields = ({name: self.profile.quote_fields[name] for name in LEAN_QUOTE_FIELDS}
+                             if lean else self.profile.quote_fields)
+        self.reference_fields = ({"listing_date": self.profile.reference_fields["listing_date"]}
+                                 if lean else self.profile.reference_fields)
         self.request_interval = self.profile.min_interval if request_interval is None else request_interval
         if isinstance(self.request_interval, bool) or not isinstance(self.request_interval, (int, float)) or not math.isfinite(self.request_interval) or self.request_interval < 0:
             raise ValueError("request_interval must be finite and nonnegative")
@@ -121,7 +127,7 @@ class WindProvider:
     def fetch_security_reference(self, codes, trade_date, *, batch_size=80,
                                  request_interval_seconds=0, progress=None):
         frames = []
-        fields = list(self.profile.reference_fields.values())
+        fields = list(self.reference_fields.values())
         if batch_size < 1:
             raise ValueError("batch_size must be positive")
         batches = [codes[i:i + batch_size] for i in range(0, len(codes), batch_size)]
@@ -131,11 +137,12 @@ class WindProvider:
             returned = [str(code).upper() for code in raw["codes"]]
             if returned != batch or len(frame) != len(batch) or not set(fields) <= set(frame):
                 raise WindError("Wind reference code/field axes do not match request")
-            frame = frame.rename(columns={v: k for k, v in self.profile.reference_fields.items()})
+            frame = frame.rename(columns={v: k for k, v in self.reference_fields.items()})
             frame["thscode"], frame["as_of_date"] = batch, trade_date
             frame["listing_date"] = date_values(frame["listing_date"])
             for name in ("total_shares", "float_a_shares"):
-                frame[name] = pd.to_numeric(frame[name], errors="coerce") * self.profile.shares_multiplier
+                if name in frame:
+                    frame[name] = pd.to_numeric(frame[name], errors="coerce") * self.profile.shares_multiplier
             frame["source_provider"], frame["source_endpoint"] = self.provider, "wss"
             frames.append(frame)
             if progress:
@@ -146,7 +153,7 @@ class WindProvider:
         if not CODE.fullmatch(code) or start > end:
             raise ValueError("invalid Wind code or date range")
         mapping = ({key: self.profile.quote_fields[key] for key in ("open", "high", "low", "close")}
-                   if adjusted else self.profile.quote_fields)
+                   if adjusted else self.quote_fields)
         result = self.request("wsd", code, ",".join(mapping.values()), start, end,
                               self.profile.adjusted_options if adjusted else self.profile.raw_options)
         frame = columns(result)
@@ -197,7 +204,7 @@ class WindProvider:
 
     def history_many(self, codes, start, end, *, adjusted=False):
         mapping = ({key: self.profile.quote_fields[key] for key in ("open", "high", "low", "close")}
-                   if adjusted else self.profile.quote_fields)
+                   if adjusted else self.quote_fields)
         frames = self._matrix(codes, mapping, start, end, adjusted=adjusted)
         return {code: self._normalize_history(frame, code, start, end, adjusted=adjusted)
                 for code, frame in frames.items()}
@@ -220,7 +227,7 @@ class WindProvider:
 
     def _normalize_history(self, frame, code, start, end, *, adjusted=False):
         mapping = ({key: self.profile.quote_fields[key] for key in ("open", "high", "low", "close")}
-                   if adjusted else self.profile.quote_fields)
+                   if adjusted else self.quote_fields)
         if frame.trade_date.isna().any() or frame.trade_date.duplicated().any() or not frame.trade_date.between(start, end).all():
             raise WindError("Wind history has duplicate, invalid or out-of-range dates")
         for name in mapping:

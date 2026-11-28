@@ -28,7 +28,7 @@ class WindLocalDailyTests(unittest.TestCase):
         config_path = self.root / "config.json"
         atomic_write_json(config_path, {"enabled": True, "auto_git_push": False, "allow_dashboard": False, "allow_parallel_collectors": False, "profile": str(profile),
             "workspace": "private", "data_dir": "data", "ready_file": "ready.json"})
-        self.config = settings(config_path, self.root)
+        self.config = settings(config_path, self.root, product="legacy_300d")
         self.workspace = self.config["workspace"]
         self.data = self.config["data_dir"]
         self.hash = json_sha256(asdict(WindProfile(units_verified=True, min_interval=0)))
@@ -254,7 +254,7 @@ class WindLocalDailyTests(unittest.TestCase):
                        {"enabled": True, "close_hour_shanghai": 15}):
             atomic_write_json(path, config)
             with self.assertRaises(ValueError):
-                settings(path, self.root)
+                settings(path, self.root, product="legacy_300d")
 
 
 if __name__ == "__main__":

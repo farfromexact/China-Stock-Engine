@@ -229,6 +229,8 @@ def collect_candidate(provider: WindProvider, workspace: Path, *, end: str,
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("doctor", "canary", "collect", "incremental"))
+    parser.add_argument("--product", choices=("legacy_300d", "weak_to_strong"), default="legacy_300d")
+    parser.add_argument("--dashboard-coexistence", action="store_true", help="Confirm a reversal canary in the authorized coexistence mode")
     parser.add_argument("--end")
     parser.add_argument("--sessions", type=int, default=300)
     parser.add_argument("--batch-size", type=int, default=100)
@@ -249,6 +251,22 @@ def main(argv=None):
         end = datetime.fromisoformat(args.end).date()
         if end.isoformat() != args.end:
             raise ValueError("--end must use YYYY-MM-DD")
+        if args.product == "weak_to_strong":
+            from .wind_weak_to_strong import canary, completed_bound
+            if (args.mode != "canary" or args.audit_all or args.refresh
+                    or args.exclusive_window == args.dashboard_coexistence):
+                raise ValueError("Choose reversal canary and confirm exactly one session mode")
+            if args.end > completed_bound(datetime.now(timezone.utc)):
+                raise ValueError("Reversal canary requires a completed trading date")
+            dashboard_running()
+            with WindSession(exclusive_window=True, allow_dashboard=args.dashboard_coexistence) as session:
+                result = canary(WindProvider(session.request, profile_from(args.profile), lean=True), args.end,
+                                (args.codes or "600000.SH,000001.SZ,688981.SH,300750.SZ,920001.BJ").split(","),
+                                batch_size=args.batch_size)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0
+        if args.dashboard_coexistence:
+            raise ValueError("--dashboard-coexistence is supported by the reversal canary")
         from .cli import default_trade_date
         if end.isoformat() > default_trade_date():
             raise ValueError("Wind collection cannot request an unfinished trade date")
